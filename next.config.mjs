@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  transpilePackages: ['react-leaflet', 'leaflet'],
+  serverExternalPackages: ['mongoose'],
+  turbopack: {},
 };
 
 export default nextConfig;
