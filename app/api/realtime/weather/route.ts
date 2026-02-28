@@ -9,12 +9,37 @@
  */
 import { NextResponse } from 'next/server';
 
-const ASSAM_DISTRICTS = [
+export const dynamic = 'force-dynamic';
+
+
+const INDIA_DISTRICTS = [
+    // North
+    { name: 'Patna', state: 'Bihar', lat: 25.59, lon: 85.13 },
+    { name: 'Lucknow', state: 'Uttar Pradesh', lat: 26.84, lon: 80.94 },
+    { name: 'Srinagar', state: 'Jammu & Kashmir', lat: 34.08, lon: 74.79 },
+    // Northeast
     { name: 'Kamrup', state: 'Assam', lat: 26.14, lon: 91.74 },
     { name: 'Dhubri', state: 'Assam', lat: 26.02, lon: 89.98 },
-    { name: 'Barpeta', state: 'Assam', lat: 26.32, lon: 91.00 },
-    { name: 'Morigaon', state: 'Assam', lat: 26.25, lon: 92.33 },
-    { name: 'Jorhat', state: 'Assam', lat: 26.75, lon: 94.20 },
+    { name: 'Dibrugarh', state: 'Assam', lat: 27.47, lon: 94.91 },
+    { name: 'Imphal', state: 'Manipur', lat: 24.81, lon: 93.93 },
+    // East
+    { name: 'Kolkata', state: 'West Bengal', lat: 22.57, lon: 88.36 },
+    { name: 'Bhubaneswar', state: 'Odisha', lat: 20.29, lon: 85.82 },
+    { name: 'Puri', state: 'Odisha', lat: 19.81, lon: 85.83 },
+    // West
+    { name: 'Mumbai', state: 'Maharashtra', lat: 19.07, lon: 72.87 },
+    { name: 'Surat', state: 'Gujarat', lat: 21.17, lon: 72.83 },
+    { name: 'Pune', state: 'Maharashtra', lat: 18.52, lon: 73.85 },
+    { name: 'Ahmedabad', state: 'Gujarat', lat: 23.02, lon: 72.57 },
+    // South
+    { name: 'Chennai', state: 'Tamil Nadu', lat: 13.08, lon: 80.27 },
+    { name: 'Kochi', state: 'Kerala', lat: 9.93, lon: 76.26 },
+    { name: 'Wayanad', state: 'Kerala', lat: 11.68, lon: 76.13 },
+    { name: 'Hyderabad', state: 'Telangana', lat: 17.38, lon: 78.48 },
+    { name: 'Bengaluru', state: 'Karnataka', lat: 12.97, lon: 77.59 },
+    // Central
+    { name: 'Bhopal', state: 'Madhya Pradesh', lat: 23.25, lon: 77.41 },
+    { name: 'Raipur', state: 'Chhattisgarh', lat: 21.25, lon: 81.62 },
 ];
 
 function computeRainfallRisk(r7d: number, r24h: number) {
@@ -34,7 +59,7 @@ function decodeWMO(code: number): string {
     return 'Unknown';
 }
 
-async function fetchOne(d: typeof ASSAM_DISTRICTS[0]) {
+async function fetchOne(d: typeof INDIA_DISTRICTS[0]) {
     const url = new URL('https://api.open-meteo.com/v1/forecast');
     url.searchParams.set('latitude', String(d.lat));
     url.searchParams.set('longitude', String(d.lon));
@@ -100,7 +125,7 @@ async function fetchOne(d: typeof ASSAM_DISTRICTS[0]) {
 export async function GET() {
     try {
         const settled = await Promise.allSettled(
-            ASSAM_DISTRICTS.map(fetchOne)
+            INDIA_DISTRICTS.map(fetchOne)
         );
 
         const districts = settled
@@ -127,7 +152,7 @@ export async function GET() {
         return NextResponse.json({
             success: true,
             source: 'Open-Meteo (api.open-meteo.com) — No API key required',
-            coverage: 'Assam, India — 5 districts',
+            coverage: 'India Nationwide — 21 strategic districts',
             fetchedAt: new Date().toISOString(),
             partialFail: failed > 0 ? `${failed} district(s) failed` : null,
             summary: {

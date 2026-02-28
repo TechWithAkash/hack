@@ -138,7 +138,7 @@ export default function FloodMapPage() {
                     </h1>
                 </div>
                 <p style={{ fontSize: 12, color: '#94A3B8', marginLeft: 11 }}>
-                    GEE Sentinel-1 SAR + Sentinel-2 NDWI · Open-Meteo Weather Estimates · Assam &amp; Northeast India
+                    GEE Sentinel-1 SAR + Sentinel-2 NDWI · Open-Meteo Weather Estimates · India Nationwide Coverage
                 </p>
             </div>
 

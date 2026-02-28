@@ -4,6 +4,9 @@ import { RiskEvent } from '@/lib/models/RiskEvent';
 import { District } from '@/lib/models/District';
 import { SatelliteScene } from '@/lib/models/SatelliteScene';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * POST /api/realtime/ingest-weather
  *
@@ -15,16 +18,30 @@ import { SatelliteScene } from '@/lib/models/SatelliteScene';
  * The Flood Map uses lat/lon from metadata.floodBbox instead.
  */
 
-const ASSAM_DISTRICTS = [
+const INDIA_DISTRICTS = [
+    // North
+    { name: 'Patna', state: 'Bihar', lat: 25.59, lon: 85.13, area: 3202, pop: 5838465 },
+    { name: 'Lucknow', state: 'Uttar Pradesh', lat: 26.84, lon: 80.94, area: 2528, pop: 4589838 },
+    { name: 'Srinagar', state: 'Jammu & Kashmir', lat: 34.08, lon: 74.79, area: 2228, pop: 1236829 },
+    // Northeast
     { name: 'Kamrup', state: 'Assam', lat: 26.14, lon: 91.74, area: 1694, pop: 1513841 },
     { name: 'Dhubri', state: 'Assam', lat: 26.02, lon: 89.98, area: 2838, pop: 1949258 },
-    { name: 'Barpeta', state: 'Assam', lat: 26.32, lon: 91.00, area: 3245, pop: 1693190 },
-    { name: 'Morigaon', state: 'Assam', lat: 26.25, lon: 92.33, area: 1551, pop: 957423 },
-    { name: 'Jorhat', state: 'Assam', lat: 26.75, lon: 94.20, area: 2851, pop: 1092256 },
+    { name: 'Dibrugarh', state: 'Assam', lat: 27.47, lon: 94.91, area: 3381, pop: 1326335 },
+    { name: 'Imphal', state: 'Manipur', lat: 24.81, lon: 93.93, area: 519, pop: 642227 },
+    // East
+    { name: 'Kolkata', state: 'West Bengal', lat: 22.57, lon: 88.36, area: 206, pop: 4496694 },
+    { name: 'Bhubaneswar', state: 'Odisha', lat: 20.29, lon: 85.82, area: 422, pop: 843402 },
+    // West
+    { name: 'Mumbai', state: 'Maharashtra', lat: 19.07, lon: 72.87, area: 603, pop: 12442373 },
+    { name: 'Surat', state: 'Gujarat', lat: 21.17, lon: 72.83, area: 326, pop: 4467797 },
+    // South
+    { name: 'Chennai', state: 'Tamil Nadu', lat: 13.08, lon: 80.27, area: 426, pop: 7088000 },
+    { name: 'Kochi', state: 'Kerala', lat: 9.93, lon: 76.26, area: 95, pop: 601574 },
+    { name: 'Wayanad', state: 'Kerala', lat: 11.68, lon: 76.13, area: 2131, pop: 817420 },
 ];
 
 const ELEV_VULN: Record<string, number> = {
-    Kamrup: 0.62, Dhubri: 0.78, Barpeta: 0.71, Morigaon: 0.55, Jorhat: 0.38,
+    Kamrup: 0.62, Dhubri: 0.78, Patna: 0.85, Srinagar: 0.92, Mumbai: 0.88, Kochi: 0.95, Wayanad: 0.82,
 };
 
 function classifyRisk(score: number): string {
@@ -100,8 +117,8 @@ export async function POST() {
                 source: 'S2',
                 sceneDate: now,
                 ingestedAt: now,
-                aoiName: 'assam_india',
-                boundingBox: [89.7, 24.1, 96.0, 28.2],
+                aoiName: 'india_nationwide',
+                boundingBox: [68.1, 6.7, 97.4, 35.5],
                 cloudCoverPct: null,
                 geeAssetId: `OPENMETEO_${dateKey}`,
                 status: 'processed',
@@ -118,7 +135,7 @@ export async function POST() {
 
         const results = [];
 
-        for (const info of ASSAM_DISTRICTS) {
+        for (const info of INDIA_DISTRICTS) {
             const wx = wxByDistrict[info.name];
             if (!wx) continue;
 

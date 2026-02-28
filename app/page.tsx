@@ -8,7 +8,7 @@ import ForecastPanel from '@/components/dashboard/ForecastPanel';
 
 export const metadata = {
     title: 'Dashboard · COSMEON Climate Risk Intelligence',
-    description: 'Real-time flood risk intelligence dashboard for Assam, India — satellite + live weather data',
+    description: 'Real-time flood risk intelligence dashboard for India — satellite + live weather data',
 };
 
 export default function DashboardPage() {
@@ -31,7 +31,7 @@ export default function DashboardPage() {
                         </h1>
                     </div>
                     <p style={{ fontSize: 12, color: '#94A3B8', marginLeft: 11 }}>
-                        Satellite-derived flood intelligence · Open-Meteo live weather · Assam, India AOI
+                        Satellite-derived flood intelligence · Open-Meteo live weather · India Nationwide AOI
                     </p>
                 </div>
 

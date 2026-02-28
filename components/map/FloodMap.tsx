@@ -67,7 +67,7 @@ function InjectStyles() {
 function floodPopup(p: Record<string, any>): string {
     const rc = RISK[p.riskLevel] ?? RISK.UNKNOWN;
     const dn = p.districtName ?? p.districtId?.districtName ?? 'Unknown district';
-    const st = p.stateName ?? p.districtId?.stateName ?? 'Assam, India';
+    const st = p.stateName ?? p.districtId?.stateName ?? 'India';
     const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(1) : '—';
     const area = typeof p.floodAreaKm2 === 'number' ? `${p.floodAreaKm2.toFixed(1)} km²` : '—';
     const pop = typeof p.affectedPopEst === 'number' ? p.affectedPopEst.toLocaleString() : '—';
@@ -284,8 +284,8 @@ interface FloodMapProps {
 export default function FloodMap({ events, tileMode }: FloodMapProps) {
     return (
         <MapContainer
-            center={[25.9, 92.5]}
-            zoom={7}
+            center={[20.59, 78.96]}
+            zoom={5}
             zoomControl={false}
             style={{ width: '100%', height: '580px', minHeight: '580px' }}
         >
