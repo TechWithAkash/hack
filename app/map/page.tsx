@@ -1,9 +1,12 @@
 'use client';
 
+import React from 'react';
+import { useStudio } from '@/components/studio/StudioContext';
 import dynamic from 'next/dynamic';
 import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
+import { formatArea, formatPopulation, formatScore } from '@/lib/utils/formatters';
 import {
     Droplets, SatelliteDish, Sun, Moon,
     RefreshCw, AlertTriangle, Activity, Users,
@@ -161,10 +164,10 @@ export default function GeospatialMapPage() {
                     </div>
                     <div>
                         <h1 style={{ fontSize: 18, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
-                            Live Risk Matrix
+                            Geospatial Intelligence Matrix
                         </h1>
                         <p style={{ fontSize: 10, color: '#64748B', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {allEvents.length} Monitored zones globally · <span style={{ color: '#16A34A' }}>Live Feed</span>
+                            Currently monitoring {allEvents.length} active flood anomalies
                         </p>
                     </div>
                 </div>
@@ -176,7 +179,7 @@ export default function GeospatialMapPage() {
                         style={{ padding: '8px 16px', fontSize: 11, fontWeight: 900, display: 'flex', gap: 8, alignItems: 'center', background: 'white', cursor: 'pointer' }}
                     >
                         <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-                        REFRESH SENSORS
+                        Update Telemetry
                     </button>
                 </div>
             </div>
@@ -208,7 +211,7 @@ export default function GeospatialMapPage() {
                     {/* Zone Navigator List */}
                     <div className="operational-card" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                         <div style={{ padding: '16px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 10, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.1em' }}>ACTIVE ZONES ({events.length})</span>
+                            <span style={{ fontSize: 10, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.1em' }}>{events.length} ACTIVE CLASSIFICATIONS</span>
                             <Layers size={14} style={{ color: '#94A3B8' }} />
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
@@ -227,7 +230,7 @@ export default function GeospatialMapPage() {
                                     onMouseLeave={e => { if (selectedEventId !== e.currentTarget.id) e.currentTarget.style.background = 'transparent' }}
                                 >
                                     <div>
-                                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0F172A' }}>{e.districtId?.districtName || 'Assam Zone'}</div>
+                                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0F172A' }}>{e.districtId?.districtName || 'Zone'}</div>
                                         <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>Flood Detection · {(e.confidenceScore * 100).toFixed(0)}% Conf</div>
                                     </div>
                                     <div style={{
@@ -280,7 +283,7 @@ export default function GeospatialMapPage() {
                                 backdropFilter: 'blur(10px)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
                             }}>
                                 <div className="pulse-dot" style={{ background: '#EF4444' }} />
-                                <span style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.05em' }}>DOWNLINK ACTIVE</span>
+                                <span style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.05em' }}>Telemetry Downlink Active</span>
                             </div>
                         </div>
                     </div>
@@ -305,7 +308,7 @@ export default function GeospatialMapPage() {
                                         {selectedEvent.districtId?.districtName || 'Zone Alpha'}
                                     </h2>
                                     <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, display: 'flex', gap: 8, marginTop: 4 }}>
-                                        <span>{selectedEvent.districtId?.stateName || 'India'}</span>
+                                        <span>{selectedEvent.districtId?.stateName || 'Bihar'}</span>
                                         <span style={{ color: '#CBD5E1' }}>•</span>
                                         <span style={{ color: RISK_PALETTE[selectedEvent.riskLevel as string], fontWeight: 900 }}>{selectedEvent.riskLevel} RISK</span>
                                     </div>
@@ -316,24 +319,25 @@ export default function GeospatialMapPage() {
 
                             <div style={{ display: 'flex', gap: 32, flex: 1 }}>
                                 <div>
-                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{selectedEvent.floodAreaKm2?.toFixed(1) || '0.0'} km²</div>
-                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Affected Area</div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{formatArea(selectedEvent.floodAreaKm2 ?? 0)}</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Affected Surface</div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{selectedEvent.affectedPopEst ? (selectedEvent.affectedPopEst / 1000).toFixed(1) + 'k' : '—'}</div>
-                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Population</div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{formatPopulation(selectedEvent.affectedPopEst ?? 0)}</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Exposed Population</div>
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{(selectedEvent.confidenceScore * 100).toFixed(1)}%</div>
-                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Det. Confidence</div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{formatScore(selectedEvent.confidenceScore * 100)}%</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Spatial Accuracy</div>
                                 </div>
                             </div>
 
                             <button style={{
                                 padding: '12px 24px', borderRadius: 12, background: '#F8FAFC', color: '#0F172A',
                                 border: '1px solid #E2E8F0', fontWeight: 900, fontSize: 11, cursor: 'pointer'
+                                // onClick={() => window.open(`/api/reports/generate?id=${selectedEvent._id}`, '_blank')}
                             }}>
-                                FULL REPORT
+                                Full Incident Report
                             </button>
                         </div>
                     )}

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 
@@ -43,7 +41,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     const handleRun = async (overrideCfg?: any) => {
         setLoading(true);
         const currentCfg = overrideCfg || cfg;
-        toast.loading('Ingesting GEE pipeline data...', { id: 'gee' });
+        toast.loading('Initializing Earth Engine Pipeline...', { id: 'gee' });
         try {
             const res = await fetch('/api/studio/run', {
                 method: 'POST',
@@ -53,12 +51,12 @@ export function StudioProvider({ children }: { children: ReactNode }) {
             const data = await res.json();
             if (data.success) {
                 setResults(data);
-                toast.success('Success! Memory-safe distributed computation complete.', { id: 'gee' });
+                toast.success('Analysis Synchronized Successfully', { id: 'gee' });
             } else {
-                toast.error(`Pipeline Failed: ${data.error}`, { id: 'gee' });
+                toast.error(`Ingestion Failed: ${data.error || 'Unknown'}`, { id: 'gee' });
             }
         } catch (e: any) {
-            toast.error(`Error: ${e.message}`, { id: 'gee' });
+            toast.error(`Operational Error: ${e.message || 'Unknown'}`, { id: 'gee' });
         } finally {
             setLoading(false);
         }

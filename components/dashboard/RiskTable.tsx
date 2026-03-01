@@ -50,9 +50,9 @@ export default function RiskTable() {
                         <Activity size={18} />
                     </div>
                     <div>
-                        <h2 style={{ fontSize: 18, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>District Risk Intelligence Registry</h2>
+                        <h2 style={{ fontSize: 18, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Live Event Registry</h2>
                         <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {events.length} ACTIVE OPERATIONAL RECORDS · REAL-TIME SYNC
+                            Currently monitoring {events.length} regional anomalies
                         </p>
                     </div>
                 </div>
@@ -64,9 +64,20 @@ export default function RiskTable() {
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                         <tr style={{ background: 'rgba(248, 250, 252, 0.5)', borderBottom: '1px solid rgba(226, 232, 240, 0.5)' }}>
-                            {['District', 'State', 'Risk Level', 'Score', 'Flood Area', 'Affected Pop.', 'Δ Change', 'Confidence', 'Method', 'Date'].map((h) => (
+                            {[
+                                { key: 'district', label: 'District' },
+                                { key: 'state', label: 'State' },
+                                { key: 'riskLevel', label: 'Risk Level' },
+                                { key: 'score', label: 'Score' },
+                                { key: 'floodArea', label: 'Flood Area' },
+                                { key: 'affectedPop', label: 'Affected Pop' },
+                                { key: 'deltaChange', label: 'Δ Change' },
+                                { key: 'confidence', label: 'Confidence' },
+                                { key: 'method', label: 'Method' },
+                                { key: 'date', label: 'Date' }
+                            ].map((h) => (
                                 <th
-                                    key={h}
+                                    key={h.key}
                                     style={{
                                         padding: '16px 20px',
                                         textAlign: 'left',
@@ -75,7 +86,7 @@ export default function RiskTable() {
                                         whiteSpace: 'nowrap',
                                     }}
                                 >
-                                    {h}
+                                    {h.label}
                                 </th>
                             ))}
                         </tr>
@@ -86,7 +97,7 @@ export default function RiskTable() {
                                 <td colSpan={10} style={{ padding: '60px', textAlign: 'center', color: '#94A3B8' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
                                         <Activity size={32} opacity={0.2} />
-                                        <span style={{ fontSize: 14, fontWeight: 600 }}>No active flood events. Awaiting next live scan.</span>
+                                        <span style={{ fontSize: 14, fontWeight: 600 }}>No active anomalies detected in Bihar archive.</span>
                                     </div>
                                 </td>
                             </tr>

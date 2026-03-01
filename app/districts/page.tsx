@@ -74,17 +74,17 @@ export default function DistrictsPage() {
                     </h1>
                 </div>
                 <p style={{ fontSize: 13, color: '#64748B', marginLeft: 14, fontWeight: 500 }}>
-                    Real-time situational awareness across <b>{districts.length} districts</b> in India.
+                    Real-time situational awareness across {districts.length} districts in India.
                 </p>
             </div>
 
             {/* ── Tactical Stats Bar ────────────────────────────────────────── */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
                 {[
-                    { label: 'Critical Alert', count: stats.CRITICAL, color: '#EF4444', level: 'CRITICAL' },
-                    { label: 'High Priority', count: stats.HIGH, color: '#F97316', level: 'HIGH' },
-                    { label: 'Active Monitor', count: stats.MEDIUM, color: '#EAB308', level: 'MEDIUM' },
-                    { label: 'Baseline (Low)', count: stats.LOW, color: '#22C55E', level: 'LOW' },
+                    { label: "Critical Alert", count: stats.CRITICAL, color: '#EF4444', level: 'CRITICAL' },
+                    { label: "High Priority", count: stats.HIGH, color: '#F97316', level: 'HIGH' },
+                    { label: "Active Monitor", count: stats.MEDIUM, color: '#EAB308', level: 'MEDIUM' },
+                    { label: "Baseline (Low)", count: stats.LOW, color: '#22C55E', level: 'LOW' },
                 ].map((s) => (
                     <motion.div
                         key={s.label}
@@ -244,9 +244,9 @@ export default function DistrictsPage() {
                                     gap: 12, padding: '12px 0', borderTop: '1px solid #F1F5F9'
                                 }}>
                                     {[
-                                        { label: 'Area', val: formatArea(d.areaKm2 ?? 0), icon: Droplets },
-                                        { label: 'Expos.', val: formatPopulation(d.population2020 ?? 0), icon: Users },
-                                        { label: 'Events', val: String(d.totalEventsCount ?? 0), icon: Activity },
+                                        { label: "Area", val: formatArea(d.areaKm2 ?? 0), icon: Droplets },
+                                        { label: "Expos.", val: formatPopulation(d.population2020 ?? 0), icon: Users },
+                                        { label: "Events", val: String(d.totalEventsCount ?? 0), icon: Activity },
                                     ].map((m) => (
                                         <div key={m.label}>
                                             <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
@@ -267,7 +267,7 @@ export default function DistrictsPage() {
                                             background: '#CBD5E1'
                                         }} />
                                         <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>
-                                            {d.lastAssessedAt ? `Ingested ${formatDate(d.lastAssessedAt)}` : 'Standby'}
+                                            {d.lastAssessedAt ? `Ingested ${formatDate(d.lastAssessedAt, 'en')}` : "Standby"}
                                         </span>
                                     </div>
                                     <div style={{

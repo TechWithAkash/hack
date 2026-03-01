@@ -13,20 +13,24 @@ export const metadata: Metadata = {
     keywords: ['flood detection', 'climate risk', 'satellite imagery', 'India', 'Assam', 'disaster management'],
 };
 
+import { LanguageProvider } from '@/context/LanguageContext';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className={inter.variable}>
             <body className="font-sans bg-slate-50 text-slate-900 antialiased">
-                <div className="flex h-screen overflow-hidden">
-                    <Sidebar />
-                    <div className="flex flex-col flex-1 overflow-hidden">
-                        <Navbar />
-                        <main className="flex-1 overflow-y-auto px-6 py-6 bg-slate-50">
-                            {children}
-                        </main>
-                        <Toaster position="top-right" />
+                <LanguageProvider>
+                    <div className="flex h-screen overflow-hidden">
+                        <Sidebar />
+                        <div className="flex flex-col flex-1 overflow-hidden">
+                            <Navbar />
+                            <main className="flex-1 overflow-y-auto px-6 py-6 bg-slate-50">
+                                {children}
+                            </main>
+                            <Toaster position="top-right" />
+                        </div>
                     </div>
-                </div>
+                </LanguageProvider>
             </body>
         </html>
     );

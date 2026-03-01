@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
 import { formatArea, formatPopulation } from '@/lib/utils/formatters';
@@ -8,15 +9,15 @@ import {
     Droplets, Map, ShieldAlert, Cpu
 } from 'lucide-react';
 
-const RISK_CARDS = [
-    { key: 'CRITICAL', label: 'Critical Alert', icon: AlertCircle, iconColor: '#EF4444', gradient: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)' },
-    { key: 'HIGH', label: 'High Severity', icon: ShieldAlert, iconColor: '#F97316', gradient: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)' },
-    { key: 'MEDIUM', label: 'Medium Risk', icon: TrendingUp, iconColor: '#EAB308', gradient: 'linear-gradient(135deg, #FEFCE8, #FEF9C3)' },
-    { key: 'LOW', label: 'Low Impact', icon: Droplets, iconColor: '#10B981', gradient: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' },
-];
-
 export default function StatsGrid() {
     const { data, isLoading } = useSWR('/api/insights/summary', fetcher, { refreshInterval: 60000 });
+
+    const RISK_CARDS = [
+        { key: 'CRITICAL', label: 'Critical Alert', icon: AlertCircle, iconColor: '#EF4444', gradient: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)' },
+        { key: 'HIGH', label: 'High Severity', icon: ShieldAlert, iconColor: '#F97316', gradient: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)' },
+        { key: 'MEDIUM', label: 'Medium Risk', icon: TrendingUp, iconColor: '#EAB308', gradient: 'linear-gradient(135deg, #FEFCE8, #FEF9C3)' },
+        { key: 'LOW', label: 'Low Impact', icon: Droplets, iconColor: '#10B981', gradient: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' },
+    ];
 
     const riskMap: Record<string, number> = {};
     (data?.riskBreakdown ?? []).forEach((r: any) => { riskMap[r._id] = r.count; });
@@ -80,7 +81,7 @@ export default function StatsGrid() {
                             <Icon size={20} />
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>DISTRICTS</div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Districts</span>
                             {riskMap[key] > 0 && <div className="pulse-dot" style={{ background: iconColor, marginTop: 4 }} />}
                         </div>
                     </div>
@@ -133,7 +134,7 @@ export default function StatsGrid() {
                         <div style={{ background: bg, borderRadius: 12, padding: 10, color, boxShadow: `0 4px 12px ${color}20` }}>
                             <Icon size={20} />
                         </div>
-                        <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>METRIC</div>
+                        <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Metric</div>
                     </div>
                     <div style={{ position: 'relative' }}>
                         <div style={{ fontSize: 32, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.02em' }}>

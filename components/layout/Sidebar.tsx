@@ -9,21 +9,21 @@ import {
     MessageSquare, FileCheck
 } from 'lucide-react';
 
-const NAV_ITEMS = [
-    { href: '/', icon: LayoutDashboard, label: 'Overview' },
-    { href: '/map', icon: Map, label: 'Regional Map' },
-    { href: '/districts', icon: Building2, label: 'Districts' },
-    { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
-    { href: '/studio/risk', icon: ShieldAlert, label: 'Risk Analysis' },
-    { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
-    { href: '/studio/logs', icon: AlignLeft, label: 'Telemetry Stream' },
-    { href: '/studio/api', icon: Cpu, label: 'Rest API' },
-    { href: '/studio/ai', icon: MessageSquare, label: 'Generative AI' },
-    { href: '/studio/pdf', icon: FileCheck, label: 'Assessment Report' },
-];
-
 export default function Sidebar() {
     const pathname = usePathname();
+
+    const NAV_ITEMS = [
+        { href: '/', icon: LayoutDashboard, label: 'Overview' },
+        { href: '/map', icon: Map, label: 'Regional Map' },
+        { href: '/districts', icon: Building2, label: 'Districts' },
+        { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
+        { href: '/studio/risk', icon: ShieldAlert, label: 'Risk Analysis' },
+        { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
+        { href: '/studio/logs', icon: AlignLeft, label: 'Telemetry Stream' },
+        { href: '/studio/api', icon: Cpu, label: 'Rest API' },
+        { href: '/studio/ai', icon: MessageSquare, label: 'Generative AI' },
+        { href: '/studio/pdf', icon: FileCheck, label: 'Assessment Report' },
+    ];
 
     return (
         <aside

@@ -15,10 +15,10 @@ export default function SpatialInsightsPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                     <h2 style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Globe size={24} className="text-teal-600" /> Geospatial Pixel Inspector
+                        <Globe size={24} className="text-teal-600" /> Geospatial Analysis Matrix
                     </h2>
                     <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
-                        Real-time Distributed Sentinel-1/2 multi-temporal fusion engine for high-resolution flood analysis.
+                        High-fidelity spectral decomposition of regional hydrological anomalies
                     </p>
                 </div>
 
@@ -97,14 +97,14 @@ export default function SpatialInsightsPage() {
                 }}>
                     <div style={{ fontSize: 10, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', marginBottom: 20, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ width: 12, height: 2, background: '#0F172A', borderRadius: 2 }} />
-                        DETECTION LAYERS
+                        Operational Layers
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {[
-                            { id: 'sarBase', label: 'SAR Baseline', color: '#6366F1', desc: 'S1 Backscatter' },
-                            { id: 'flood', label: 'Flood Mask', color: '#0EA5E9', desc: 'Composite' },
-                            { id: 'optWater', label: 'Optical Water', color: '#2DD4BF', desc: 'S2 Verification' },
-                            { id: 'vegDamage', label: 'Vegetation loss', color: '#F43F5E', desc: 'NDVI Delta' },
+                            { id: 'sarBase', label: 'SAR Baseline Mapping', color: '#6366F1', desc: 'S1 Backscatter' },
+                            { id: 'flood', label: 'Composite Flood Mask', color: '#0EA5E9', desc: 'Composite' },
+                            { id: 'optWater', label: 'Optical Verification', color: '#2DD4BF', desc: 'S2 Verification' },
+                            { id: 'vegDamage', label: 'Vegetation Impact', color: '#F43F5E', desc: 'NDVI Delta' },
                         ].map(layer => (
                             <label key={layer.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s', padding: '2px 0' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -144,7 +144,7 @@ export default function SpatialInsightsPage() {
                     letterSpacing: '0.05em'
                 }}>
                     <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
-                    RASTER STREAM ACTIVE
+                    Raster Downlink Active
                 </div>
             </div>
         </div>

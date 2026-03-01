@@ -1,11 +1,11 @@
-export function formatDate(date: string | Date): string {
-    return new Date(date).toLocaleDateString('en-IN', {
+export function formatDate(date: string | Date, locale: string = 'en'): string {
+    return new Date(date).toLocaleDateString(locale, {
         day: '2-digit', month: 'short', year: 'numeric',
     });
 }
 
-export function formatDateTime(date: string | Date): string {
-    return new Date(date).toLocaleString('en-IN', {
+export function formatDateTime(date: string | Date, locale: string = 'en'): string {
+    return new Date(date).toLocaleString(locale, {
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
     });
@@ -23,5 +23,5 @@ export function formatPopulation(pop: number): string {
 }
 
 export function formatScore(score: number): string {
-    return score.toFixed(1);
+    return (score || 0).toFixed(1);
 }

@@ -2,20 +2,21 @@
 
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
-import { CloudRain, Thermometer, Wind, Droplets, AlertTriangle, Wifi } from 'lucide-react';
+import { formatDateTime } from '@/lib/utils/formatters';
+import { CloudRain, Thermometer, Wind, Droplets, AlertTriangle, Wifi, Clock } from 'lucide-react';
 
 const RISK_COLOR: Record<string, string> = {
     EXTREME: '#EF4444', HIGH: '#F97316', MEDIUM: '#EAB308', LOW: '#22C55E',
 };
 
 function WeatherConditionIcon({ code }: { code: number }) {
-    if (code === 0) return <span title="Clear sky">☀️</span>;
-    if (code <= 3) return <span title="Partly cloudy">⛅</span>;
-    if (code <= 49) return <span title="Fog">🌫️</span>;
-    if (code <= 65) return <span title="Rain">🌧️</span>;
-    if (code <= 77) return <span title="Snow">❄️</span>;
-    if (code <= 82) return <span title="Rain showers">🌦️</span>;
-    if (code <= 99) return <span title="Thunderstorm">⛈️</span>;
+    if (code === 0) return <span title="Clear Sky">☀️</span>;
+    if (code <= 3) return <span title="Mainly Clear / Partly Cloudy">⛅</span>;
+    if (code <= 49) return <span title="Fog / Depositing Rime Fog">🌫️</span>;
+    if (code <= 65) return <span title="Rain: Slight, Moderate and Heavy intensity">🌧️</span>;
+    if (code <= 77) return <span title="Snow fall: Slight, moderate, and heavy intensity">❄️</span>;
+    if (code <= 82) return <span title="Rain showers: Slight, moderate, and violent">🌦️</span>;
+    if (code <= 99) return <span title="Thunderstorm: Slight or moderate">⛈️</span>;
     return <span>🌡️</span>;
 }
 
@@ -29,7 +30,7 @@ export default function WeatherPanel() {
             <div className="glass-card" style={{ padding: '18px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                     <CloudRain size={15} color="#0369A1" />
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628' }}>Real-Time Weather</h3>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628' }}>Real-time Hydrological Telemetry</h3>
                     <span style={{ fontSize: 10, color: '#94A3B8', marginLeft: 'auto' }}>Open-Meteo API</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
@@ -52,7 +53,7 @@ export default function WeatherPanel() {
             >
                 <AlertTriangle size={14} color="#EF4444" />
                 <span style={{ fontSize: 12, color: '#DC2626' }}>
-                    Live weather unavailable — click <strong>Fetch Live Data</strong> to load real-time data
+                    Weather intelligence systems currently offline.
                 </span>
             </div>
         );
@@ -76,15 +77,17 @@ export default function WeatherPanel() {
                     <CloudRain size={18} />
                 </div>
                 <div>
-                    <h3 style={{ fontSize: 16, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Climate Operations Matrix · Assam</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                        <div className="pulse-dot" style={{ background: '#22C55E' }} />
-                        <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>NETWORK SYNC: Open-Meteo High-Resolution Stream</span>
+                    <h3 style={{ fontSize: 16, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Precipitation Dashboard · Bihar Regions</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Clock size={12} className="text-slate-400" />
+                        <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>
+                            Active Telemetry: {formatDateTime(data.timestamp)}
+                        </span>
                     </div>
                 </div>
                 <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
                     <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        Last Telemetry: {new Date(data.fetchedAt).toLocaleTimeString('en-IN')}
+                        Last Telemetry: {new Date(data.fetchedAt).toLocaleTimeString()}
                     </span>
                 </div>
             </div>
@@ -98,9 +101,9 @@ export default function WeatherPanel() {
                 }}
             >
                 {[
-                    { label: 'Avg Rainfall 7d', val: `${summary?.avgRainfall7dMm ?? '—'} mm`, icon: Droplets, color: '#0369A1', desc: 'Precipitation bias' },
-                    { label: 'Max Rainfall 24h', val: `${summary?.maxRainfall24hMm ?? '—'} mm`, icon: CloudRain, color: '#0891B2', desc: 'Peak intensity' },
-                    { label: 'Avg Temperature', val: `${summary?.avgTempC ?? '—'} °C`, icon: Thermometer, color: '#F97316', desc: 'Thermal baseline' },
+                    { label: 'Avg Rainfall (7d)', val: `${summary?.avgRainfall7dMm ?? '—'} mm`, icon: Droplets, color: '#0369A1', desc: 'Regional Bias' },
+                    { label: 'Max Rainfall (24h)', val: `${summary?.maxRainfall24hMm ?? '—'} mm`, icon: CloudRain, color: '#0891B2', desc: 'Alert Peak' },
+                    { label: 'Avg Ambient Temp', val: `${summary?.avgTempC ?? '—'} °C`, icon: Thermometer, color: '#F97316', desc: 'Thermal Drift' },
                 ].map(({ label, val, icon: Icon, color, desc }) => (
                     <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <div style={{ background: '#FFF', borderRadius: 10, padding: 8, color, boxShadow: '0 2px 8px rgba(186, 230, 253, 0.5)' }}>
@@ -155,7 +158,7 @@ export default function WeatherPanel() {
                                         <Thermometer size={12} color="#F97316" />
                                         <span style={{ fontSize: 12, color: '#0F172A', fontWeight: 800 }}>{d.current?.tempC?.toFixed(1) ?? '—'}°</span>
                                     </div>
-                                    <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>{d.current?.humidity ?? '—'}% RH</span>
+                                    <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>{d.current?.humidity ?? '—'}% Humidity</span>
                                 </div>
 
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -164,12 +167,12 @@ export default function WeatherPanel() {
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                         <CloudRain size={12} color="#0891B2" />
                                         <span style={{ fontSize: 11, color: '#475569', fontWeight: 700 }}>{d.rainfall?.last24h?.toFixed(1) ?? 0} mm</span>
                                     </div>
-                                    <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800 }}>24H</span>
+                                    <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800, marginLeft: 'auto' }}>24H</span>
                                 </div>
                             </div>
 
@@ -182,7 +185,7 @@ export default function WeatherPanel() {
                                     textAlign: 'center',
                                     textTransform: 'uppercase'
                                 }}>
-                                    RAIN RISK: {riskMod?.level ?? 'LOW'}
+                                    Precip Risk: {riskMod?.level ?? 'LOW'}
                                 </div>
                             </div>
                         </div>
