@@ -57,49 +57,105 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Tactical Intelligence Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <div className="lg:col-span-2 space-y-10">
+            {/* ── Tactical Intelligence Row ───────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 290px', gap: 16, alignItems: 'start' }}>
+
+                {/* Left column — charts + risk table */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, minWidth: 0 }}>
                     <DashboardCharts />
                     <RiskTable />
                 </div>
-                <div className="space-y-10">
-                    <WeatherPanel />
-                    {/* System Integrity Node */}
-                    <div className="bg-white rounded-[2rem] border border-slate-100 p-8 shadow-sm hover:shadow-md transition-all duration-300">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2.5 bg-blue-50 rounded-xl">
-                                <ShieldCheck size={20} className="text-blue-600" />
-                            </div>
-                            <h3 className="font-bold text-slate-800 tracking-tight">System Integrity</h3>
-                        </div>
 
-                        <div className="space-y-6">
-                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Activity size={14} className="text-emerald-500" />
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        Data Provenance Integrity Verified
+                {/* Right sidebar panel — visually attached */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, position: 'sticky', top: 0 }}>
+
+                    {/* ── Weather Intelligence ── */}
+                    <WeatherPanel />
+
+                    {/* ── System Integrity Node ── */}
+                    <div style={{
+                        background: 'rgba(255,255,255,0.75)',
+                        backdropFilter: 'blur(22px)',
+                        WebkitBackdropFilter: 'blur(22px)',
+                        border: '1px solid rgba(255,255,255,0.9)',
+                        borderRadius: 24,
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 40px rgba(15,23,42,0.06)',
+                    }}>
+                        {/* Card accent */}
+                        <div style={{ height: 3, background: 'linear-gradient(90deg, #2563EB, #0891B2)' }} />
+                        <div style={{ padding: '20px 22px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                                <div style={{ background: '#EFF6FF', borderRadius: 10, padding: 9 }}>
+                                    <ShieldCheck size={18} color="#2563EB" />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+                                        System Integrity
+                                    </h3>
+                                    <p style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, marginTop: 2 }}>
+                                        Provenance · Accuracy · Uptime
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Integrity message */}
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(16,185,129,0.06), rgba(8,145,178,0.06))',
+                                border: '1px solid rgba(16,185,129,0.15)',
+                                borderRadius: 14, padding: '12px 14px', marginBottom: 14
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                    <Activity size={12} color="#10B981" />
+                                    <span style={{ fontSize: 9, fontWeight: 900, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                        Data Provenance Verified
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                                    Sentinel-1 SAR and Sentinel-2 Optical archives cross-referenced for 99.7% geometric accuracy.
+                                <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.6, fontWeight: 500 }}>
+                                    Sentinel-1 SAR and Sentinel-2 archives cross-referenced at 99.7% geometric accuracy.
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-sky-50/50 rounded-2xl border border-sky-100/50">
-                                    <div className="text-[10px] font-bold text-sky-600 uppercase tracking-widest mb-1">
-                                        Latency
+                            {/* Stats grid */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                                {[
+                                    { label: 'Latency', val: '142ms', sub: 'API Round Trip', color: '#0891B2', bg: '#F0F9FF' },
+                                    { label: 'Ingested', val: '4.2TB', sub: 'Total Archive', color: '#6366F1', bg: '#EEF2FF' },
+                                    { label: 'Uptime', val: '99.8%', sub: 'SLA Target', color: '#059669', bg: '#F0FDF4' },
+                                    { label: 'Scenes', val: '1,247', sub: 'Processed', color: '#F97316', bg: '#FFF7ED' },
+                                ].map(s => (
+                                    <div key={s.label} style={{
+                                        background: s.bg, border: `1px solid ${s.color}20`,
+                                        borderRadius: 14, padding: '12px 14px'
+                                    }}>
+                                        <div style={{ fontSize: 9, fontWeight: 900, color: s.color, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+                                            {s.label}
+                                        </div>
+                                        <div style={{ fontSize: 20, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                                            {s.val}
+                                        </div>
+                                        <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, marginTop: 3 }}>
+                                            {s.sub}
+                                        </div>
                                     </div>
-                                    <div className="text-xl font-black text-sky-900 tabular-nums">142ms</div>
-                                </div>
-                                <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-                                    <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1">
-                                        Ingested
-                                    </div>
-                                    <div className="text-xl font-black text-indigo-900 tabular-nums">4.2TB</div>
-                                </div>
+                                ))}
+                            </div>
+
+                            {/* Sensor source row */}
+                            <div style={{
+                                display: 'flex', gap: 6, flexWrap: 'wrap'
+                            }}>
+                                {['S1-SAR', 'S2-OPT', 'L9', 'CHIRPS', 'Open-Meteo'].map(src => (
+                                    <span key={src} style={{
+                                        fontSize: 9, fontWeight: 800, color: '#0D7377',
+                                        background: 'rgba(13,115,119,0.07)',
+                                        border: '1px solid rgba(13,115,119,0.18)',
+                                        borderRadius: 5, padding: '3px 8px',
+                                        letterSpacing: '0.05em'
+                                    }}>
+                                        {src}
+                                    </span>
+                                ))}
                             </div>
                         </div>
                     </div>
