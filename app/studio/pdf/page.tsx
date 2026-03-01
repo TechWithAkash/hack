@@ -67,76 +67,69 @@ export default function PDFReportPage() {
     const dateStr = new Date().toLocaleString();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                    <h2 style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <FileText size={24} className="text-teal-600" /> Automated Assessment Report
-                    </h2>
-                    <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
-                        Generates a high-fidelity PDF document directly from analytic telemetry.
-                    </p>
-                </div>
-                <div style={{ display: 'flex', gap: 12 }}>
-                    <button
-                        onClick={() => window.print()}
-                        style={{ padding: '10px 18px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, color: '#64748B', fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-                    >
-                        <Printer size={14} /> PRINT VIEW
-                    </button>
-                    <button
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        style={{
-                            padding: '10px 24px',
-                            background: generating ? '#64748B' : generated ? '#10B981' : '#0F172A',
-                            border: 'none', borderRadius: 12, color: '#FFF', fontSize: 11, fontWeight: 900,
-                            cursor: generating ? 'wait' : 'pointer',
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
-                            transition: 'all 0.3s'
-                        }}
-                    >
-                        {generating ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white" /> : generated ? <CheckCircle2 size={14} /> : <FileDown size={14} />}
-                        {generating ? 'GENERATING NATIVE PDF...' : generated ? 'GENERATE ANOTHER' : 'GENERATE NATIVE PDF REPORT'}
-                    </button>
-                </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+            {/* Action Header */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginBottom: 24 }}>
+                <button
+                    onClick={() => window.print()}
+                    style={{ padding: '10px 18px', background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 12, color: '#64748B', fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+                >
+                    <Printer size={14} /> PRINT VIEW
+                </button>
+                <button
+                    onClick={handleGenerate}
+                    disabled={generating}
+                    style={{
+                        padding: '10px 24px',
+                        background: generating ? '#64748B' : generated ? '#10B981' : '#0F172A',
+                        border: 'none', borderRadius: 12, color: '#FFF', fontSize: 11, fontWeight: 900,
+                        cursor: generating ? 'wait' : 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        boxShadow: '0 8px 20px rgba(15, 23, 42, 0.15)',
+                        transition: 'all 0.3s'
+                    }}
+                >
+                    {generating ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white" /> : generated ? <CheckCircle2 size={14} /> : <FileDown size={14} />}
+                    {generating ? 'GENERATING NATIVE PDF...' : generated ? 'GENERATE ANOTHER' : 'GENERATE NATIVE PDF REPORT'}
+                </button>
             </div>
 
-            {generated && (
-                <div style={{
-                    background: 'rgba(16, 185, 129, 0.05)',
-                    border: '1px solid rgba(16, 185, 129, 0.2)',
-                    borderRadius: 20,
-                    padding: '20px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                        <div style={{ background: '#DCFCE7', color: '#10B981', padding: 8, borderRadius: 10 }}>
-                            <CheckCircle2 size={20} />
+            {
+                generated && (
+                    <div style={{
+                        background: 'rgba(16, 185, 129, 0.05)',
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                        borderRadius: 20,
+                        padding: '20px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <div style={{ background: '#DCFCE7', color: '#10B981', padding: 8, borderRadius: 10 }}>
+                                <CheckCircle2 size={20} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 14, fontWeight: 950, color: '#065F46' }}>Report Generated Successfully</div>
+                                <div style={{ fontSize: 11, color: '#059669', opacity: 0.8, marginTop: 2 }}>The native PDF asset has been compiled from live telemetry.</div>
+                            </div>
                         </div>
-                        <div>
-                            <div style={{ fontSize: 14, fontWeight: 950, color: '#065F46' }}>Report Generated Successfully</div>
-                            <div style={{ fontSize: 11, color: '#059669', opacity: 0.8, marginTop: 2 }}>The native PDF asset has been compiled from live telemetry.</div>
-                        </div>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            style={{
+                                background: saving ? '#64748B' : '#0F172A',
+                                color: '#FFF', border: 'none', borderRadius: 10, padding: '10px 20px',
+                                fontSize: 11, fontWeight: 900, cursor: saving ? 'wait' : 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 8
+                            }}
+                        >
+                            {saving ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white" /> : <Download size={14} />}
+                            {saving ? 'SAVING...' : 'SAVE TO COMPUTER'}
+                        </button>
                     </div>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        style={{
-                            background: saving ? '#64748B' : '#0F172A',
-                            color: '#FFF', border: 'none', borderRadius: 10, padding: '10px 20px',
-                            fontSize: 11, fontWeight: 900, cursor: saving ? 'wait' : 'pointer',
-                            display: 'flex', alignItems: 'center', gap: 8
-                        }}
-                    >
-                        {saving ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white" /> : <Download size={14} />}
-                        {saving ? 'SAVING...' : 'SAVE TO COMPUTER'}
-                    </button>
-                </div>
-            )}
+                )
+            }
 
             <div style={{
                 background: '#FFFFFF',

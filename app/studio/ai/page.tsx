@@ -49,15 +49,7 @@ export default function GenerativeAIPage() {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 32, height: '100%', minHeight: 0 }}>
-            <div>
-                <h2 style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <MessageSquare size={24} className="text-teal-600" /> Generative Risk Analyst
-                </h2>
-                <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
-                    Translates satellite metrics into actionable text for rapid stakeholder briefing.
-                </p>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, height: '100%', minHeight: 0 }}>
 
             <div style={{
                 flex: 1,

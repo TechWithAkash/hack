@@ -282,20 +282,106 @@ function StudioHeader() {
                     {renderCard("SEVERITY", (metrics.severity_score ?? 0).toFixed(1), "/ 100", riskColor)}
                 </div>
 
+            </div>
+
+            {/* AI Action Center & Composite Risk */}
+            <div style={{
+                marginTop: 24,
+                display: 'grid',
+                gridTemplateColumns: '1fr 340px',
+                gap: 20
+            }}>
+                {/* Actions Grid */}
+                {/* <div style={{
+                    background: 'rgba(255, 255, 255, 0.4)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: 24,
+                    border: '1px solid rgba(255, 255, 255, 0.6)',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12
+                }}>
+                    <div style={{
+                        padding: '0 16px',
+                        borderRight: '1px solid rgba(0, 0, 0, 0.05)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center'
+                    }}>
+                        <span style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.1em' }}>OPERATIONAL</span>
+                        <span style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>ACTIONS</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, flex: 1 }}>
+                        {[
+                            { id: 'api', label: 'REST API Endpoint', icon: <Terminal size={14} />, path: '/studio/api', color: '#6366F1' },
+                            { id: 'ai', label: 'Generative AI', icon: <MessageSquare size={14} />, path: '/studio/ai', color: '#8B5CF6' },
+                            { id: 'pdf', label: 'PDF Report Gen', icon: <FileText size={18} />, path: '/studio/pdf', isPrimary: true },
+                        ].map(action => (
+                            <Link
+                                key={action.id}
+                                href={action.path}
+                                style={{
+                                    flex: action.isPrimary ? '0 0 160px' : 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 10,
+                                    padding: '16px',
+                                    borderRadius: 16,
+                                    textDecoration: 'none',
+                                    fontSize: 11,
+                                    fontWeight: 900,
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    background: action.isPrimary ? '#0F172A' : '#FFFFFF',
+                                    color: action.isPrimary ? '#FFFFFF' : '#0F172A',
+                                    border: action.isPrimary ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
+                                }}
+                            >
+                                {action.icon}
+                                {action.label.toUpperCase()}
+                            </Link>
+                        ))}
+                    </div>
+                </div> */}
+
+                {/* Composite Risk Meter (Moved here for better visual weight) */}
                 <div style={{
-                    flex: 1,
+                    background: '#FFFFFF',
+                    borderRadius: 24,
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
+                    padding: '20px 24px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
-                    paddingLeft: 20,
-                    borderLeft: '1px solid rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 8px 32px rgba(15, 23, 42, 0.05)',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div style={{ fontSize: 8, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>COMPOSITE RISK</div>
-                        <div style={{ fontSize: 9, fontWeight: 950, color: riskColor, letterSpacing: '0.05em', background: `${riskColor}10`, padding: '2px 10px', borderRadius: 6 }}>{riskState}</div>
+                        <div style={{ fontSize: 9, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>COMPOSITE RISK METER</div>
+                        <div style={{ fontSize: 10, fontWeight: 950, color: riskColor, letterSpacing: '0.05em', background: `${riskColor}10`, padding: '4px 12px', borderRadius: 8 }}>{riskState}</div>
                     </div>
-                    <div style={{ height: 6, width: '100%', background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, metrics.severity_score ?? 0))}%`, background: `linear-gradient(90deg, #10B981, #F59E0B, #EF4444)`, transition: 'width 2s' }} />
+                    <div style={{ height: 8, width: '100%', background: '#F1F5F9', borderRadius: 10, overflow: 'hidden', position: 'relative' }}>
+                        <div style={{
+                            height: '100%',
+                            width: `${Math.min(100, Math.max(0, metrics.severity_score ?? 0))}%`,
+                            background: `linear-gradient(90deg, #10B981, #F59E0B, #EF4444)`,
+                            transition: 'width 2s cubic-bezier(0.16, 1, 0.3, 1)',
+                            borderRadius: '0 10px 10px 0'
+                        }} />
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                        <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 800 }}>MINIMAL</span>
+                        <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 800 }}>CRITICAL</span>
                     </div>
                 </div>
             </div>
@@ -316,9 +402,6 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
         { id: 'risk', label: 'Risk & Severity', icon: <ShieldAlert size={14} />, path: '/studio/risk' },
         { id: 'confidence', label: 'Confidence Engine', icon: <Info size={14} />, path: '/studio/confidence' },
         { id: 'logs', label: 'State Table & Logs', icon: <CheckCircle2 size={14} />, path: '/studio/logs' },
-        { id: 'api', label: 'REST API Endpoint', icon: <Terminal size={14} />, path: '/studio/api' },
-        { id: 'ai', label: 'Generative AI', icon: <MessageSquare size={14} />, path: '/studio/ai' },
-        { id: 'pdf', label: 'PDF Report Gen', icon: <FileText size={14} />, path: '/studio/pdf' },
     ];
 
     return (
@@ -343,51 +426,55 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-                <StudioHeader />
+                {!['/studio/ai', '/studio/pdf'].includes(pathname) && (
+                    <>
+                        <StudioHeader />
 
-                {/* Tabs Navigation */}
-                <div style={{
-                    display: 'flex',
-                    gap: 6,
-                    marginBottom: 32,
-                    background: 'rgba(255, 255, 255, 0.5)',
-                    padding: 6,
-                    borderRadius: 18,
-                    width: 'fit-content',
-                    border: '1px solid rgba(255, 255, 255, 0.6)',
-                    boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
-                    backdropFilter: 'blur(10px)'
-                }}>
-                    {tabs.map(tab => {
-                        const active = pathname === tab.path;
-                        return (
-                            <Link
-                                key={tab.id}
-                                href={tab.path}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 10,
-                                    padding: '10px 20px',
-                                    borderRadius: 14,
-                                    fontSize: 11,
-                                    fontWeight: 900,
-                                    textDecoration: 'none',
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    background: active ? '#0F172A' : 'transparent',
-                                    color: active ? '#FFFFFF' : '#64748B',
-                                    boxShadow: active ? '0 10px 25px -5px rgba(15, 23, 42, 0.2)' : 'none',
-                                    transform: active ? 'scale(1.02)' : 'scale(1)',
-                                }}
-                            >
-                                <div style={{ opacity: active ? 1 : 0.7, transform: 'translateY(-0.5px)' }}>
-                                    {tab.icon}
-                                </div>
-                                {tab.label.toUpperCase()}
-                            </Link>
-                        );
-                    })}
-                </div>
+                        {/* Tabs Navigation */}
+                        <div style={{
+                            display: 'flex',
+                            gap: 6,
+                            marginBottom: 32,
+                            background: 'rgba(255, 255, 255, 0.5)',
+                            padding: 6,
+                            borderRadius: 18,
+                            width: 'fit-content',
+                            border: '1px solid rgba(255, 255, 255, 0.6)',
+                            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
+                            backdropFilter: 'blur(10px)'
+                        }}>
+                            {tabs.map(tab => {
+                                const active = pathname === tab.path;
+                                return (
+                                    <Link
+                                        key={tab.id}
+                                        href={tab.path}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 10,
+                                            padding: '10px 20px',
+                                            borderRadius: 14,
+                                            fontSize: 11,
+                                            fontWeight: 900,
+                                            textDecoration: 'none',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            background: active ? '#0F172A' : 'transparent',
+                                            color: active ? '#FFFFFF' : '#64748B',
+                                            boxShadow: active ? '0 10px 25px -5px rgba(15, 23, 42, 0.2)' : 'none',
+                                            transform: active ? 'scale(1.02)' : 'scale(1)',
+                                        }}
+                                    >
+                                        <div style={{ opacity: active ? 1 : 0.7, transform: 'translateY(-0.5px)' }}>
+                                            {tab.icon}
+                                        </div>
+                                        {tab.label.toUpperCase()}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
 
                 <div style={{ flex: 1, minHeight: 0 }}>
                     {children}
