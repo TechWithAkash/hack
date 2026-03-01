@@ -13,8 +13,6 @@ const NAV_ITEMS = [
     { href: '/', icon: LayoutDashboard, label: 'Overview' },
     { href: '/map', icon: Map, label: 'Regional Map' },
     { href: '/districts', icon: Building2, label: 'Districts' },
-    { href: '/reports', icon: FileText, label: 'Reports' },
-    { href: '/logs', icon: ScrollText, label: 'System Logs' },
     { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
     { href: '/studio/risk', icon: ShieldAlert, label: 'Risk Analysis' },
     { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
