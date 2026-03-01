@@ -8,7 +8,7 @@ interface StudioContextType {
     setCfg: (cfg: any) => void;
     results: any;
     loading: boolean;
-    handleRun: () => Promise<void>;
+    handleRun: (overrideCfg?: any) => Promise<void>;
     layerVisibility: any;
     setLayerVisibility: (v: any) => void;
     baseLayer: 'light' | 'dark' | 'satellite' | 'terrain';
@@ -40,14 +40,15 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     const [baseLayer, setBaseLayer] = useState<'light' | 'dark' | 'satellite' | 'terrain'>('satellite');
     const [aoiMode, setAoiMode] = useState<'draw' | 'manual'>('manual');
 
-    const handleRun = async () => {
+    const handleRun = async (overrideCfg?: any) => {
         setLoading(true);
+        const currentCfg = overrideCfg || cfg;
         toast.loading('Ingesting GEE pipeline data...', { id: 'gee' });
         try {
             const res = await fetch('/api/studio/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cfg),
+                body: JSON.stringify(currentCfg),
             });
             const data = await res.json();
             if (data.success) {

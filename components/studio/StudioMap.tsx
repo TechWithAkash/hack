@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Helper component to handle drawing Area of Interest (AOI)
-function DrawingManager({ active, cfg, setCfg }: { active: boolean, cfg: any, setCfg: (c: any) => void }) {
+function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, cfg: any, setCfg: (c: any) => void, handleRun: (oc?: any) => Promise<void> }) {
     const map = useMap();
     const [startPos, setStartPos] = React.useState<[number, number] | null>(null);
     const [tempRect, setTempRect] = React.useState<L.Rectangle | null>(null);
@@ -58,13 +58,16 @@ function DrawingManager({ active, cfg, setCfg }: { active: boolean, cfg: any, se
             const lat2 = currentPos[0];
             const lon2 = currentPos[1];
 
-            setCfg({
+            const nextCfg = {
                 ...cfg,
                 min_lat: Math.min(lat1, lat2),
                 max_lat: Math.max(lat1, lat2),
                 min_lon: Math.min(lon1, lon2),
                 max_lon: Math.max(lon1, lon2)
-            });
+            };
+
+            setCfg(nextCfg);
+            handleRun(nextCfg); // Auto-trigger pipeline on selection
 
             setStartPos(null);
             if (tempRect) {
@@ -83,7 +86,7 @@ function DrawingManager({ active, cfg, setCfg }: { active: boolean, cfg: any, se
             map.off('mousemove', onMouseMove);
             map.off('mouseup', onMouseUp);
         };
-    }, [active, startPos, tempRect, map, cfg, setCfg]);
+    }, [active, startPos, tempRect, map, cfg, setCfg, handleRun]);
 
     return null;
 }
@@ -115,7 +118,7 @@ interface StudioMapProps {
 }
 
 export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'light' }: StudioMapProps) {
-    const { aoiMode, cfg, setCfg } = useStudio();
+    const { aoiMode, cfg, setCfg, handleRun } = useStudio();
 
     return (
         <MapContainer
@@ -125,7 +128,12 @@ export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'ligh
             style={{ width: '100%', height: '100%', background: '#F8FAFC' }}
         >
             <FitBounds bounds={bounds} />
-            <DrawingManager active={aoiMode === 'draw'} cfg={cfg} setCfg={setCfg} />
+            <DrawingManager
+                active={aoiMode === 'draw'}
+                cfg={cfg}
+                setCfg={setCfg}
+                handleRun={handleRun}
+            />
 
             {/* Base Layer Logic */}
             {baseLayer === 'light' && (
