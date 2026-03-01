@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const events = await RiskEvent
         .find(filter)
-        .populate('districtId', 'districtName stateName areaKm2 population2020')
+        .populate('districtId', 'districtName stateName areaKm2 population2020 geometry')
         .populate('sceneId', 'source sceneDate geeAssetId')
         .sort({ eventDate: -1, detectedAt: -1 })
         .limit(limit)

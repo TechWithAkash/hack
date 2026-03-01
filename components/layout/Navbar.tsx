@@ -87,7 +87,7 @@ export default function Navbar() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                     <span style={{ fontSize: 11, color: '#94A3B8' }}>
-                        Assam, India · Sentinel-1/2 · Open-Meteo Live Weather
+                        India Nationwide · Multi-Sensor Sentinel Selection · Open-Meteo Live
                     </span>
                     <span
                         style={{
@@ -108,11 +108,11 @@ export default function Navbar() {
                     <div
                         style={{
                             fontSize: 12,
-                            color: msgType === 'success' ? '#16A34A' : '#DC2626',
-                            background: msgType === 'success' ? '#F0FDF4' : '#FEF2F2',
-                            padding: '4px 12px', borderRadius: 6,
-                            border: `1px solid ${msgType === 'success' ? '#BBF7D0' : '#FECACA'}`,
-                            fontWeight: 500, maxWidth: 400,
+                            color: msgType === 'success' ? '#10B981' : '#EF4444',
+                            background: msgType === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                            padding: '6px 14px', borderRadius: 8,
+                            border: `1px solid ${msgType === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+                            fontWeight: 700, maxWidth: 400,
                         }}
                     >
                         {msg}
@@ -133,25 +133,25 @@ export default function Navbar() {
                     disabled={fetchingLive}
                     title="Fetch real-time rainfall + weather from Open-Meteo and compute live risk scores"
                     style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '7px 16px',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '8px 18px',
                         background: fetchingLive
-                            ? '#E0F2FE'
-                            : 'linear-gradient(135deg, #0369A1, #0891B2)',
-                        color: fetchingLive ? '#0369A1' : 'white',
+                            ? '#1e293b'
+                            : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                        color: fetchingLive ? '#64748b' : 'white',
                         border: 'none',
-                        borderRadius: 8,
-                        fontSize: 12, fontWeight: 600,
+                        borderRadius: 10,
+                        fontSize: 12, fontWeight: 700,
                         cursor: fetchingLive ? 'not-allowed' : 'pointer',
-                        boxShadow: fetchingLive ? 'none' : '0 2px 8px rgba(3,105,161,0.3)',
+                        boxShadow: fetchingLive ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
                         transition: 'all 0.2s',
                     }}
                 >
                     {fetchingLive
-                        ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />
+                        ? <Loader2 size={13} className="animate-spin" />
                         : <CloudRain size={13} />
                     }
-                    {fetchingLive ? 'Fetching Live…' : 'Fetch Live Data'}
+                    {fetchingLive ? 'SYNCHRONIZING…' : 'FETCH LIVE INTEL'}
                 </button>
 
                 {/* GEE pipeline trigger */}
@@ -160,13 +160,20 @@ export default function Navbar() {
                     className="trigger-btn"
                     onClick={handleTrigger}
                     disabled={triggering}
-                    title="Trigger Google Earth Engine satellite pipeline (requires Python service)"
+                    title="Trigger Google Earth Engine satellite pipeline"
+                    style={{
+                        background: triggering ? '#1e293b' : 'linear-gradient(135deg, #0D7377, #0891B2)',
+                        boxShadow: triggering ? 'none' : '0 4px 12px rgba(13, 115, 119, 0.3)',
+                        borderRadius: 10,
+                        fontSize: 12,
+                        padding: '8px 18px'
+                    }}
                 >
                     {triggering
-                        ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                        ? <Loader2 size={14} className="animate-spin" />
                         : <Satellite size={14} />
                     }
-                    {triggering ? 'Queuing…' : 'GEE Pipeline'}
+                    {triggering ? 'QUEUING…' : 'GEE PIPELINE'}
                 </button>
             </div>
         </header>

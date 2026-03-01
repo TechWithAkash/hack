@@ -1,15 +1,21 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
 import {
     Droplets, SatelliteDish, Sun, Moon,
     RefreshCw, AlertTriangle, Activity, Users,
-    TrendingUp, Shield, Map as MapIcon, Layers
+    TrendingUp, Shield, Map as MapIcon, Layers,
+    ChevronRight, Info, Crosshair
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import {
+    PieChart, Pie, Cell, ResponsiveContainer,
+    BarChart, Bar, XAxis, YAxis, Tooltip,
+    AreaChart, Area
+} from 'recharts';
 
 /* ── Dynamic map import ── */
 const FloodMap = dynamic(() => import('@/components/map/FloodMap'), {
@@ -20,7 +26,7 @@ const FloodMap = dynamic(() => import('@/components/map/FloodMap'), {
             background: '#F8FAFC', color: '#64748B', fontSize: 13, gap: 10, flexDirection: 'column',
         }}>
             <div className="animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-teal-600" />
-            <span style={{ fontWeight: 600 }}>Initialising satellite flood telemetry…</span>
+            <span style={{ fontWeight: 600 }}>Syncing satellite uplink matrix…</span>
         </div>
     ),
 });
@@ -28,51 +34,28 @@ const FloodMap = dynamic(() => import('@/components/map/FloodMap'), {
 type TileMode = 'dark' | 'satellite' | 'light';
 type RiskFilter = 'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
-const RISK_COLORS: Record<string, string> = {
-    CRITICAL: '#EF4444', HIGH: '#F97316', MEDIUM: '#EAB308', LOW: '#22C55E',
+const RISK_PALETTE: Record<string, string> = {
+    CRITICAL: '#FF2E2E',
+    HIGH: '#FF8A00',
+    MEDIUM: '#FFD600',
+    LOW: '#00FF85',
+    ALL: '#64748B'
 };
 
-function StatCard({ icon, label, value, sub, color }: {
-    icon: React.ReactNode; label: string;
-    value: string | number; sub?: string; color: string;
-}) {
-    return (
-        <div style={{
-            display: 'flex', alignItems: 'center', gap: 16,
-            padding: '20px 24px', borderRadius: 20,
-            background: '#FFFFFF', border: '1px solid #E2E8F0',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
-            transition: 'transform 0.2s'
-        }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-            <div style={{
-                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: `${color}10`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-                {icon}
-            </div>
-            <div>
-                <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-                    {label}
-                </div>
-                <div style={{ fontSize: 22, fontWeight: 950, color: '#0F172A', lineHeight: 1 }}>{value}</div>
-                {sub && <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 4, fontWeight: 500 }}>{sub}</div>}
-            </div>
-        </div>
-    );
-}
+const CHART_COLORS = ['#EF4444', '#F97316', '#EAB308', '#22C55E'];
 
-export default function FloodMapPage() {
+export default function GeospatialMapPage() {
     const { data: floodData, mutate } = useSWR(
-        '/api/insights/latest?limit=50', fetcher,
-        { refreshInterval: 120_000 },
+        '/api/insights/latest?limit=100', fetcher,
+        { refreshInterval: 60_000 },
     );
     const allEvents: any[] = floodData?.events ?? [];
 
     const [riskFilter, setRiskFilter] = useState<RiskFilter>('ALL');
-    const [tileMode, setTileMode] = useState<TileMode>('light');
+    const [tileMode, setTileMode] = useState<TileMode>('satellite');
     const [refreshing, setRefreshing] = useState(false);
     const [showStudio, setShowStudio] = useState(false);
+    const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
     const [geeLoading, setGeeLoading] = useState(false);
     const [geeTiles, setGeeTiles] = useState<Record<string, string> | undefined>(undefined);
 
@@ -86,10 +69,49 @@ export default function FloodMapPage() {
         run: true
     });
 
+    const events = useMemo(() => {
+        return riskFilter === 'ALL'
+            ? allEvents
+            : allEvents.filter((e: any) => e.riskLevel === riskFilter);
+    }, [allEvents, riskFilter]);
+
+    const selectedEvent = useMemo(() => {
+        return allEvents.find(e => e._id === selectedEventId) || events[0];
+    }, [allEvents, selectedEventId, events]);
+
+    /* Stats Derivation */
+    const stats = useMemo(() => {
+        const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+        let totalPop = 0;
+        let totalArea = 0;
+
+        allEvents.forEach(e => {
+            if (counts[e.riskLevel as keyof typeof counts] !== undefined) {
+                counts[e.riskLevel as keyof typeof counts]++;
+            }
+            totalPop += (e.affectedPopEst ?? 0);
+            totalArea += (e.floodAreaKm2 ?? 0);
+        });
+
+        const pieData = Object.entries(counts).map(([name, value]) => ({ name, value }));
+        const barData = allEvents.slice(0, 8).map(e => ({
+            name: e.districtId?.districtName || 'Zone',
+            conf: e.confidenceScore * 100
+        })).sort((a, b) => b.conf - a.conf);
+
+        return { counts, totalPop, totalArea, pieData, barData };
+    }, [allEvents]);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        await mutate();
+        setRefreshing(false);
+        toast.success('Geospatial telemetry updated');
+    };
+
     const handleRunGEE = async () => {
         setGeeLoading(true);
-        toast.loading('Initalizing GEE Cluster Pipeline...', { id: 'gee-pipeline' });
-
+        toast.loading('Initializing GEE Distributed Processing...', { id: 'gee' });
         try {
             const res = await fetch('/api/studio/run', {
                 method: 'POST',
@@ -97,280 +119,228 @@ export default function FloodMapPage() {
                 body: JSON.stringify(cfg),
             });
             const data = await res.json();
-
             if (!data.success) {
-                toast.error(`Pipeline Error: ${data.error}`, { id: 'gee-pipeline' });
+                toast.error(`Pipeline Error: ${data.error}`, { id: 'gee' });
             } else {
                 setGeeTiles(data.tiles);
-                toast.success('Distributed GEE Processing Complete!', { id: 'gee-pipeline' });
+                toast.success('Distributed processing complete!', { id: 'gee' });
                 setShowStudio(false);
                 mutate();
             }
         } catch (e: any) {
-            toast.error(`Fetch Failed: ${e.toString()}`, { id: 'gee-pipeline' });
+            toast.error('Sync failed', { id: 'gee' });
         } finally {
             setGeeLoading(false);
         }
     };
 
-    const events = riskFilter === 'ALL'
-        ? allEvents
-        : allEvents.filter((e: any) => e.riskLevel === riskFilter);
-
-    const totalFloodKm2 = allEvents.reduce((s, e) => s + (e.floodAreaKm2 ?? 0), 0);
-    const totalAffectedPop = allEvents.reduce((s, e) => s + (e.affectedPopEst ?? 0), 0);
-    const criticalCount = allEvents.filter((e: any) => e.riskLevel === 'CRITICAL').length;
-    const highCount = allEvents.filter((e: any) => e.riskLevel === 'HIGH').length;
-
-    const handleRefresh = async () => {
-        setRefreshing(true);
-        await mutate();
-        setRefreshing(false);
-    };
-
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h1 style={{ fontSize: 22, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>
-                        Regional Risk Interface
-                    </h1>
-                    <p style={{ fontSize: 11, color: '#64748B', marginTop: 2, fontWeight: 500 }}>
-                        Sentinel-1 SAR + Sentinel-2 MSI Multi-Temporal Insight Engine
-                    </p>
+        <div style={{
+            height: 'calc(100vh - 120px)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            background: '#F8FAFC',
+            padding: '4px'
+        }}>
+            {/* Top Operational Header */}
+            <div className="operational-card" style={{
+                padding: '12px 24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'white',
+                borderRadius: 16
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div style={{
+                        width: 40, height: 40, borderRadius: 12, background: '#F0FDFA',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0D7377'
+                    }}>
+                        <MapIcon size={20} />
+                    </div>
+                    <div>
+                        <h1 style={{ fontSize: 18, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                            Live Risk Matrix
+                        </h1>
+                        <p style={{ fontSize: 10, color: '#64748B', fontWeight: 700, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {allEvents.length} Monitored zones globally · <span style={{ color: '#16A34A' }}>Live Feed</span>
+                        </p>
+                    </div>
                 </div>
 
-                <button
-                    onClick={() => setShowStudio(!showStudio)}
-                    style={{
-                        background: '#0F172A', color: 'white', border: 'none',
-                        padding: '10px 20px', borderRadius: 12, fontSize: 11, fontWeight: 900,
-                        display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                        transition: 'all 0.3s'
-                    }}
-                >
-                    <SatelliteDish size={14} />
-                    GEE Studio
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                        onClick={handleRefresh}
+                        className="operational-card"
+                        style={{ padding: '8px 16px', fontSize: 11, fontWeight: 900, display: 'flex', gap: 8, alignItems: 'center', background: 'white', cursor: 'pointer' }}
+                    >
+                        <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+                        REFRESH SENSORS
+                    </button>
+                </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-                <StatCard icon={<Droplets size={16} color="#0D7377" />} label="Active" value={allEvents.length} color="#0D7377" />
-                <StatCard icon={<AlertTriangle size={16} color="#EF4444" />} label="Critical" value={criticalCount} color="#EF4444" />
-                <StatCard icon={<TrendingUp size={16} color="#F97316" />} label="High Sev" value={highCount} color="#F97316" />
-                <StatCard icon={<Activity size={16} color="#0369A1" />} label="Extent" value={`${totalFloodKm2.toFixed(0)} km²`} color="#0369A1" />
-                <StatCard icon={<Users size={16} color="#7C3AED" />} label="Exposure" value={totalAffectedPop > 1000 ? `${(totalAffectedPop / 1000).toFixed(0)}K` : totalAffectedPop.toString()} color="#7C3AED" />
-            </div>
+            {/* Main Content Area: 3-Column Layout */}
+            <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0 }}>
 
-            <div style={{
-                background: '#FFFFFF', borderRadius: 20, overflow: 'hidden',
-                border: '1px solid #E2E8F0', boxShadow: '0 8px 32px rgba(0,0,0,0.04)'
-            }}>
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: 16, padding: '12px 20px',
-                    borderBottom: '1px solid #F1F5F9', background: '#FFFFFF'
-                }}>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <span style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', marginRight: 4 }}>FILTER</span>
-                        {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as RiskFilter[]).map(level => (
+                {/* Left Intel Column */}
+                <div style={{ width: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {/* Severity Summary Chips */}
+                    <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(stats.counts).map(([level, count]) => (
                             <button
                                 key={level}
-                                onClick={() => setRiskFilter(level)}
+                                onClick={() => setRiskFilter(level as RiskFilter)}
                                 style={{
-                                    padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 800,
-                                    border: riskFilter === level ? `1px solid ${RISK_COLORS[level] || '#0D7377'}` : '1px solid #F1F5F9',
-                                    background: riskFilter === level ? `${RISK_COLORS[level] || '#0D7377'}08` : 'transparent',
-                                    color: riskFilter === level ? (RISK_COLORS[level] || '#0D7377') : '#94A3B8',
-                                    cursor: 'pointer', transition: 'all 0.2s'
+                                    padding: '12px', borderRadius: 12, border: '1px solid #E2E8F0',
+                                    background: riskFilter === level ? RISK_PALETTE[level] : 'white',
+                                    color: riskFilter === level ? 'white' : '#0F172A',
+                                    textAlign: 'left', transition: 'all 0.2s', cursor: 'pointer'
                                 }}
                             >
-                                {level}
+                                <div style={{ fontSize: 18, fontWeight: 950, lineHeight: 1 }}>{count}</div>
+                                <div style={{ fontSize: 9, fontWeight: 800, opacity: 0.8, textTransform: 'uppercase', marginTop: 4 }}>{level}</div>
                             </button>
                         ))}
                     </div>
 
-                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-                        {(['light', 'satellite', 'dark'] as TileMode[]).map(t => (
-                            <button
-                                key={t}
-                                onClick={() => setTileMode(t)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 6,
-                                    fontSize: 10, fontWeight: 900, border: 'none', background: tileMode === t ? '#F1F5F9' : 'transparent',
-                                    color: tileMode === t ? '#0F172A' : '#94A3B8', cursor: 'pointer'
-                                }}
-                            >
-                                {t === 'light' ? <Sun size={10} /> : t === 'satellite' ? <SatelliteDish size={10} /> : <Moon size={10} />}
-                                {t.toUpperCase()}
-                            </button>
-                        ))}
-                        <div style={{ width: 1, height: 16, background: '#E2E8F0', margin: '0 4px' }} />
-                        <button
-                            onClick={handleRefresh}
-                            disabled={refreshing}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 6,
-                                fontSize: 10, fontWeight: 900, border: 'none', background: 'transparent',
-                                color: refreshing ? '#0D7377' : '#94A3B8', cursor: 'pointer'
-                            }}
-                        >
-                            <RefreshCw size={10} className={refreshing ? 'animate-spin' : ''} />
-                            REFRESH
-                        </button>
+                    {/* Zone Navigator List */}
+                    <div className="operational-card" style={{ flex: 1, padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <div style={{ padding: '16px', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 10, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.1em' }}>ACTIVE ZONES ({events.length})</span>
+                            <Layers size={14} style={{ color: '#94A3B8' }} />
+                        </div>
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+                            {events.map((e) => (
+                                <div
+                                    key={e._id}
+                                    onClick={() => setSelectedEventId(e._id)}
+                                    style={{
+                                        padding: '12px', borderRadius: 10, marginBottom: 4, cursor: 'pointer',
+                                        background: selectedEventId === e._id ? '#F8FAFC' : 'transparent',
+                                        border: selectedEventId === e._id ? '1px solid #E2E8F0' : '1px solid transparent',
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                                    onMouseLeave={e => { if (selectedEventId !== e.currentTarget.id) e.currentTarget.style.background = 'transparent' }}
+                                >
+                                    <div>
+                                        <div style={{ fontSize: 12, fontWeight: 800, color: '#0F172A' }}>{e.districtId?.districtName || 'Assam Zone'}</div>
+                                        <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>Flood Detection · {(e.confidenceScore * 100).toFixed(0)}% Conf</div>
+                                    </div>
+                                    <div style={{
+                                        padding: '2px 6px', borderRadius: 4, fontSize: 8, fontWeight: 950,
+                                        background: `${RISK_PALETTE[e.riskLevel as string]}15`,
+                                        color: RISK_PALETTE[e.riskLevel as string],
+                                        border: `1px solid ${RISK_PALETTE[e.riskLevel as string]}30`
+                                    }}>
+                                        {e.riskLevel}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ position: 'relative', height: 600, overflow: 'hidden' }}>
-                    <FloodMap events={events} tileMode={tileMode} geeTiles={geeTiles} />
+                {/* Center Map Column */}
+                <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="operational-card" style={{ flex: 1, padding: 0, overflow: 'hidden', position: 'relative', border: 'none', background: '#F1F5F9' }}>
+                        <FloodMap
+                            events={events}
+                            tileMode={tileMode}
+                            geeTiles={geeTiles}
+                            onSelect={setSelectedEventId}
+                            selectedId={selectedEventId}
+                        />
 
-                    {/* Status Overlays */}
-                    <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.8)', padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(226, 232, 240, 0.5)',
-                            backdropFilter: 'blur(10px)',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: 8
+                        {/* Map Controls Overlay */}
+                        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {(['satellite', 'light', 'dark'] as TileMode[]).map(t => (
+                                <button
+                                    key={t}
+                                    onClick={() => setTileMode(t)}
+                                    style={{
+                                        width: 36, height: 36, borderRadius: 10, background: 'white', border: '1px solid #E2E8F0',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: tileMode === t ? '#0F172A' : '#94A3B8',
+                                        cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                    }}
+                                >
+                                    {t === 'satellite' ? <SatelliteDish size={16} /> : t === 'light' ? <Sun size={16} /> : <Moon size={16} />}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Pulse Marker Indicator */}
+                        <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 1000 }}>
+                            <div style={{
+                                background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: 20,
+                                display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #E2E8F0',
+                                backdropFilter: 'blur(10px)', boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
+                            }}>
+                                <div className="pulse-dot" style={{ background: '#EF4444' }} />
+                                <span style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.05em' }}>DOWNLINK ACTIVE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Focus Details Card (Bottom Overlay) */}
+                    {selectedEvent && (
+                        <div className="operational-card" style={{
+                            padding: '20px 24px', position: 'relative', background: 'white',
+                            display: 'flex', gap: 32, alignItems: 'center'
                         }}>
-                            <div className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" />
-                            <span style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.05em' }}>
-                                {geeTiles ? 'GEE PIPELINE ACTIVE' : 'LIVE STREAM'}
-                            </span>
+                            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                                <div style={{
+                                    width: 48, height: 48, borderRadius: 14,
+                                    background: `${RISK_PALETTE[selectedEvent.riskLevel as string]}15`,
+                                    color: RISK_PALETTE[selectedEvent.riskLevel as string],
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                }}>
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <div>
+                                    <h2 style={{ fontSize: 20, fontWeight: 950, color: '#0F172A', margin: 0 }}>
+                                        {selectedEvent.districtId?.districtName || 'Zone Alpha'}
+                                    </h2>
+                                    <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, display: 'flex', gap: 8, marginTop: 4 }}>
+                                        <span>{selectedEvent.districtId?.stateName || 'India'}</span>
+                                        <span style={{ color: '#CBD5E1' }}>•</span>
+                                        <span style={{ color: RISK_PALETTE[selectedEvent.riskLevel as string], fontWeight: 900 }}>{selectedEvent.riskLevel} RISK</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style={{ height: 40, width: 1, background: '#F1F5F9' }} />
+
+                            <div style={{ display: 'flex', gap: 32, flex: 1 }}>
+                                <div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{selectedEvent.floodAreaKm2?.toFixed(1) || '0.0'} km²</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Affected Area</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{selectedEvent.affectedPopEst ? (selectedEvent.affectedPopEst / 1000).toFixed(1) + 'k' : '—'}</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Population</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: 18, fontWeight: 950, color: '#0F172A' }}>{(selectedEvent.confidenceScore * 100).toFixed(1)}%</div>
+                                    <div style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase' }}>Det. Confidence</div>
+                                </div>
+                            </div>
+
+                            <button style={{
+                                padding: '12px 24px', borderRadius: 12, background: '#F8FAFC', color: '#0F172A',
+                                border: '1px solid #E2E8F0', fontWeight: 900, fontSize: 11, cursor: 'pointer'
+                            }}>
+                                FULL REPORT
+                            </button>
                         </div>
-                    </div>
-
-                    <div style={{
-                        position: 'absolute', top: 20, right: 20, zIndex: 1000,
-                        background: '#0F172A', color: '#FFF', padding: '10px 16px',
-                        borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.2)', textAlign: 'center'
-                    }}>
-                        <div style={{ fontSize: 18, fontWeight: 950, color: '#5EEAD4', lineHeight: 1 }}>{events.length}</div>
-                        <div style={{ fontSize: 8, fontWeight: 900, color: '#94A3B8', marginTop: 2, letterSpacing: '0.1em' }}>EVENTS</div>
-                    </div>
-
-                    {/* Studio Panel Overlay */}
-                    <div style={{
-                        position: 'absolute', top: 0, right: showStudio ? 0 : -320, width: 320, height: '100%',
-                        background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(20px)', borderLeft: '1px solid rgba(226, 232, 240, 0.5)', zIndex: 1100,
-                        transition: 'right 0.4s cubic-bezier(0.4, 0, 0.2, 1)', padding: 24,
-                        display: 'flex', flexDirection: 'column', boxShadow: '-8px 0 32px rgba(0,0,0,0.08)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                            <h3 style={{ fontSize: 11, fontWeight: 950, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <Layers size={14} className="text-teal-600" /> CLUSTER CONFIG
-                            </h3>
-                            <button onClick={() => setShowStudio(false)} style={{ background: '#F1F5F9', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748B', fontSize: 16 }}>×</button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1, overflowY: 'auto' }}>
-                            {/* Algorithm Parameters */}
-                            <div>
-                                <div style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', marginBottom: 10, letterSpacing: '0.05em' }}>ALGORITHM PARAMETERS</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {[
-                                        { label: 'SAR Baseline Conf', key: 'sar_conf_base' as const },
-                                        { label: 'Optical Baseline Conf', key: 'opt_conf_base' as const },
-                                    ].map(t => (
-                                        <div key={t.key}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                                <span>{t.label}</span> <span style={{ color: '#0F172A' }}>{Number(cfg[t.key]).toFixed(2)}</span>
-                                            </div>
-                                            <input type="range" min="0.5" max="1.0" step="0.01" value={Number(cfg[t.key])} onChange={e => setCfg({ ...cfg, [t.key]: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: '#0F172A' }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Temporal window */}
-                            <div>
-                                <div style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', marginBottom: 10, letterSpacing: '0.05em' }}>TEMPORAL WINDOW</div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                                    {['pre_start', 'pre_end', 'post_start', 'post_end'].map(key => (
-                                        <div key={key}>
-                                            <label style={{ fontSize: 8, color: '#64748B', fontWeight: 800, textTransform: 'uppercase', marginBottom: 2, display: 'block' }}>{key.replace('_', ' ')}</label>
-                                            <input type="date" value={String(cfg[key as keyof typeof cfg])} onChange={e => setCfg({ ...cfg, [key]: e.target.value })} style={{ width: '100%', padding: '8px', fontSize: 11, borderRadius: 6, background: 'rgba(255,255,255,0.4)', border: '1px solid #E2E8F0', outline: 'none' }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Thresholds */}
-                            <div>
-                                <div style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', marginBottom: 10, letterSpacing: '0.05em' }}>ANALYTIC THRESHOLDS</div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                    {[
-                                        { label: 'SAR Drop (dB)', key: 'threshold' as const, min: -6, max: 0, step: 0.1, color: '#EF4444' },
-                                        { label: 'NDVI Mask', key: 'ndvi_thresh' as const, min: -0.5, max: 0, step: 0.01, color: '#10B981' },
-                                        { label: 'Max Cloud (%)', key: 'cloud_pct' as const, min: 5, max: 80, step: 1, color: '#0D7377' },
-                                    ].map(t => (
-                                        <div key={t.key}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                                <span>{t.label}</span> <span style={{ color: t.color }}>{t.key === 'cloud_pct' ? `${cfg[t.key]}%` : Number(cfg[t.key]).toFixed(2)}</span>
-                                            </div>
-                                            <input type="range" min={t.min} max={t.max} step={t.step} value={Number(cfg[t.key])} onChange={e => setCfg({ ...cfg, [t.key]: parseFloat(e.target.value) })} style={{ width: '100%', accentColor: t.color }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Execution Parameters */}
-                            <div>
-                                <div style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', marginBottom: 10, letterSpacing: '0.05em' }}>EXECUTION</div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 700, color: '#475569', marginBottom: 6 }}>
-                                    <span>Resolution (Scale)</span> <span style={{ color: '#0F172A' }}>{cfg.scale}m</span>
-                                </div>
-                                <input type="range" min="10" max="1000" step="10" value={cfg.scale} onChange={e => setCfg({ ...cfg, scale: parseInt(e.target.value) })} style={{ width: '100%', accentColor: '#0F172A' }} />
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={handleRunGEE}
-                            disabled={geeLoading}
-                            style={{
-                                width: '100%', padding: '14px', borderRadius: 12, background: '#0F172A', color: '#FFF',
-                                fontWeight: 900, border: 'none', cursor: 'pointer', marginTop: 24, fontSize: 11,
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                                textTransform: 'uppercase'
-                            }}
-                        >
-                            {geeLoading ? 'COMMUNICATING...' : 'EXECUTE PIPELINE'}
-                        </button>
-                    </div>
+                    )}
                 </div>
+
             </div>
 
-            {/* Context Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.4)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(226, 232, 240, 0.5)',
-                    padding: 16,
-                    borderRadius: 16,
-                    display: 'flex',
-                    gap: 12
-                }}>
-                    <SatelliteDish size={14} className="text-teal-600 mt-0.5" />
-                    <div>
-                        <div style={{ fontSize: 12, fontWeight: 950, color: '#0F172A', marginBottom: 2 }}>Sentinel-1 SAR Radar</div>
-                        <p style={{ fontSize: 10, color: '#64748B', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>Penetrates cloud cover to detect specular reflection anomalies with pixel-level precision.</p>
-                    </div>
-                </div>
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.4)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(226, 232, 240, 0.5)',
-                    padding: 16,
-                    borderRadius: 16,
-                    display: 'flex',
-                    gap: 12
-                }}>
-                    <Activity size={14} className="text-indigo-600 mt-0.5" />
-                    <div>
-                        <div style={{ fontSize: 12, fontWeight: 950, color: '#0F172A', marginBottom: 2 }}>Open-Meteo Predictive</div>
-                        <p style={{ fontSize: 10, color: '#64748B', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>Synthesizes 72h accumulation forecasts with SRTM elevation vulnerability datasets.</p>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 }

@@ -31,15 +31,14 @@ export async function GET() {
                 },
                 { $sort: { _id: 1 } },
             ]),
-            RiskEvent.find({ riskLevel: { $in: ['CRITICAL', 'HIGH'] }, status: 'active' })
+            RiskEvent.find({ floodAreaKm2: { $gt: 0 } })
                 .populate('districtId', 'districtName stateName')
-                .sort({ riskScore: -1 })
+                .sort({ floodAreaKm2: -1 })
                 .limit(5)
                 .lean(),
         ]);
 
         const totalFloodArea = await RiskEvent.aggregate([
-            { $match: { status: 'active' } },
             { $group: { _id: null, total: { $sum: '$floodAreaKm2' }, totalPop: { $sum: '$affectedPopEst' } } },
         ]);
 

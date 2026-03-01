@@ -23,7 +23,7 @@ export default function PipelineLogsPage() {
                 <div style={{
                     fontSize: 11, fontWeight: 900, background: results ? '#F0FDF4' : '#F1F5F9',
                     color: results ? '#16A34A' : '#64748B', borderRadius: 10, padding: '8px 16px',
-                    display: 'flex', alignItems: 'center', gap: 10, border: '1px solid currentColor', borderOpacity: 0.1
+                    display: 'flex', alignItems: 'center', gap: 10, border: '1px solid rgba(0,0,0,0.1)'
                 }}>
                     {results ? <CheckCircle2 size={14} /> : <Clock size={14} />}
                     {results ? 'TASK COMPLETE' : 'AWAITING RUN...'}

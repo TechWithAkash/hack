@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap } from 'react-leaflet';
+import { useEffect, useRef, useMemo } from 'react';
+import { MapContainer, TileLayer, GeoJSON, ZoomControl, useMap, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 /* ── Leaflet default icon fix ─────────────────────────── */
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -15,305 +16,280 @@ L.Icon.Default.mergeOptions({
 
 /* ── Risk colours ─────────────────────────────────────── */
 const RISK: Record<string, { fill: string; border: string }> = {
-    CRITICAL: { fill: '#EF4444', border: '#DC2626' },
-    HIGH: { fill: '#F97316', border: '#EA580C' },
-    MEDIUM: { fill: '#EAB308', border: '#CA8A04' },
-    LOW: { fill: '#22C55E', border: '#16A34A' },
-    UNKNOWN: { fill: '#94A3B8', border: '#64748B' },
+    CRITICAL: { fill: '#FF2E2E', border: '#991B1B' },
+    HIGH: { fill: '#FF8A00', border: '#9A3412' },
+    MEDIUM: { fill: '#FFD600', border: '#854D0E' },
+    LOW: { fill: '#00FF85', border: '#166534' },
+    UNKNOWN: { fill: '#64748B', border: '#334155' },
 };
 
 /* ── Tile URLs ────────────────────────────────────────── */
 const TILES = {
     dark: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    hybrid: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
 };
 
-/* ── Is this a satellite-derived or weather-estimated event? ── */
+/* ── Pulse Marker CSS ── */
+const PULSE_STYLES = `
+    .pulse-marker {
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0.4);
+        animation: pulse 2s infinite;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0px rgba(0, 255, 133, 0.7); }
+        70% { box-shadow: 0 0 0 15px rgba(0, 255, 133, 0); }
+        100% { box-shadow: 0 0 0 0px rgba(0, 255, 133, 0); }
+    }
+    .pulse-critical { background: #FF2E2E; border: 2px solid white; }
+    .pulse-high { background: #FF8A00; border: 2px solid white; animation-delay: 0.5s; }
+    .pulse-medium { background: #FFD600; border: 2px solid white; animation-delay: 1s; }
+    .pulse-low { background: #00FF85; border: 2px solid white; animation-delay: 1.5s; box-shadow: 0 0 15px rgba(0, 255, 133, 0.4); }
+    .pulse-marker.selected {
+        transform: scale(1.8);
+        box-shadow: 0 0 40px rgba(255, 255, 255, 1), 0 0 0 6px rgba(15, 23, 42, 0.4) !important;
+        z-index: 10000 !important;
+    }
+`;
+
 function isSatellite(event: any): boolean {
     return event.detectionMethod === 'ENSEMBLE' || event.detectionMethod === 'SAR' || event.detectionMethod === 'UNET';
 }
 
-/* ── Inject global popup + dashed polygon styles ─────── */
+function getEventCenter(e: any): [number, number] | null {
+    const geo = e.floodGeometry || e.districtId?.geometry;
+    if (!geo || !geo.coordinates) return null;
+
+    try {
+        const type = geo.type;
+        let coords: number[] | null = null;
+
+        if (type === 'Point') {
+            coords = geo.coordinates;
+        } else if (type === 'Polygon') {
+            // Find a point inside the first ring (usually the centroid or just the first point)
+            coords = geo.coordinates[0][0];
+        } else if (type === 'MultiPolygon') {
+            // Drill down into the first polygon, first ring, first coordinate
+            const poly = geo.coordinates[0];
+            if (poly && poly[0] && poly[0][0]) {
+                coords = poly[0][0];
+            }
+        }
+
+        if (coords && coords.length >= 2) {
+            // Map uses [lat, lng], GeoJSON uses [lng, lat]
+            if (coords[1] !== 0 && coords[0] !== 0) {
+                return [coords[1], coords[0]];
+            }
+        }
+    } catch (err) {
+        console.error('Tactical coordinate extraction failed:', err);
+    }
+    return null;
+}
+
+function MapUpdater({ events }: { events: any[] }) {
+    const map = useMap();
+    useEffect(() => {
+        if (events.length > 0) {
+            const group = new L.FeatureGroup(events.map(e => {
+                const center = getEventCenter(e);
+                if (center) return L.marker(center);
+                if (e.floodGeometry) return L.geoJSON(e.floodGeometry);
+                return L.marker([20, 78]); // Fallback center
+            }));
+            const bounds = group.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [100, 100], maxZoom: 10 });
+            }
+        }
+    }, [events.length, map]); // Only fit on initial load/filter change
+    return null;
+}
+
+function SelectionManager({ events, selectedId }: { events: any[], selectedId: string | null }) {
+    const map = useMap();
+    const lastSelectedId = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!selectedId || selectedId === lastSelectedId.current) return;
+        lastSelectedId.current = selectedId;
+
+        const event = events.find(e => e._id === selectedId);
+        if (!event) return;
+
+        const center = getEventCenter(event);
+        if (center) {
+            map.flyTo(center, 12, { duration: 1.5, easeLinearity: 0.25 });
+        }
+    }, [selectedId, events, map]);
+
+    return null;
+}
+
 function InjectStyles() {
     useEffect(() => {
-        const id = 'cosmeon-flood-styles';
+        const id = 'cosmeon-map-tactical-styles';
         if (document.getElementById(id)) return;
         const s = document.createElement('style');
         s.id = id;
         s.textContent = `
+            ${PULSE_STYLES}
             .leaflet-popup-content-wrapper {
-                background: #0D1B2A !important;
-                border: 1px solid rgba(255,255,255,0.12) !important;
-                border-radius: 12px !important;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
-                color: #E2E8F0 !important;
+                background: rgba(255, 255, 255, 0.98) !important;
+                backdrop-filter: blur(16px) !important;
+                border: 1px solid rgba(15, 23, 42, 0.1) !important;
+                border-radius: 14px !important;
+                box-shadow: 0 24px 64px rgba(0,0,0,0.18) !important;
+                color: #0F172A !important;
                 padding: 0 !important;
             }
-            .leaflet-popup-tip { background: #0D1B2A !important; }
+            .leaflet-popup-tip { background: #FFFFFF !important; }
             .leaflet-popup-content { margin: 0 !important; }
-            .cosmeon-flood-polygon { cursor: pointer; }
-            /* Dashed style for weather-estimate polygons */
-            .weather-estimate-polygon {
-                stroke-dasharray: 8, 5;
-            }
+            .cosmeon-flood-polygon { cursor: pointer; transition: all 0.3s; }
+            .weather-estimate-polygon { stroke-dasharray: 6, 4; }
         `;
         document.head.appendChild(s);
     }, []);
     return null;
 }
 
-/* ── Build popup HTML ─────────────────────────────────── */
-function floodPopup(p: Record<string, any>): string {
+function FloodPopupContent({ properties: p }: { properties: any }) {
     const rc = RISK[p.riskLevel] ?? RISK.UNKNOWN;
-    const dn = p.districtName ?? p.districtId?.districtName ?? 'Unknown district';
-    const st = p.stateName ?? p.districtId?.stateName ?? 'India';
-    const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(1) : '—';
+    const dn = p.districtName ?? p.districtId?.districtName ?? 'Field Observation';
+    const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(0) : '—';
     const area = typeof p.floodAreaKm2 === 'number' ? `${p.floodAreaKm2.toFixed(1)} km²` : '—';
-    const pop = typeof p.affectedPopEst === 'number' ? p.affectedPopEst.toLocaleString() : '—';
-    const conf = typeof p.confidenceScore === 'number' ? `${Math.round(p.confidenceScore * 100)}%` : '—';
-    const delta = typeof p.changeFromPrevKm2 === 'number' ? p.changeFromPrevKm2 : null;
-    const sarDb = p.metadata?.sarChangeDb;
-    const ndwi = p.metadata?.ndwiMean;
-    const refWin = p.metadata?.referenceWindow ?? null;
-    const curWin = p.metadata?.analysisWindow ?? null;
+    const pop = typeof p.affectedPopEst === 'number' ? (p.affectedPopEst / 1000).toFixed(1) + 'k' : '—';
     const isEnsemble = isSatellite(p);
 
-    /* Source badge */
-    const sourceBadge = isEnsemble
-        ? `<div style="display:inline-flex;align-items:center;gap:5px;background:#0D737722;
-                       border:1px solid #0D737760;border-radius:5px;padding:2px 8px;
-                       font-size:10px;font-weight:700;color:#5EEAD4;margin-bottom:8px;">
-              🛰 GEE · Sentinel-1 SAR + Sentinel-2 NDWI
-           </div>`
-        : `<div style="display:inline-flex;align-items:center;gap:5px;background:#7C3AED22;
-                       border:1px solid #7C3AED60;border-radius:5px;padding:2px 8px;
-                       font-size:10px;font-weight:700;color:#A78BFA;margin-bottom:8px;">
-              🌧 Open-Meteo Rainfall Estimate
-           </div>`;
-
-    const deltaHtml = delta !== null
-        ? `<div style="color:#94A3B8">Δ vs Prev</div>
-           <div style="color:${delta > 0 ? '#EF4444' : '#22C55E'};font-weight:700">
-             ${delta > 0 ? '+' : ''}${(delta as number).toFixed(1)} km²
-           </div>`
-        : '';
-
-    const sarHtml = sarDb !== undefined && sarDb !== 0
-        ? `<div style="color:#94A3B8">SAR VV Δ</div>
-           <div style="color:#fff;font-weight:600">${(sarDb as number).toFixed(3)} dB</div>`
-        : '';
-
-    const ndwiHtml = ndwi !== undefined && ndwi !== 0
-        ? `<div style="color:#94A3B8">NDWI Index</div>
-           <div style="color:#fff;font-weight:600">${(ndwi as number).toFixed(4)}</div>`
-        : '';
-
-    const windowHtml = (refWin && curWin)
-        ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.07);
-                       font-size:10px;color:#475569;line-height:1.6">
-             Change detection: <span style="color:#64748B">${refWin}</span>
-             → <span style="color:#64748B">${curWin}</span>
-           </div>`
-        : '';
-
-    const estimateNote = !isEnsemble
-        ? `<div style="margin-top:6px;font-size:10px;color:#6D28D9;line-height:1.5">
-             ℹ Polygon = rainfall-area estimate. Run GEE Pipeline for
-             satellite-pixel level flood boundary detection.
-           </div>`
-        : '';
-
-    return `
-    <div style="padding:16px 18px;min-width:250px;font-family:'Inter',system-ui,sans-serif">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-        <div style="width:10px;height:10px;border-radius:3px;
-                    background:${rc.fill};box-shadow:0 0 8px ${rc.fill}80;flex-shrink:0"></div>
-        <div style="font-weight:800;font-size:14px;color:#F8FAFC">${dn}</div>
-      </div>
-      <div style="font-size:11px;color:#64748B;margin-bottom:8px">${st}</div>
-      ${sourceBadge}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:12px">
-        <div style="color:#94A3B8">Risk Level</div>
-        <div style="color:${rc.fill};font-weight:800">${p.riskLevel ?? '—'}</div>
-        <div style="color:#94A3B8">Risk Score</div>
-        <div style="color:#fff;font-weight:600">${score} / 100</div>
-        <div style="color:#94A3B8">Flood Area</div>
-        <div style="color:#fff;font-weight:600">${area}</div>
-        <div style="color:#94A3B8">Affected Pop</div>
-        <div style="color:#fff;font-weight:600">${pop}</div>
-        <div style="color:#94A3B8">Confidence</div>
-        <div style="color:#fff;font-weight:600">${conf}</div>
-        <div style="color:#94A3B8">Method</div>
-        <div style="color:#5EEAD4;font-weight:600">${p.detectionMethod ?? 'ENSEMBLE'}</div>
-        ${deltaHtml}${sarHtml}${ndwiHtml}
-      </div>
-      ${windowHtml}${estimateNote}
-    </div>`;
-}
-
-/* ══════════════════════════════════════════════════════════
-   SATELLITE FLOOD LAYER — GEE ENSEMBLE events (solid polygons)
-   Higher confidence, pixel-level detection
-══════════════════════════════════════════════════════════ */
-function SatelliteFloodLayer({ events }: { events: any[] }) {
-    const map = useMap();
-    const ref = useRef<L.GeoJSON | null>(null);
-
-    const satelliteEvents = events.filter(isSatellite);
-
-    const features = satelliteEvents
-        .filter(e => e.floodGeometry?.type === 'Polygon' || e.floodGeometry?.type === 'MultiPolygon')
-        .map(e => ({
-            type: 'Feature' as const,
-            properties: {
-                ...e,
-                districtName: e.districtId?.districtName ?? e.districtName ?? 'Unknown',
-                stateName: e.districtId?.stateName ?? e.stateName ?? 'Assam',
-            },
-            geometry: e.floodGeometry,
-        }));
-
-    if (!features.length) return null;
-
-    const style = (feature: any) => {
-        const rc = RISK[feature.properties.riskLevel] ?? RISK.UNKNOWN;
-        return {
-            fillColor: rc.fill,
-            fillOpacity: 0.32,
-            color: rc.border,
-            weight: 2.5,
-            opacity: 1.0,
-            className: 'cosmeon-flood-polygon',
-        };
-    };
-
-    const onEachFeature = (feature: any, layer: any) => {
-        layer.bindPopup(floodPopup(feature.properties), { maxWidth: 310 });
-        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.58, weight: 3.5 }));
-        layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.32, weight: 2.5 }));
-    };
-
     return (
-        <GeoJSON
-            key={`sat-${features.length}-${features.map(f => f.properties.riskLevel).join('')}`}
-            data={{ type: 'FeatureCollection' as const, features } as any}
-            style={style}
-            onEachFeature={onEachFeature}
-        />
+        <div style={{ padding: '20px', minWidth: '260px', fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: rc.fill, boxShadow: `0 0 10px ${rc.fill}60` }} />
+                <div style={{ fontWeight: 950, fontSize: '15px', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{dn}</div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                <div>
+                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk Level</div>
+                    <div style={{ fontSize: '14px', fontWeight: 950, color: rc.fill }}>{p.riskLevel}</div>
+                </div>
+                <div>
+                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intensity</div>
+                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{score}%</div>
+                </div>
+                <div>
+                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Detection</div>
+                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{area}</div>
+                </div>
+                <div>
+                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Exposure</div>
+                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{pop}</div>
+                </div>
+            </div>
+
+            <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', fontSize: '11px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, border: '1px solid #F1F5F9' }}>
+                {isEnsemble ? '🛰 Multispectral Analysis Verified' : '🌧 Rainfall Accumulation Model'} ·
+                <span style={{ color: '#0D7377' }}> {p.detectionMethod || 'ENSEMBLE'}</span>
+            </div>
+        </div>
     );
 }
 
-/* ══════════════════════════════════════════════════════════
-   WEATHER ESTIMATE LAYER — Open-Meteo derived events (dashed polygons)
-   Lower confidence, rainfall-area bounding boxes
-══════════════════════════════════════════════════════════ */
-function WeatherEstimateLayer({ events }: { events: any[] }) {
-    const weatherEvents = events.filter(e => !isSatellite(e));
-
-    const features = weatherEvents
-        .filter(e => {
-            const hasGeom = e.floodGeometry?.type === 'Polygon' || e.floodGeometry?.type === 'MultiPolygon';
-            const hasBbox = e.metadata?.floodBbox?.length === 4;
-            return hasGeom || hasBbox;
-        })
-        .map(e => {
-            let geom: any;
-            if (e.floodGeometry?.type === 'Polygon' || e.floodGeometry?.type === 'MultiPolygon') {
-                geom = e.floodGeometry;
-            } else {
-                const [w, s, east, n] = e.metadata.floodBbox as number[];
-                geom = { type: 'Polygon', coordinates: [[[w, s], [east, s], [east, n], [w, n], [w, s]]] };
-            }
-            return {
-                type: 'Feature' as const,
-                properties: {
-                    ...e,
-                    districtName: e.districtId?.districtName ?? e.districtName ?? 'Unknown',
-                    stateName: e.districtId?.stateName ?? e.stateName ?? 'Assam',
-                },
-                geometry: geom,
-            };
-        });
-
-    if (!features.length) return null;
-
-    /**
-     * Dashed border style distinguishes weather estimates from satellite detections.
-     * Lower fillOpacity signals lower confidence. A dash pattern is applied via SVG pathOptions.
-     */
-    const style = (feature: any) => {
-        const rc = RISK[feature.properties.riskLevel] ?? RISK.UNKNOWN;
-        return {
-            fillColor: rc.fill,
-            fillOpacity: 0.12,       // Noticeably lighter than satellite layer
-            color: rc.border,
-            weight: 2,
-            opacity: 0.75,
-            dashArray: '8 5',      // Dashed border = weather estimate
-            className: 'cosmeon-flood-polygon weather-estimate-polygon',
-        };
-    };
-
-    const onEachFeature = (feature: any, layer: any) => {
-        layer.bindPopup(floodPopup(feature.properties), { maxWidth: 310 });
-        layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.28, weight: 3 }));
-        layer.on('mouseout', () => layer.setStyle({ fillOpacity: 0.12, weight: 2 }));
-    };
-
-    return (
-        <GeoJSON
-            key={`wx-${features.length}-${features.map(f => f.properties.riskLevel).join('')}`}
-            data={{ type: 'FeatureCollection' as const, features } as any}
-            style={style}
-            onEachFeature={onEachFeature}
-        />
-    );
-}
-
-/* ── Props ────────────────────────────────────────────── */
 interface FloodMapProps {
     events: any[];
-    tileMode: keyof typeof TILES;
+    tileMode: string;
     geeTiles?: Record<string, string>;
+    onSelect?: (id: string) => void;
+    selectedId?: string | null;
 }
 
-/* ════════════════════════════════════════════════════════
-   MAIN MAP EXPORT
-   Two GeoJSON layers: satellite events (solid) + weather estimates (dashed)
-   + Dynamic GEE Tiles generated by Python Backend if available!
-════════════════════════════════════════════════════════ */
-export default function FloodMap({ events, tileMode, geeTiles }: FloodMapProps) {
+export default function FloodMap({ events, tileMode, geeTiles, onSelect, selectedId }: FloodMapProps) {
     return (
         <MapContainer
             center={[20.59, 78.96]}
             zoom={5}
             zoomControl={false}
-            style={{ width: '100%', height: '580px', minHeight: '580px' }}
+            style={{ width: '100%', height: '100%' }}
         >
             <InjectStyles />
+            <MapUpdater events={events} />
+            <SelectionManager events={events} selectedId={selectedId} />
             <ZoomControl position="bottomright" />
 
             <TileLayer
                 key={tileMode}
-                url={TILES[tileMode]}
-                attribution='&copy; <a href="https://carto.com">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>'
+                url={TILES[tileMode as keyof typeof TILES]}
+                attribution='&copy; ESRI &copy; CARTO'
                 maxZoom={19}
             />
+            {tileMode === 'satellite' && (
+                <TileLayer
+                    url={TILES.hybrid}
+                    opacity={0.8}
+                    zIndex={2}
+                />
+            )}
 
-            {/* Dynamic GEE computation tiles (Render beneath solid polygons but above background) */}
-            {geeTiles?.pre_s1 && <TileLayer url={geeTiles.pre_s1} opacity={0.65} zIndex={4} />}
-            {geeTiles?.post_s1 && <TileLayer url={geeTiles.post_s1} opacity={0.65} zIndex={5} />}
-            {geeTiles?.flood && <TileLayer url={geeTiles.flood} opacity={0.9} zIndex={6} />}
-            {geeTiles?.ndvi_loss && <TileLayer url={geeTiles.ndvi_loss} opacity={0.7} zIndex={7} />}
-            {geeTiles?.optical_flood && <TileLayer url={geeTiles.optical_flood} opacity={0.6} zIndex={8} />}
-            {geeTiles?.confidence && <TileLayer url={geeTiles.confidence} opacity={0.6} zIndex={9} />}
+            {/* GEE Pipeline Tiles */}
+            {geeTiles?.flood && <TileLayer url={geeTiles.flood} opacity={0.8} zIndex={4} />}
+            {geeTiles?.confidence && <TileLayer url={geeTiles.confidence} opacity={0.6} zIndex={5} />}
 
-            {/* Dashed: Open-Meteo rainfall estimates (lower layer) */}
-            <WeatherEstimateLayer events={events} />
+            <GeoJSON
+                key={`sat-${events.length}-${selectedId}`}
+                data={{
+                    type: 'FeatureCollection',
+                    features: events.filter(isSatellite).map(e => ({
+                        type: 'Feature',
+                        geometry: e.floodGeometry,
+                        properties: e
+                    }))
+                } as any}
+                style={(f: any) => ({
+                    fillColor: RISK[f.properties.riskLevel]?.fill || '#94A3B8',
+                    fillOpacity: f.properties._id === selectedId ? 0.7 : 0.4,
+                    color: RISK[f.properties.riskLevel]?.border || '#334155',
+                    weight: f.properties._id === selectedId ? 5 : 2,
+                    className: 'cosmeon-flood-polygon'
+                })}
+                onEachFeature={(f, l) => {
+                    const html = renderToStaticMarkup(<FloodPopupContent properties={f.properties} />);
+                    l.bindPopup(html, { maxWidth: 300 });
+                    l.on('click', () => onSelect?.(f.properties._id));
+                }}
+            />
 
-            {/* Solid: GEE satellite detections (render on top) */}
-            <SatelliteFloodLayer events={events} />
+            {/* Pulse Intel Markers */}
+            {events.map((e, idx) => {
+                const center = getEventCenter(e);
+                if (!center) return null;
+
+                const isSelected = selectedId === e._id;
+                const icon = L.divIcon({
+                    className: `pulse-marker pulse-${(e.riskLevel || 'LOW').toLowerCase()} ${isSelected ? 'selected' : ''}`,
+                    iconSize: [isSelected ? 36 : 24, isSelected ? 36 : 24],
+                    iconAnchor: [isSelected ? 18 : 12, isSelected ? 18 : 12]
+                });
+
+                return (
+                    <Marker
+                        key={`${e._id}-${idx}`}
+                        position={center}
+                        icon={icon}
+                        zIndexOffset={isSelected ? 1000 : 0}
+                        eventHandlers={{ click: () => onSelect?.(e._id) }}
+                    >
+                        <Popup maxWidth={300}>
+                            <FloodPopupContent properties={e} />
+                        </Popup>
+                    </Marker>
+                );
+            })}
         </MapContainer>
     );
 }

@@ -60,9 +60,9 @@ function computeRiskScore(
 }
 
 function estimateFloodArea(rainfall7d: number, areaKm2: number, elevVuln: number): number {
-    if (rainfall7d < 50) return 0; // Prevent minor rains from simulating floods.
-    const base = Math.min((rainfall7d / 280) * 0.18, 0.35);
-    const vuln = 1 + (elevVuln - 0.5) * 0.4;
+    if (rainfall7d < 20) return 0; // Adjusted threshold for higher sensitivity
+    const base = Math.min((rainfall7d / 200) * 0.22, 0.45);
+    const vuln = 1 + (elevVuln - 0.5) * 0.5;
     return parseFloat((base * vuln * areaKm2).toFixed(1));
 }
 
