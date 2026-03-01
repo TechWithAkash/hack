@@ -11,7 +11,7 @@ import streamlit as st
 
 # ── Page config must be the FIRST Streamlit call ─────────────────────────────
 st.set_page_config(
-    page_title="COSMEON Insight Engine",
+    page_title="NETRA.AI Insight Engine",
     layout="wide",
     page_icon="🌊",
     initial_sidebar_state="expanded",
@@ -141,7 +141,7 @@ st.markdown(
     """
     <hr style="border:none;border-top:1px solid #1e293b;margin:32px 0 14px;">
     <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#475569;">
-      <span>COSMEON INSIGHT ENGINE · SENTINEL FUSION</span>
+      <span>NETRA.AI INTELLIGENCE ENGINE · SENTINEL FUSION</span>
       <span>tileScale=16 · bestEffort=True · KeyError Immunity</span>
     </div>
     """,

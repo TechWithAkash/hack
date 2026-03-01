@@ -37,7 +37,7 @@ def render(results: dict | None) -> None:
 
     # ── Header ───────────────────────────────────────────────────
     pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "COSMEON CLIMATE RISK ENGINE", ln=True, align="C")
+    pdf.cell(0, 10, "NETRA.AI CLIMATE RISK ENGINE", ln=True, align="C")
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "Automated Intelligence Assessment", ln=True, align="C")
     pdf.set_font("Arial", "", 10)

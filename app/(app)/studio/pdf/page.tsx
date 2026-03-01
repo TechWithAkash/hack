@@ -150,7 +150,7 @@ export default function PDFReportPage() {
                 <div style={{ textAlign: 'center', marginBottom: 60 }}>
                     <div style={{ fontSize: 10, fontWeight: 900, color: '#0D7377', letterSpacing: '0.4em', marginBottom: 16, textTransform: 'uppercase' }}>Analytic Intelligence Assessment</div>
                     <h1 style={{ fontSize: 32, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>
-                        COSMEON CLIMATE RISK ENGINE
+                        NETRA.AI CLIMATE RISK ENGINE
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 11, color: '#64748B', fontWeight: 600 }}>
                         <Clock size={12} /> GENERATED: {dateStr}
@@ -238,7 +238,7 @@ export default function PDFReportPage() {
                 {/* Footer Signature */}
                 <div style={{ marginTop: 80, paddingTop: 40, borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                     <div>
-                        <div style={{ fontSize: 9, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>COSMEON ANALYTIC PROVENANCE</div>
+                        <div style={{ fontSize: 9, fontWeight: 900, color: '#0F172A', marginBottom: 4 }}>NETRA.AI ANALYTIC PROVENANCE</div>
                         <div style={{ fontSize: 8, color: '#94A3B8', fontWeight: 600 }}>ID: {Math.random().toString(36).substring(2, 12).toUpperCase()}</div>
                     </div>
                     <div style={{ fontSize: 10, fontWeight: 900, color: '#0D7377', opacity: 0.5 }}>- END OF ASSESSMENT -</div>

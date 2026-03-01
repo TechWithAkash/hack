@@ -18,7 +18,7 @@ def generate_pdf():
 
         # Header
         pdf.set_font("Arial", 'B', 20)
-        pdf.cell(0, 15, "COSMEON CLIMATE RISK ENGINE", ln=True, align="C")
+        pdf.cell(0, 15, "NETRA.AI CLIMATE RISK ENGINE", ln=True, align="C")
         pdf.set_font("Arial", 'B', 14)
         pdf.cell(0, 10, "Automated Intelligence Assessment", ln=True, align="C")
         pdf.set_font("Arial", '', 10)

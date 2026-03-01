@@ -32,7 +32,7 @@ export default function StatsGrid() {
 
     if (isLoading) {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 14 }}>
                 {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className="glass-card shimmer" style={{ height: 120, borderRadius: 20 }} />
                 ))}
@@ -41,7 +41,7 @@ export default function StatsGrid() {
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 14 }}>
             {RISK_CARDS.map(({ key, label, icon: Icon, iconColor, gradient }) => (
                 <div
                     key={key}

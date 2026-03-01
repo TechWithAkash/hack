@@ -85,6 +85,14 @@ def run(cfg: dict) -> dict:
     bbox_str     = f"[{min_lon:.2f}, {min_lat:.2f}, {max_lon:.2f}, {max_lat:.2f}]"
     aoi_km2_val  = _aoi_km2(min_lon, min_lat, max_lon, max_lat)
 
+    # Auto-scale: prevent GEE timeout for large AOIs
+    if aoi_km2_val > 100000 and scale < 1000:
+        scale = 1000
+    elif aoi_km2_val > 50000 and scale < 500:
+        scale = 500
+    elif aoi_km2_val > 10000 and scale < 300:
+        scale = 300
+
     t0 = time.time()
     run_logs: list[str] = []
 
@@ -93,7 +101,7 @@ def run(cfg: dict) -> dict:
         run_logs.append(entry)
         print(entry)
 
-    _log(f"SYS_INIT: Booting Insight Engine. AOI: {aoi_km2_val:.1f} km²")
+    _log(f"SYS_INIT: Booting Insight Engine. AOI: {aoi_km2_val:.1f} km² | Scale: {scale}m")
 
     aoi = get_aoi(min_lon, min_lat, max_lon, max_lat)
 
@@ -243,7 +251,7 @@ def run(cfg: dict) -> dict:
         r = requests.post(
             INGEST_URL, json=payload,
             headers={'x-pipeline-secret': PIPELINE_SECRET, 'Content-Type': 'application/json'},
-            timeout=5
+            timeout=2
         )
         r.raise_for_status()
         _log("INTEGRATION: ✅ Automatically synced results to NextJS Dashboard Database.")

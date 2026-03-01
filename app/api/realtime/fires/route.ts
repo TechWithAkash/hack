@@ -32,7 +32,7 @@ async function fetchFIRMS(source: string, days: number): Promise<any[]> {
     try {
         const res = await fetch(url, {
             signal: controller.signal,
-            headers: { 'User-Agent': 'COSMEON-ClimateRisk/1.0' },
+            headers: { 'User-Agent': 'NETRA-AI-ClimateRisk/1.0' },
             cache: 'no-store',
         });
         clearTimeout(timeout);

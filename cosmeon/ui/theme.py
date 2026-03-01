@@ -50,7 +50,7 @@ section[data-testid="stSidebar"] .stMarkdown h3 { font-family: 'Space Mono', mon
 _HEADER_HTML = """
 <div class="platform-header">
   <div>
-    <div class="platform-title">🌊 COSMEON: CLIMATE RISK INSIGHT ENGINE</div>
+    <div class="platform-title">🌊 NETRA.AI: CLIMATE RISK INTELLIGENCE ENGINE</div>
     <div class="platform-subtitle">
       Automated Flood Detection &nbsp;·&nbsp; Agricultural Risk (NDVI)
       &nbsp;·&nbsp; Predictive History &nbsp;·&nbsp; Demographic Exposure API

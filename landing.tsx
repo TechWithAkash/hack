@@ -8,7 +8,9 @@ import {
 } from 'lucide-react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 
+const GlobeVis = dynamic(() => import('react-globe.gl'), { ssr: false });
 // ─────────────────────────────────────────────────────────────
 // Design Tokens
 // ─────────────────────────────────────────────────────────────
@@ -49,111 +51,107 @@ function AnimatedCounter({ to, suffix = '', prefix = '' }: { to: number; suffix?
 }
 
 // ─────────────────────────────────────────────────────────────
-// Satellite Orbit SVG (Hero visual — no external library needed)
+// Earth Globe Visual (Hero visual — no external library needed)
 // ─────────────────────────────────────────────────────────────
-function SatelliteOrbitVisual() {
+function EarthVisual() {
+    const globeRef = useRef<any>(null);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Position camera pointing towards India (Assam basin roughly 26.2 N, 92.9 E)
+        setTimeout(() => {
+            if (globeRef.current) {
+                globeRef.current.controls().autoRotate = true;
+                globeRef.current.controls().autoRotateSpeed = 0.8;
+                globeRef.current.controls().enableZoom = false;
+                globeRef.current.pointOfView({ lat: 20, lng: 80, altitude: 1.8 });
+            }
+        }, 500);
+    }, []);
+
+    // Trajectory arcs linking satellite command centers to AOI
+    const arcsData = [
+        { startLat: 26.2, startLng: 92.9, endLat: 51.5, endLng: -0.1, color: ['#22D3EE', '#F97316'] }, // Assam -> London data relay
+        { startLat: 26.2, startLng: 92.9, endLat: 38.9, endLng: -77.0, color: ['#0D7377', '#EF4444'] } // Assam -> WashDC relay
+    ];
+
+    // Pulsing hotspot rings at major detection sites
+    const ringsData = [
+        { lat: 26.2, lng: 92.9, maxR: 7, propagationSpeed: 2, repeatPeriod: 1500, color: '#EF4444' }, // Assam Critical Hub
+        { lat: 28.6, lng: 77.2, maxR: 4, propagationSpeed: 1, repeatPeriod: 2500, color: '#22C55E' }, // Delhi Secondary Hub
+    ];
+
     return (
-        <div style={{ position: 'relative', width: '100%', maxWidth: 540, aspectRatio: '1/1', margin: '0 auto' }}>
-            {/* Glow */}
-            <div style={{
-                position: 'absolute', inset: '15%',
-                background: `radial-gradient(circle, ${TEAL}30 0%, transparent 70%)`,
-                borderRadius: '50%', filter: 'blur(20px)',
-            }} />
-
-            {/* Earth-like core */}
-            <div style={{
-                position: 'absolute', top: '50%', left: '50%',
-                transform: 'translate(-50%,-50%)',
-                width: '38%', height: '38%',
-                borderRadius: '50%',
-                background: `conic-gradient(from 0deg, #0D4F52, #0D7377, #14A5AA, #164E63, #0D4F52)`,
-                boxShadow: `0 0 40px ${TEAL}60, 0 0 80px ${TEAL}30`,
-                zIndex: 4,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-                <Globe size={32} color="rgba(255,255,255,0.9)" />
-            </div>
-
-            {/* Orbit ring 1 */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: 540, aspectRatio: '1/1', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Ambient Background Glow for contrast blending */}
             <div style={{
                 position: 'absolute', inset: '10%',
-                border: `1px solid ${TEAL}35`,
-                borderRadius: '50%',
-                animation: 'spin1 12s linear infinite',
-            }}>
-                {/* Satellite dot on ring 1 */}
-                <div style={{
-                    position: 'absolute', top: '-6px', left: '50%', marginLeft: '-6px',
-                    width: 12, height: 12, borderRadius: '50%',
-                    background: CYAN, boxShadow: `0 0 10px ${CYAN}`,
-                }} />
-            </div>
+                background: `radial-gradient(circle, ${TEAL}40 0%, transparent 65%)`,
+                borderRadius: '50%', filter: 'blur(50px)', zIndex: 0,
+            }} />
 
-            {/* Orbit ring 2 */}
-            <div style={{
-                position: 'absolute', inset: '5%',
-                border: `1px solid ${TEAL_LIGHT}25`,
-                borderRadius: '50%',
-                transform: 'rotate(60deg)',
-                animation: 'spin2 20s linear infinite',
-            }}>
-                <div style={{
-                    position: 'absolute', top: '-5px', left: '50%', marginLeft: '-5px',
-                    width: 10, height: 10, borderRadius: '50%',
-                    background: ORANGE, boxShadow: `0 0 8px ${ORANGE}`,
-                }} />
-            </div>
+            {/* 3D WebGL Globe Container */}
+            {mounted && (
+                <div style={{ zIndex: 1, cursor: 'grab', width: 540, height: 540, pointerEvents: 'auto' }} onMouseDown={e => { e.currentTarget.style.cursor = 'grabbing' }} onMouseUp={e => { e.currentTarget.style.cursor = 'grab' }}>
+                    <GlobeVis
+                        ref={globeRef}
+                        width={540}
+                        height={540}
+                        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+                        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+                        backgroundColor="rgba(0,0,0,0)"
+                        atmosphereColor="#22D3EE"
+                        atmosphereAltitude={0.2}
 
-            {/* Orbit ring 3 — data arcs */}
-            <div style={{
-                position: 'absolute', inset: '0%',
-                border: `1px dashed ${BORDER}`,
-                borderRadius: '50%',
-                transform: 'rotate(-30deg)',
-                animation: 'spin3 30s linear infinite reverse',
-            }}>
-                <div style={{
-                    position: 'absolute', top: '-4px', left: '50%', marginLeft: '-4px',
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: '#A78BFA', boxShadow: '0 0 8px #A78BFA',
-                }} />
-            </div>
+                        // Active transmission arcs
+                        arcsData={arcsData}
+                        arcColor="color"
+                        arcDashLength={0.4}
+                        arcDashGap={4}
+                        arcDashInitialGap={() => Math.random() * 5}
+                        arcDashAnimateTime={2000}
 
-            {/* Floating data badges */}
+                        // Geospatial hot zones
+                        ringsData={ringsData}
+                        ringColor={(d: any) => d.color}
+                        ringMaxRadius="maxR"
+                        ringPropagationSpeed="propagationSpeed"
+                        ringRepeatPeriod="repeatPeriod"
+                    />
+                </div>
+            )}
+
+            {/* Floating UI Data Badges (React elements layered on top) */}
             {[
-                { label: 'SENTINEL-1', sub: 'SAR Active', color: CYAN, x: '80%', y: '15%' },
-                { label: 'NDWI: 0.72', sub: 'Flood Detected', color: ORANGE, x: '-10%', y: '20%' },
-                { label: '87% Conf.', sub: 'Risk Score', color: '#22C55E', x: '70%', y: '72%' },
-                { label: 'WorldPop', sub: '2.3M Exposed', color: '#A78BFA', x: '-5%', y: '65%' },
+                { label: 'BRAHMAPUTRA BASIN', sub: 'Critical Inundation', color: '#EF4444', x: '-15%', y: '25%' },
+                { label: 'ORBIT PASS: S1A', sub: 'Live Telemetry', color: CYAN, x: '85%', y: '15%' },
+                { label: 'RADAR COHERENCE', sub: '92.4% Match', color: '#22C55E', x: '80%', y: '75%' },
+                { label: 'POP. IMPACT MAPPED', sub: 'WorldPop Overlay', color: '#A78BFA', x: '-5%', y: '75%' },
             ].map((b, i) => (
                 <motion.div
                     key={i}
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 3 + i * 0.7, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={{ y: [-4, 4, -4] }}
+                    transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
                     style={{
                         position: 'absolute', left: b.x, top: b.y,
-                        background: 'rgba(6,11,20,0.85)',
-                        backdropFilter: 'blur(10px)',
-                        border: `1px solid ${b.color}30`,
-                        borderRadius: 10, padding: '8px 12px',
-                        zIndex: 10,
+                        background: 'rgba(6,11,20,0.85)', backdropFilter: 'blur(10px)',
+                        border: `1px solid ${b.color}30`, borderRadius: 10, padding: '10px 14px',
+                        zIndex: 10, boxShadow: `0 10px 25px rgba(0,0,0,0.5)`,
+                        display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'none'
                     }}
                 >
-                    <div style={{ fontSize: 10, fontWeight: 900, color: b.color, letterSpacing: '0.06em' }}>
-                        {b.label}
-                    </div>
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)', marginTop: 2, fontWeight: 600 }}>
-                        {b.sub}
+                    <div style={{ width: 4, height: 20, borderRadius: 2, background: b.color }} />
+                    <div>
+                        <div style={{ fontSize: 9, fontWeight: 900, color: b.color, letterSpacing: '0.1em' }}>
+                            {b.label}
+                        </div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, fontWeight: 600 }}>
+                            {b.sub}
+                        </div>
                     </div>
                 </motion.div>
             ))}
-
-            <style>{`
-                @keyframes spin1 { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                @keyframes spin2 { from { transform: rotate(60deg); } to { transform: rotate(420deg); } }
-                @keyframes spin3 { from { transform: rotate(-30deg); } to { transform: rotate(-390deg); } }
-            `}</style>
         </div>
     );
 }
@@ -196,7 +194,7 @@ function Navbar() {
                     </div>
                     <div>
                         <div style={{ fontWeight: 900, fontSize: 15, color: '#fff', letterSpacing: '-0.02em' }}>
-                            COSMEON
+                            NETRA.AI
                         </div>
                         <div style={{ fontSize: 9, color: TEAL_LIGHT, fontWeight: 700, letterSpacing: '0.1em' }}>
                             INTELLIGENCE ENGINE
@@ -220,7 +218,7 @@ function Navbar() {
                 </div>
 
                 {/* CTA */}
-                <a href="/dashboard" style={{
+                <a href="/login" style={{
                     display: 'flex', alignItems: 'center', gap: 7,
                     padding: '9px 20px', borderRadius: 10,
                     background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
@@ -242,10 +240,8 @@ function Navbar() {
 function Hero() {
     return (
         <section style={{
-            minHeight: '100vh',
             background: BG,
-            display: 'flex', alignItems: 'center',
-            padding: '120px 24px 80px',
+            padding: '140px 24px 80px',
             position: 'relative', overflow: 'hidden',
         }}>
             {/* Grid background */}
@@ -320,7 +316,7 @@ function Hero() {
                             maxWidth: 480, marginBottom: 40, fontWeight: 500,
                         }}
                     >
-                        COSMEON is an automated intelligence engine that transforms open satellite imagery (Sentinel-1/2, Landsat) into structured, decision-ready climate risk insights — in near real-time.
+                        NETRA.AI is an automated intelligence engine that transforms open satellite imagery (Sentinel-1/2, Landsat) into structured, decision-ready climate risk insights — in near real-time.
                     </motion.p>
 
                     {/* CTA row */}
@@ -330,7 +326,7 @@ function Hero() {
                         transition={{ duration: 0.6, delay: 0.3 }}
                         style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 52 }}
                     >
-                        <a href="/dashboard" style={{
+                        <a href="/login" style={{
                             display: 'flex', alignItems: 'center', gap: 8,
                             padding: '13px 28px', borderRadius: 12,
                             background: `linear-gradient(135deg, ${TEAL} 0%, ${TEAL_LIGHT} 100%)`,
@@ -386,7 +382,7 @@ function Hero() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
                 >
-                    <SatelliteOrbitVisual />
+                    <EarthVisual />
                 </motion.div>
             </div>
         </section>
@@ -1068,7 +1064,7 @@ function CTASection() {
                         fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900,
                         color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 20,
                     }}>
-                        COSMEON doesn't just show<br />you a map.
+                        NETRA.AI doesn't just show<br />you a map.
                     </h2>
                     <p style={{
                         fontSize: 17, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, marginBottom: 44,
@@ -1077,7 +1073,7 @@ function CTASection() {
                     </p>
 
                     <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
-                        <a href="/dashboard" style={{
+                        <a href="/login" style={{
                             display: 'flex', alignItems: 'center', gap: 8,
                             padding: '14px 32px', borderRadius: 12,
                             background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
@@ -1125,7 +1121,7 @@ function Footer() {
                     }}>
                         <Satellite size={13} color="white" />
                     </div>
-                    <span style={{ fontWeight: 800, fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>COSMEON</span>
+                    <span style={{ fontWeight: 800, fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>NETRA.AI</span>
                 </div>
 
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>

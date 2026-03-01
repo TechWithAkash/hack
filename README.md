@@ -40,7 +40,7 @@
 
 Earth observation satellites generate terabytes of imagery every day. Yet most of that data never reaches the people who actually need it. Governments, insurers, planners, and aid organizations still rely on delayed field reports and fragmented datasets.
 
-NETRA.AI transforms raw satellite data into structured, decision-ready climate intelligence.
+NETRA.AI closes this gap by building an **automated pipeline** that transforms open satellite data (Sentinel-1 SAR, Sentinel-2 Optical, Landsat-8/9) into **structured, decision-ready climate risk insights** — complete with real-time dashboards, population exposure maps, confidence scores, and auto-generated PDF reports.
 
 No mock data. No manual interpretation. Just automated geospatial truth.
 

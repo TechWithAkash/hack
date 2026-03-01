@@ -1,4 +1,4 @@
-# COSMEON: Satellite Data to Insight Engine for Climate Risk
+# NETRA.AI: Satellite Data to Insight Engine for Climate Risk
 
 > **Status:** Active (Hackathon Development)
 > **Goal:** Transform raw open satellite imagery into actionable climate risk intelligence.
@@ -7,7 +7,7 @@
 ---
 
 ## 🌎 Vision & Problem Statement (PS-06)
-COSMEON addresses the challenge of underutilized Earth Observation (EO) data. While satellites generate massive volumes of imagery, extracting "decision-ready" insights requires complex processing.
+NETRA.AI addresses the challenge of underutilized Earth Observation (EO) data. While satellites generate massive volumes of imagery, extracting "decision-ready" insights requires complex processing.
 
 **Key Requirements:**
 - **Automated Detection:** Ingesting Sentinel-1, Sentinel-2, and Landsat data to detect floods/risk zones.

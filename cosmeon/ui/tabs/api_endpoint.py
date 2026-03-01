@@ -24,7 +24,7 @@ def render(results: dict | None) -> None:
     payload = {
         "meta": {
             "timestamp": datetime.datetime.now().isoformat(),
-            "provider":  "COSMEON API v1",
+            "provider":  "NETRA.AI API v1",
         },
         "request_params": {
             "bbox":       results.get("bbox_str", ""),

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, useMap, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Rectangle, useMap } from 'react-leaflet';
 import { useStudio } from './StudioContext';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -14,9 +14,10 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// Helper component to handle drawing Area of Interest (AOI)
-function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, cfg: any, setCfg: (c: any) => void, handleRun: (oc?: any) => Promise<void> }) {
+// --- Drawing Manager: draws AOI rectangle on the map ---
+function DrawingManager({ active }: { active: boolean }) {
     const map = useMap();
+    const { cfg, setCfg, handleRun, setDrawnBounds, setAoiMode } = useStudio();
     const [startPos, setStartPos] = React.useState<[number, number] | null>(null);
     const [tempRect, setTempRect] = React.useState<L.Rectangle | null>(null);
 
@@ -30,6 +31,9 @@ function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, c
             return;
         }
 
+        // Change cursor to crosshair when drawing mode is active
+        map.getContainer().style.cursor = 'crosshair';
+
         const onMouseDown = (e: L.LeafletMouseEvent) => {
             map.dragging.disable();
             const pos: [number, number] = [e.latlng.lat, e.latlng.lng];
@@ -37,8 +41,8 @@ function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, c
             const rect = L.rectangle([pos, pos], {
                 color: "#14B8A6",
                 weight: 2,
-                fillOpacity: 0.1,
-                dashArray: '5, 5'
+                fillOpacity: 0.15,
+                dashArray: '6, 4'
             }).addTo(map);
             setTempRect(rect);
         };
@@ -58,23 +62,34 @@ function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, c
             const lat2 = currentPos[0];
             const lon2 = currentPos[1];
 
+            const minLat = Math.min(lat1, lat2);
+            const maxLat = Math.max(lat1, lat2);
+            const minLon = Math.min(lon1, lon2);
+            const maxLon = Math.max(lon1, lon2);
+
+            // Store drawn bounds for persistent rectangle rendering
+            setDrawnBounds([minLon, minLat, maxLon, maxLat]);
+
             const nextCfg = {
                 ...cfg,
-                min_lat: Math.min(lat1, lat2),
-                max_lat: Math.max(lat1, lat2),
-                min_lon: Math.min(lon1, lon2),
-                max_lon: Math.max(lon1, lon2)
+                min_lat: minLat,
+                max_lat: maxLat,
+                min_lon: minLon,
+                max_lon: maxLon
             };
 
             setCfg(nextCfg);
-            handleRun(nextCfg); // Auto-trigger pipeline on selection
 
-            setStartPos(null);
+            // Remove temp drawing rect (persistent one rendered via React)
             if (tempRect) {
                 tempRect.remove();
                 setTempRect(null);
             }
+            setStartPos(null);
             map.dragging.enable();
+
+            // Auto-trigger the pipeline
+            handleRun(nextCfg);
         };
 
         map.on('mousedown', onMouseDown);
@@ -85,20 +100,32 @@ function DrawingManager({ active, cfg, setCfg, handleRun }: { active: boolean, c
             map.off('mousedown', onMouseDown);
             map.off('mousemove', onMouseMove);
             map.off('mouseup', onMouseUp);
+            map.getContainer().style.cursor = '';
         };
-    }, [active, startPos, tempRect, map, cfg, setCfg, handleRun]);
+    }, [active, startPos, tempRect, map, cfg, setCfg, handleRun, setDrawnBounds, setAoiMode]);
 
     return null;
 }
 
-// Helper component to auto-fit to bounds
+// --- FitBounds: auto-fits map to the computed bounds from GEE results ---
 function FitBounds({ bounds }: { bounds: number[] | undefined }) {
     const map = useMap();
     useEffect(() => {
         if (!bounds || bounds.length !== 4) return;
         const [w, s, e, n] = bounds;
-        map.fitBounds([[s, w], [n, e]], { padding: [20, 20] });
+        map.fitBounds([[s, w], [n, e]], { padding: [40, 40] });
     }, [bounds, map]);
+    return null;
+}
+
+// --- FitToDrawn: auto-fits when user draws AOI ---
+function FitToDrawn({ drawnBounds }: { drawnBounds: [number, number, number, number] | null }) {
+    const map = useMap();
+    useEffect(() => {
+        if (!drawnBounds) return;
+        const [minLon, minLat, maxLon, maxLat] = drawnBounds;
+        map.fitBounds([[minLat, minLon], [maxLat, maxLon]], { padding: [60, 60] });
+    }, [drawnBounds, map]);
     return null;
 }
 
@@ -111,14 +138,14 @@ interface LayerVisibility {
 }
 
 interface StudioMapProps {
-    bounds?: number[]; // [min_lon, min_lat, max_lon, max_lat]
+    bounds?: number[];
     tiles?: Record<string, string>;
     visibility: LayerVisibility;
     baseLayer?: 'light' | 'dark' | 'satellite' | 'terrain';
 }
 
-export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'light' }: StudioMapProps) {
-    const { aoiMode, cfg, setCfg, handleRun } = useStudio();
+export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'satellite' }: StudioMapProps) {
+    const { aoiMode, drawnBounds } = useStudio();
 
     return (
         <MapContainer
@@ -128,14 +155,10 @@ export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'ligh
             style={{ width: '100%', height: '100%', background: '#F8FAFC' }}
         >
             <FitBounds bounds={bounds} />
-            <DrawingManager
-                active={aoiMode === 'draw'}
-                cfg={cfg}
-                setCfg={setCfg}
-                handleRun={handleRun}
-            />
+            <FitToDrawn drawnBounds={drawnBounds} />
+            <DrawingManager active={aoiMode === 'draw'} />
 
-            {/* Base Layer Logic */}
+            {/* Base Layers */}
             {baseLayer === 'light' && (
                 <TileLayer
                     url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
@@ -161,27 +184,38 @@ export default function StudioMap({ bounds, tiles, visibility, baseLayer = 'ligh
                 />
             )}
 
-            {/* GEE Computed Layers rendered in optimal stacking order */}
+            {/* Persistent AOI Rectangle: shows the user-selected area */}
+            {drawnBounds && (
+                <Rectangle
+                    bounds={[
+                        [drawnBounds[1], drawnBounds[0]],
+                        [drawnBounds[3], drawnBounds[2]]
+                    ]}
+                    pathOptions={{
+                        color: '#14B8A6',
+                        weight: 2.5,
+                        fillOpacity: 0.08,
+                        dashArray: '8, 4',
+                    }}
+                />
+            )}
+
+            {/* GEE Computed Raster Layers – stacking order matters */}
             {visibility.sarBase && tiles?.pre_s1 && (
                 <TileLayer url={tiles.pre_s1} opacity={0.65} zIndex={4} />
             )}
-
             {visibility.sarBase && tiles?.post_s1 && (
                 <TileLayer url={tiles.post_s1} opacity={1.0} zIndex={5} />
             )}
-
             {visibility.flood && tiles?.flood && (
                 <TileLayer url={tiles.flood} opacity={0.9} zIndex={6} />
             )}
-
             {visibility.vegDamage && tiles?.ndvi_loss && (
                 <TileLayer url={tiles.ndvi_loss} opacity={0.8} zIndex={7} />
             )}
-
             {visibility.optWater && tiles?.optical_flood && (
                 <TileLayer url={tiles.optical_flood} opacity={0.7} zIndex={8} />
             )}
-
             {visibility.confidence && tiles?.confidence && (
                 <TileLayer url={tiles.confidence} opacity={0.5} zIndex={9} />
             )}

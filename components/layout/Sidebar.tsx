@@ -13,7 +13,7 @@ export default function Sidebar() {
     const pathname = usePathname();
 
     const NAV_ITEMS = [
-        { href: '/', icon: LayoutDashboard, label: 'Overview' },
+        { href: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
         { href: '/map', icon: Map, label: 'Regional Map' },
         { href: '/districts', icon: Building2, label: 'Districts' },
         { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
@@ -57,11 +57,11 @@ export default function Sidebar() {
                         <Satellite size={18} color="white" />
                     </div>
                     <div>
-                        <div style={{ fontWeight: 800, fontSize: 14, color: '#0A1628', letterSpacing: '-0.02em' }}>
-                            COSMEON
+                        <div style={{ fontWeight: 900, fontSize: 14, color: '#0A1628', letterSpacing: '-0.02em' }}>
+                            NETRA<span style={{ color: '#0D7377' }}>.AI</span>
                         </div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontWeight: 500, letterSpacing: '0.06em' }}>
-                            CLIMATE RISK ENGINE
+                        <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600, letterSpacing: '0.06em' }}>
+                            INTELLIGENCE ENGINE
                         </div>
                     </div>
                 </div>
@@ -90,14 +90,14 @@ export default function Sidebar() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-                        const isActive = pathname === href || (href !== '/' && pathname.startsWith(href));
+                        const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
                         return (
                             <Link
                                 key={href}
                                 href={href}
                                 className={`sidebar-link ${isActive ? 'active' : ''}`}
                                 style={{
-                                    color: isActive ? '#FFFFFF' : '#94a3b8',
+                                    color: isActive ? '#FFFFFF' : '#475569',
                                     background: isActive ? 'linear-gradient(90deg, #3B82F6, #2563EB)' : 'transparent',
                                     padding: '10px 16px',
                                     borderRadius: '12px',
@@ -120,7 +120,7 @@ export default function Sidebar() {
             </nav>
 
             {/* Footer */}
-            <div style={{ padding: '20px', borderTop: '1px solid #1e293b', background: 'rgba(15, 23, 42, 0.4)' }}>
+            <div style={{ padding: '20px', borderTop: '1px solid #E2E8F0', background: '#F8FAFC' }}>
                 <div style={{ fontSize: 9, color: '#475569', fontWeight: 600, textAlign: 'center', letterSpacing: '0.05em' }}>
                     SENTINEL-1/2 · LANDSAT-9
                 </div>

@@ -5,7 +5,7 @@ import { StudioProvider, useStudio } from '@/components/studio/StudioContext';
 import { ShieldAlert, Layers, Cpu, Info, CheckCircle2, ChevronRight, Eye, Satellite as SatelliteIcon, Terminal, MessageSquare, FileText } from 'lucide-react';
 
 function StudioSidebar() {
-    const { cfg, setCfg, loading, handleRun, aoiMode, setAoiMode } = useStudio();
+    const { cfg, setCfg, loading, handleRun, aoiMode, setAoiMode, drawnBounds, setDrawnBounds } = useStudio();
 
     const ParameterLabel = ({ label, info }: { label: string, info: string }) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
@@ -32,7 +32,7 @@ function StudioSidebar() {
             background: 'rgba(255, 255, 255, 0.6)',
             backdropFilter: 'blur(30px)',
             borderRight: '1px solid rgba(226, 232, 240, 0.5)',
-            padding: '24px 20px 120px', // Massive bottom padding to ensure button visibility
+            padding: '24px 20px', // Massive bottom padding to ensure button visibility
             display: 'flex',
             flexDirection: 'column',
             gap: 24, // Slightly reduced gap
@@ -162,10 +162,46 @@ function StudioSidebar() {
                                 </div>
                             ))}
                         </div>
+                    ) : drawnBounds ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <div style={{ background: 'rgba(20, 184, 166, 0.06)', border: '1px solid rgba(20, 184, 166, 0.2)', borderRadius: 12, padding: 12 }}>
+                                <div style={{ fontSize: 9, fontWeight: 900, color: '#14B8A6', letterSpacing: '0.1em', marginBottom: 8 }}>✓ AOI SELECTED</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                                    {[
+                                        { label: 'MIN LON', val: drawnBounds[0].toFixed(4) },
+                                        { label: 'MIN LAT', val: drawnBounds[1].toFixed(4) },
+                                        { label: 'MAX LON', val: drawnBounds[2].toFixed(4) },
+                                        { label: 'MAX LAT', val: drawnBounds[3].toFixed(4) },
+                                    ].map(f => (
+                                        <div key={f.label} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.3)', borderRadius: 6 }}>
+                                            <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 900, letterSpacing: '0.08em' }}>{f.label}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>{f.val}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setDrawnBounds(null);
+                                    setCfg({ ...cfg, min_lon: 0, max_lon: 0, min_lat: 0, max_lat: 0 });
+                                }}
+                                style={{
+                                    width: '100%', padding: '8px', fontSize: 10, fontWeight: 800,
+                                    background: 'rgba(239, 68, 68, 0.08)', color: '#EF4444',
+                                    border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8,
+                                    cursor: 'pointer', transition: 'all 0.2s'
+                                }}
+                            >
+                                RESET AOI — DRAW AGAIN
+                            </button>
+                        </div>
                     ) : (
-                        <div style={{ background: 'rgba(241, 245, 249, 0.6)', border: '1px dashed #CBD5E1', borderRadius: 12, padding: 12, textAlign: 'center' }}>
+                        <div style={{ background: 'rgba(241, 245, 249, 0.6)', border: '1px dashed #CBD5E1', borderRadius: 12, padding: 14, textAlign: 'center' }}>
                             <p style={{ fontSize: 10, color: '#64748B', fontWeight: 600, lineHeight: 1.5, margin: 0 }}>
-                                📌 Draw a rectangle on the <b>Spatial Insights</b> map to set bounds automatically.
+                                📌 Click & drag on the map to select any region. The pipeline will auto-run for your selected area.
+                            </p>
+                            <p style={{ fontSize: 9, color: '#94A3B8', fontWeight: 500, margin: '6px 0 0 0' }}>
+                                🎯 Cursor is set to crosshair in draw mode
                             </p>
                         </div>
                     )}
@@ -235,7 +271,7 @@ function StudioHeader() {
                         <div className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" /> PIXEL-PERFECT CLIMATE INTELLIGENCE
                     </div>
                     <h1 style={{ fontSize: 28, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-                        Cosmeon Intelligence Studio <span style={{ color: '#94A3B8', fontWeight: 500 }}>v1.0</span>
+                        NETRA<span style={{ color: '#0D7377' }}>.AI</span> Intelligence Studio <span style={{ color: '#94A3B8', fontWeight: 500 }}>v1.0</span>
                     </h1>
                 </div>
                 {results && (
@@ -404,6 +440,8 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
         { id: 'logs', label: 'State Table & Logs', icon: <CheckCircle2 size={14} />, path: '/studio/logs' },
     ];
 
+    const isFullPage = ['/studio/ai', '/studio/pdf'].includes(pathname);
+
     return (
         <div style={{
             display: 'flex',
@@ -419,14 +457,14 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
 
             <div style={{
                 flex: 1,
-                padding: '32px 48px',
-                overflowY: 'auto',
+                padding: isFullPage ? 0 : '32px 48px',
+                overflow: isFullPage ? 'hidden' : 'auto',
                 position: 'relative',
                 zIndex: 1,
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-                {!['/studio/ai', '/studio/pdf'].includes(pathname) && (
+                {!isFullPage && (
                     <>
                         <StudioHeader />
 
@@ -476,7 +514,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
                     </>
                 )}
 
-                <div style={{ flex: 1, minHeight: 0 }}>
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                     {children}
                 </div>
             </div>
@@ -487,7 +525,7 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
 export default function StudioLayout({ children }: { children: React.ReactNode }) {
     return (
         <StudioProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, height: '100%', minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column' }}>
                 <StudioLayoutContent>
                     {children}
                 </StudioLayoutContent>

@@ -1,7 +1,7 @@
 import { FileText, Download } from 'lucide-react';
 import { formatDate } from '@/lib/utils/formatters';
 
-export const metadata = { title: 'Reports · COSMEON' };
+export const metadata = { title: 'Reports · NETRA.AI' };
 
 // Static placeholder — real reports come from pipeline POST payloads
 export default function ReportsPage() {

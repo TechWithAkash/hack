@@ -42,7 +42,7 @@ export default function PipelineLogsPage() {
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#F59E0B' }} />
                         <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10B981' }} />
                     </div>
-                    <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, letterSpacing: '0.1em' }}>COSMEON CLI v1.0.4</div>
+                    <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, letterSpacing: '0.1em' }}>NETRA.AI CLI v1.0.4</div>
                 </div>
 
                 <div style={{ flex: 1, padding: 32, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: 'monospace', fontSize: 13, background: '#0F172A' }}>
