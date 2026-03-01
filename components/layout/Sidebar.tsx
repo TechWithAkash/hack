@@ -5,14 +5,20 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Map, Building2, FileText,
     ScrollText, Settings, Satellite, Activity,
+    ShieldAlert, BarChart2, AlignLeft, Cpu
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-    { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/map', icon: Map, label: 'Flood Map' },
+    { href: '/', icon: LayoutDashboard, label: 'Overview' },
+    { href: '/map', icon: Map, label: 'Regional Map' },
     { href: '/districts', icon: Building2, label: 'Districts' },
     { href: '/reports', icon: FileText, label: 'Reports' },
-    { href: '/logs', icon: ScrollText, label: 'Pipeline Logs' },
+    { href: '/logs', icon: ScrollText, label: 'System Logs' },
+    { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
+    { href: '/studio/risk', icon: ShieldAlert, label: 'Risk Analysis' },
+    { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
+    { href: '/studio/logs', icon: AlignLeft, label: 'Telemetry Stream' },
+    { href: '/studio/api', icon: Cpu, label: 'Rest API' },
 ];
 
 export default function Sidebar() {

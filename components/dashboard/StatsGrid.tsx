@@ -4,15 +4,15 @@ import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
 import { formatArea, formatPopulation } from '@/lib/utils/formatters';
 import {
-    AlertTriangle, Activity, TrendingUp, Users,
-    Droplets, Cpu, Map, BarChart3,
+    AlertCircle, Activity, TrendingUp, Users,
+    Droplets, Map, ShieldAlert, Cpu
 } from 'lucide-react';
 
 const RISK_CARDS = [
-    { key: 'CRITICAL', label: 'Critical Zones', icon: AlertTriangle, iconColor: '#EF4444', bg: '#FEF2F2', accent: 'stat-accent-critical' },
-    { key: 'HIGH', label: 'High Risk Zones', icon: Activity, iconColor: '#F97316', bg: '#FFF7ED', accent: 'stat-accent-high' },
-    { key: 'MEDIUM', label: 'Medium Risk Zones', icon: TrendingUp, iconColor: '#EAB308', bg: '#FEFCE8', accent: 'stat-accent-medium' },
-    { key: 'LOW', label: 'Low Risk Zones', icon: Droplets, iconColor: '#22C55E', bg: '#F0FDF4', accent: 'stat-accent-low' },
+    { key: 'CRITICAL', label: 'Critical Alert', icon: AlertCircle, iconColor: '#EF4444', gradient: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)' },
+    { key: 'HIGH', label: 'High Severity', icon: ShieldAlert, iconColor: '#F97316', gradient: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)' },
+    { key: 'MEDIUM', label: 'Medium Risk', icon: TrendingUp, iconColor: '#EAB308', gradient: 'linear-gradient(135deg, #FEFCE8, #FEF9C3)' },
+    { key: 'LOW', label: 'Low Impact', icon: Droplets, iconColor: '#10B981', gradient: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' },
 ];
 
 export default function StatsGrid() {
@@ -25,59 +25,73 @@ export default function StatsGrid() {
     const totalPop = data?.totals?.totalPop ?? 0;
 
     const extraCards = [
-        { label: 'Total Flood Area', value: formatArea(totalFlood), icon: Map, iconColor: '#0D7377', bg: '#F0FDFA', accent: 'stat-accent-teal' },
-        { label: 'Affected Population', value: formatPopulation(totalPop), icon: Users, iconColor: '#0D7377', bg: '#F0FDFA', accent: 'stat-accent-teal' },
+        { label: 'Total Flood Area', value: formatArea(totalFlood), icon: Map, color: '#0D7377', bg: '#F0FDFA' },
+        { label: 'Exposed Population', value: formatPopulation(totalPop), icon: Users, color: '#0369A1', bg: '#F0F9FF' },
     ];
 
     if (isLoading) {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16 }}>
                 {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="glass-card shimmer" style={{ height: 100 }} />
+                    <div key={i} className="glass-card shimmer" style={{ height: 120, borderRadius: 20 }} />
                 ))}
             </div>
         );
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 14 }}>
-            {RISK_CARDS.map(({ key, label, icon: Icon, iconColor, bg, accent }) => (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 16 }}>
+            {RISK_CARDS.map(({ key, label, icon: Icon, iconColor, gradient }) => (
                 <div
                     key={key}
-                    className={`glass-card ${accent}`}
-                    style={{ padding: '16px 18px' }}
+                    style={{
+                        background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 24, padding: '24px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column',
+                        justifyContent: 'space-between', minHeight: 140, transition: 'transform 0.2s', cursor: 'default'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
                 >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                        <div>
-                            <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                                {label}
-                            </div>
-                            <div style={{ fontSize: 28, fontWeight: 800, color: iconColor, lineHeight: 1 }}>
-                                {riskMap[key] ?? 0}
-                            </div>
-                            <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 4 }}>districts</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <div style={{ background: gradient, borderRadius: 10, padding: 8, color: iconColor }}>
+                            <Icon size={18} />
                         </div>
-                        <div style={{ background: bg, borderRadius: 8, padding: 8 }}>
-                            <Icon size={20} color={iconColor} />
+                        <div style={{ fontSize: 10, fontWeight: 900, color: '#94A3B8', letterSpacing: '0.1em' }}>DISTRICTS</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 36, fontWeight: 950, color: '#0F172A', lineHeight: 1 }}>
+                            {riskMap[key] ?? 0}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {label}
                         </div>
                     </div>
                 </div>
             ))}
 
-            {extraCards.map(({ label, value, icon: Icon, iconColor, bg, accent }) => (
-                <div key={label} className={`glass-card ${accent}`} style={{ padding: '16px 18px' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                        <div>
-                            <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-                                {label}
-                            </div>
-                            <div style={{ fontSize: 22, fontWeight: 800, color: '#0A1628', lineHeight: 1 }}>
-                                {value}
-                            </div>
-                            <div style={{ fontSize: 10, color: '#94A3B8', marginTop: 4 }}>live estimate</div>
+            {extraCards.map(({ label, value, icon: Icon, color, bg }) => (
+                <div
+                    key={label}
+                    style={{
+                        background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 24, padding: '24px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column',
+                        justifyContent: 'space-between', minHeight: 140, transition: 'transform 0.2s', cursor: 'default'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <div style={{ background: bg, borderRadius: 10, padding: 8, color }}>
+                            <Icon size={18} />
                         </div>
-                        <div style={{ background: bg, borderRadius: 8, padding: 8 }}>
-                            <Icon size={20} color={iconColor} />
+                        <div style={{ fontSize: 10, fontWeight: 900, color: '#64748B', letterSpacing: '0.1em' }}>METRIC</div>
+                    </div>
+                    <div>
+                        <div style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', lineHeight: 1 }}>
+                            {value}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {label}
                         </div>
                     </div>
                 </div>

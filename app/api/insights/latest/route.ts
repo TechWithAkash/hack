@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { RiskEvent } from '@/lib/models/RiskEvent';
+import { District } from '@/lib/models/District';
+import { SatelliteScene } from '@/lib/models/SatelliteScene';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     await connectDB();
+
+    // Prevent Turbopack tree-shaking from dropping populated models
+    void District;
+    void SatelliteScene;
+
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const level = searchParams.get('level');

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Sidebar from '@/components/layout/Sidebar';
 import Navbar from '@/components/layout/Navbar';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <main className="flex-1 overflow-y-auto px-6 py-6 bg-slate-50">
                             {children}
                         </main>
+                        <Toaster position="top-right" />
                     </div>
                 </div>
             </body>
