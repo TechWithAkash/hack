@@ -14,14 +14,15 @@ export default function SpatialInsightsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                    <h2 style={{ fontSize: 20, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <Globe size={18} className="text-teal-600" /> Pixel Inspector
+                    <h2 style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <Globe size={24} className="text-teal-600" /> Geospatial Pixel Inspector
                     </h2>
-                    <p style={{ fontSize: 11, color: '#64748B', marginTop: 2, fontWeight: 500 }}>
-                        Distributed Sentinel-1/2 multi-temporal fusion engine.
+                    <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
+                        Real-time Distributed Sentinel-1/2 multi-temporal fusion engine for high-resolution flood analysis.
                     </p>
                 </div>
 
+                {/* ... Base Layer Control (preserved) ... */}
                 <div style={{
                     display: 'flex',
                     background: 'rgba(255, 255, 255, 0.6)',
@@ -65,11 +66,13 @@ export default function SpatialInsightsPage() {
 
             <div style={{
                 position: 'relative',
-                height: 600,
-                borderRadius: 24,
+                height: 800, // Massive analytical height
+                flexShrink: 0, // CRITICAL: Stop flex squashing
+                borderRadius: 32,
                 overflow: 'hidden',
-                border: '1px solid rgba(226, 232, 240, 0.5)',
-                boxShadow: '0 12px 48px rgba(0,0,0,0.08)'
+                border: '1px solid rgba(0, 0, 0, 0.15)',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.15)',
+                background: '#0F172A'
             }}>
                 <StudioMap
                     bounds={results?.metrics?.bounds}
@@ -81,35 +84,41 @@ export default function SpatialInsightsPage() {
                 {/* Layer Control Legend */}
                 <div style={{
                     position: 'absolute',
-                    bottom: 24,
-                    left: 24,
+                    bottom: 32,
+                    left: 32,
                     zIndex: 1000,
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    padding: 20,
-                    borderRadius: 20,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-                    minWidth: 220
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(25px)',
+                    border: '1px solid rgba(255, 255, 255, 0.6)',
+                    padding: 24,
+                    borderRadius: 24,
+                    boxShadow: '0 12px 40px rgba(15, 23, 42, 0.15)',
+                    minWidth: 260
                 }}>
-                    <div style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', letterSpacing: '0.12em', marginBottom: 16, textTransform: 'uppercase' }}>DETECTION LAYERS</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', marginBottom: 20, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 12, height: 2, background: '#0F172A', borderRadius: 2 }} />
+                        DETECTION LAYERS
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {[
-                            { id: 'sarBase', label: 'SAR Baseline', color: '#6366F1' },
-                            { id: 'flood', label: 'Flood Mask', color: '#0EA5E9' },
-                            { id: 'optWater', label: 'Optical Water', color: '#2DD4BF' },
-                            { id: 'vegDamage', label: 'Vegetation loss', color: '#F43F5E' },
+                            { id: 'sarBase', label: 'SAR Baseline', color: '#6366F1', desc: 'S1 Backscatter' },
+                            { id: 'flood', label: 'Flood Mask', color: '#0EA5E9', desc: 'Composite' },
+                            { id: 'optWater', label: 'Optical Water', color: '#2DD4BF', desc: 'S2 Verification' },
+                            { id: 'vegDamage', label: 'Vegetation loss', color: '#F43F5E', desc: 'NDVI Delta' },
                         ].map(layer => (
-                            <label key={layer.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <div style={{ width: 8, height: 8, borderRadius: 2, background: layer.color, boxShadow: `0 0 10px ${layer.color}40` }} />
-                                    <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>{layer.label}</span>
+                            <label key={layer.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s', padding: '2px 0' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ width: 10, height: 10, borderRadius: 3, background: layer.color, boxShadow: `0 0 12px ${layer.color}60` }} />
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>{layer.label}</span>
+                                        <span style={{ fontSize: 8, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>{layer.desc}</span>
+                                    </div>
                                 </div>
                                 <input
                                     type="checkbox"
                                     checked={layerVisibility[layer.id]}
                                     onChange={e => setLayerVisibility({ ...layerVisibility, [layer.id]: e.target.checked })}
-                                    style={{ width: 14, height: 14, accentColor: '#0D7377', cursor: 'pointer' }}
+                                    style={{ width: 16, height: 16, accentColor: '#0F172A', cursor: 'pointer' }}
                                 />
                             </label>
                         ))}

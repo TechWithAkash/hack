@@ -254,12 +254,14 @@ if run:
                 _zero = ee.Image.constant(0).clip(aoi)
                 optical_flood, ndvi_diff, ndvi_loss = _zero.toInt().rename("optical_flood"), _zero.rename("NDVI_diff"), _zero.toInt().rename("ndvi_loss")
 
-            # 4. Probabilistic Confidence Logic
+            # 4. Probabilistic Confidence Logic: Bayesian OR
+            peak = 1.0 - (1.0 - sar_conf_base) * (1.0 - opt_conf_base)
+            
             sar_conf_layer = flood.multiply(sar_conf_base)
             opt_conf_layer = optical_flood.multiply(opt_conf_base)
             overlap = flood.And(optical_flood).rename("ensemble")
-            confidence = sar_conf_layer.max(opt_conf_layer).where(overlap, 0.978).rename("confidence")
-            peak_confidence_val = 97.8
+            confidence = sar_conf_layer.max(opt_conf_layer).where(overlap, peak).rename("confidence")
+            peak_confidence_val = round(peak * 100, 1)
 
             # 5. EXTERNAL DATA (Population & JRC)
             run_logs.append(f"[{time.strftime('%H:%M:%S')}] EXTERNAL: Masking WorldPop 100m grids...")
@@ -461,7 +463,7 @@ with tabs[4]:
         <strong>Accuracy Upgrades Active:</strong><br>
         • <strong>Morphological Smoothing:</strong> A 30m spatial focal filter eradicates salt-and-pepper noise, ensuring contiguous damage zones.<br>
         • <strong>Swath Masking:</strong> Non-overlapping satellite orbital paths are mathematically masked, preventing 'straight-line' block artifacts.<br>
-        • <strong>Anti-Overfitting:</strong> Confidence is dynamically capped at <strong>{_r.get('peak_confidence', 97.8)}%</strong> to satisfy >95% requirement while accounting for boundary noise.
+        • <strong>Bayesian Fusion:</strong> Confidence is dynamically calculated as <strong>{_r.get('peak_confidence')}%</strong> based on the multi-sensor ensemble consensus.
         </div>
         """, unsafe_allow_html=True)
 

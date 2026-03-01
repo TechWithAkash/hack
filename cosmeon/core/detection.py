@@ -132,13 +132,16 @@ def compute_ensemble(
 ) -> tuple[ee.Image, ee.Image, float]:
     """
     Fuse SAR and optical flood masks into an ensemble confidence layer.
-
-    Returns:
-        (ensemble_overlap, confidence_layer, peak_confidence_pct)
-        peak_confidence_pct: scalar float (e.g. 97.8)
+    Uses Bayesian combination for overlap zones.
     """
     sar_conf_layer = flood_mask.multiply(sar_conf_base)
     opt_conf_layer = optical_flood.multiply(opt_conf_base)
+    
+    # Probabilistic OR: 1 - (1-P1)*(1-P2)
+    peak = 1.0 - (1.0 - sar_conf_base) * (1.0 - opt_conf_base)
+    
     overlap = flood_mask.And(optical_flood).rename("ensemble")
-    confidence = sar_conf_layer.max(opt_conf_layer).where(overlap, 0.978).rename("confidence")
-    return overlap, confidence, 0.978
+    # Base confidence is the max of either, but overlap boosts to peak
+    confidence = sar_conf_layer.max(opt_conf_layer).where(overlap, peak).rename("confidence")
+    
+    return overlap, confidence, float(peak)
