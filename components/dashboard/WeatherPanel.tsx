@@ -62,45 +62,60 @@ export default function WeatherPanel() {
     const { summary } = data;
 
     return (
-        <div className="glass-card" style={{ padding: '18px 20px' }}>
+        <div style={{
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(22px)',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
+            borderRadius: 24,
+            padding: '24px 28px',
+            boxShadow: '0 12px 48px rgba(15, 23, 42, 0.06)'
+        }}>
             {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                <CloudRain size={15} color="#0369A1" />
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628' }}>Real-Time Weather · Assam Districts</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
-                    <Wifi size={11} color="#22C55E" />
-                    <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 600 }}>Open-Meteo Live</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                <div style={{ background: '#F0F9FF', borderRadius: 10, padding: 8, color: '#0369A1' }}>
+                    <CloudRain size={18} />
                 </div>
-                <span style={{ fontSize: 10, color: '#94A3B8' }}>
-                    Updated {new Date(data.fetchedAt).toLocaleTimeString('en-IN')}
-                </span>
+                <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Climate Operations Matrix · Assam</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                        <div className="pulse-dot" style={{ background: '#22C55E' }} />
+                        <span style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>NETWORK SYNC: Open-Meteo High-Resolution Stream</span>
+                    </div>
+                </div>
+                <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                    <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Last Telemetry: {new Date(data.fetchedAt).toLocaleTimeString('en-IN')}
+                    </span>
+                </div>
             </div>
 
             {/* Summary row */}
             <div
                 style={{
-                    display: 'flex', gap: 10, marginBottom: 14,
-                    background: '#F0F9FF', borderRadius: 8, padding: '8px 14px',
-                    border: '1px solid #BAE6FD',
+                    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24,
+                    background: 'rgba(240, 249, 255, 0.5)', borderRadius: 16, padding: '16px 20px',
+                    border: '1px solid rgba(186, 230, 253, 0.3)',
                 }}
             >
                 {[
-                    { label: 'Avg Rainfall 7d', val: `${summary?.avgRainfall7dMm ?? '—'} mm`, icon: Droplets, color: '#0369A1' },
-                    { label: 'Max Rainfall 24h', val: `${summary?.maxRainfall24hMm ?? '—'} mm`, icon: CloudRain, color: '#0891B2' },
-                    { label: 'Avg Temperature', val: `${summary?.avgTempC ?? '—'} °C`, icon: Thermometer, color: '#F97316' },
-                ].map(({ label, val, icon: Icon, color }) => (
-                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
-                        <Icon size={13} color={color} />
+                    { label: 'Avg Rainfall 7d', val: `${summary?.avgRainfall7dMm ?? '—'} mm`, icon: Droplets, color: '#0369A1', desc: 'Precipitation bias' },
+                    { label: 'Max Rainfall 24h', val: `${summary?.maxRainfall24hMm ?? '—'} mm`, icon: CloudRain, color: '#0891B2', desc: 'Peak intensity' },
+                    { label: 'Avg Temperature', val: `${summary?.avgTempC ?? '—'} °C`, icon: Thermometer, color: '#F97316', desc: 'Thermal baseline' },
+                ].map(({ label, val, icon: Icon, color, desc }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ background: '#FFF', borderRadius: 10, padding: 8, color, boxShadow: '0 2px 8px rgba(186, 230, 253, 0.5)' }}>
+                            <Icon size={16} />
+                        </div>
                         <div>
-                            <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{label}</div>
-                            <div style={{ fontSize: 14, fontWeight: 800, color: '#0A1628' }}>{val}</div>
+                            <div style={{ fontSize: 14, fontWeight: 950, color: '#0F172A' }}>{val}</div>
+                            <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600 }}>{label} · <span style={{ opacity: 0.7 }}>{desc}</span></div>
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Per-district weather cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
                 {districts.map((d: any) => {
                     const riskMod = d.rainfallRiskModifier;
                     const riskColor = RISK_COLOR[riskMod?.level ?? 'LOW'] ?? '#22C55E';
@@ -108,68 +123,67 @@ export default function WeatherPanel() {
                         <div
                             key={d.district}
                             style={{
-                                background: '#FAFBFC',
-                                border: `1px solid ${riskColor}30`,
-                                borderTop: `3px solid ${riskColor}`,
-                                borderRadius: 10,
-                                padding: '12px 14px',
+                                background: 'rgba(255, 255, 255, 0.4)',
+                                border: `1px solid ${riskColor}20`,
+                                borderTop: `4px solid ${riskColor}`,
+                                borderRadius: 16,
+                                padding: '16px',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                cursor: 'pointer'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow = `0 8px 24px ${riskColor}10`;
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)';
                             }}
                         >
-                            {/* District name + condition icon */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: '#0A1628' }}>{d.district}</div>
-                                <WeatherConditionIcon code={d.current?.weatherCode ?? 0} />
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                                <div style={{ fontSize: 14, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>{d.district}</div>
+                                <div style={{ fontSize: 18 }}><WeatherConditionIcon code={d.current?.weatherCode ?? 0} /></div>
                             </div>
 
-                            {/* Condition label */}
-                            <div style={{ fontSize: 10, color: '#64748B', marginBottom: 8 }}>{d.current?.condition ?? '—'}</div>
+                            <div style={{ fontSize: 11, color: '#64748B', fontWeight: 600, marginBottom: 12, textTransform: 'capitalize' }}>{d.current?.condition ?? '—'}</div>
 
-                            {/* Key metrics */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <Thermometer size={10} color="#F97316" />
-                                    <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>
-                                        {d.current?.tempC?.toFixed(1) ?? '—'}°C
-                                    </span>
-                                    <span style={{ fontSize: 10, color: '#94A3B8' }}>· {d.current?.humidity ?? '—'}%</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <Thermometer size={12} color="#F97316" />
+                                        <span style={{ fontSize: 12, color: '#0F172A', fontWeight: 800 }}>{d.current?.tempC?.toFixed(1) ?? '—'}°</span>
+                                    </div>
+                                    <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>{d.current?.humidity ?? '—'}% RH</span>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <CloudRain size={10} color="#0891B2" />
-                                    <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>
-                                        {d.rainfall?.last24h?.toFixed(1) ?? 0} mm
-                                    </span>
-                                    <span style={{ fontSize: 10, color: '#94A3B8' }}>24h</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <div style={{ width: '100%', height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
+                                        <div style={{ width: `${Math.min((d.rainfall?.last24h ?? 0) * 2, 100)}%`, height: '100%', background: '#0891B2', borderRadius: 2 }} />
+                                    </div>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <Droplets size={10} color="#0369A1" />
-                                    <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>
-                                        {d.rainfall?.last7dTotal ?? 0} mm
-                                    </span>
-                                    <span style={{ fontSize: 10, color: '#94A3B8' }}>7d total</span>
-                                </div>
-
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                    <Wind size={10} color="#64748B" />
-                                    <span style={{ fontSize: 11, color: '#475569', fontWeight: 600 }}>
-                                        {d.current?.windKmh?.toFixed(0) ?? '—'} km/h
-                                    </span>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <CloudRain size={12} color="#0891B2" />
+                                        <span style={{ fontSize: 11, color: '#475569', fontWeight: 700 }}>{d.rainfall?.last24h?.toFixed(1) ?? 0} mm</span>
+                                    </div>
+                                    <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 800 }}>24H</span>
                                 </div>
                             </div>
 
-                            {/* Rainfall risk modifier badge */}
-                            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #F1F5F9' }}>
-                                <span
-                                    style={{
-                                        fontSize: 9, fontWeight: 800, letterSpacing: '0.08em',
-                                        color: riskColor, background: riskColor + '15',
-                                        border: `1px solid ${riskColor}40`,
-                                        borderRadius: 4, padding: '2px 6px',
-                                    }}
-                                >
+                            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(226, 232, 240, 0.5)' }}>
+                                <div style={{
+                                    fontSize: 9, fontWeight: 950, letterSpacing: '0.08em',
+                                    color: riskColor, background: riskColor + '10',
+                                    border: `1px solid ${riskColor}25`,
+                                    borderRadius: 6, padding: '4px 8px',
+                                    textAlign: 'center',
+                                    textTransform: 'uppercase'
+                                }}>
                                     RAIN RISK: {riskMod?.level ?? 'LOW'}
-                                </span>
+                                </div>
                             </div>
                         </div>
                     );

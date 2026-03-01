@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { StudioProvider, useStudio } from '@/components/studio/StudioContext';
-import { ShieldAlert, Layers, Cpu, Info, CheckCircle2, ChevronRight, Eye, Satellite as SatelliteIcon } from 'lucide-react';
+import { ShieldAlert, Layers, Cpu, Info, CheckCircle2, ChevronRight, Eye, Satellite as SatelliteIcon, Terminal, MessageSquare, FileText } from 'lucide-react';
 
 function StudioSidebar() {
     const { cfg, setCfg, loading, handleRun, aoiMode, setAoiMode } = useStudio();
@@ -316,6 +316,9 @@ function StudioLayoutContent({ children }: { children: React.ReactNode }) {
         { id: 'risk', label: 'Risk & Severity', icon: <ShieldAlert size={14} />, path: '/studio/risk' },
         { id: 'confidence', label: 'Confidence Engine', icon: <Info size={14} />, path: '/studio/confidence' },
         { id: 'logs', label: 'State Table & Logs', icon: <CheckCircle2 size={14} />, path: '/studio/logs' },
+        { id: 'api', label: 'REST API Endpoint', icon: <Terminal size={14} />, path: '/studio/api' },
+        { id: 'ai', label: 'Generative AI', icon: <MessageSquare size={14} />, path: '/studio/ai' },
+        { id: 'pdf', label: 'PDF Report Gen', icon: <FileText size={14} />, path: '/studio/pdf' },
     ];
 
     return (

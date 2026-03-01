@@ -7,6 +7,7 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     BarChart, Bar,
 } from 'recharts';
+import { TrendingUp } from 'lucide-react';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
@@ -36,7 +37,7 @@ export default function TrendChart() {
 
     if (isLoading) {
         return (
-            <div className="glass-card shimmer" style={{ height: 280 }} />
+            <div style={{ height: 320, background: 'rgba(255, 255, 255, 0.4)', backdropFilter: 'blur(12px)', borderRadius: 24 }} className="shimmer" />
         );
     }
 
@@ -44,66 +45,69 @@ export default function TrendChart() {
         date: d._id?.slice(5),        // "MM-DD"
         riskScore: Math.round(d.avgRiskScore ?? 0),
         floodKm2: Math.round(d.totalFloodAreaKm2 ?? 0),
-        critical: d.criticalCount ?? 0,
-        affected: Math.round((d.totalAffectedPop ?? 0) / 1000),
-    }));
-
-    const breakdown = (data?.riskBreakdown ?? []).map((r: any) => ({
-        name: r._id, count: r.count,
-        fill: r._id === 'CRITICAL' ? '#EF4444' : r._id === 'HIGH' ? '#F97316' : r._id === 'MEDIUM' ? '#EAB308' : '#22C55E',
     }));
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
-            {/* Area chart */}
-            <div className="glass-card" style={{ padding: '18px 20px' }}>
-                <div style={{ marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628' }}>30-Day Risk Trend</h3>
-                    <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Avg risk score & flood coverage by day</p>
+        <div style={{
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(22px)',
+            border: '1px solid rgba(255, 255, 255, 0.8)',
+            borderRadius: 24,
+            padding: '24px 28px',
+            boxShadow: '0 12px 48px rgba(15, 23, 42, 0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ background: '#F0FDF4', borderRadius: 10, padding: 8, color: '#16A34A' }}>
+                    <TrendingUp size={18} />
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                    <AreaChart data={trendData} margin={{ top: 0, right: 4, bottom: 0, left: -10 }}>
+                <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Risk Velocity Trend</h3>
+                    <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600, marginTop: 2 }}>Average risk index & Flood coverage · 30D Window</p>
+                </div>
+            </div>
+
+            <div style={{ height: 220, width: '100%', position: 'relative' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trendData} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
                         <defs>
                             <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0D7377" stopOpacity={0.2} />
+                                <stop offset="5%" stopColor="#0D7377" stopOpacity={0.4} />
                                 <stop offset="95%" stopColor="#0D7377" stopOpacity={0} />
                             </linearGradient>
                             <linearGradient id="floodGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#F97316" stopOpacity={0.2} />
+                                <stop offset="5%" stopColor="#F97316" stopOpacity={0.4} />
                                 <stop offset="95%" stopColor="#F97316" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
-                        <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
-                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
+                        <CartesianGrid strokeDasharray="4 4" stroke="rgba(148, 163, 184, 0.1)" vertical={false} />
+                        <XAxis
+                            dataKey="date"
+                            tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 700 }}
+                            tickLine={false}
+                            axisLine={false}
+                            dy={10}
+                        />
+                        <YAxis yAxisId="left" tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 700 }} tickLine={false} axisLine={false} />
+                        <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#94A3B8', fontWeight: 700 }} tickLine={false} axisLine={false} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-                        <Area yAxisId="left" type="monotone" dataKey="riskScore" name="Avg Risk Score" stroke="#0D7377" fill="url(#riskGrad)" strokeWidth={2} dot={false} />
-                        <Area yAxisId="right" type="monotone" dataKey="floodKm2" name="Flood Area km²" stroke="#F97316" fill="url(#floodGrad)" strokeWidth={2} dot={false} />
+                        <Area yAxisId="left" type="monotone" dataKey="riskScore" name="Avg Risk" stroke="#0D7377" fill="url(#riskGrad)" strokeWidth={3} dot={false} />
+                        <Area yAxisId="right" type="monotone" dataKey="floodKm2" name="Flood km²" stroke="#F97316" fill="url(#floodGrad)" strokeWidth={3} dot={false} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Bar chart risk breakdown */}
-            <div className="glass-card" style={{ padding: '18px 20px' }}>
-                <div style={{ marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#0A1628' }}>Risk Distribution</h3>
-                    <p style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Districts by risk level</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 3, background: '#0D7377' }} />
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Composite Risk Index</span>
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={breakdown} layout="vertical" margin={{ top: 0, right: 10, bottom: 0, left: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" horizontal={false} />
-                        <XAxis type="number" tick={{ fontSize: 10, fill: '#94A3B8' }} tickLine={false} axisLine={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fontWeight: 600 }} tickLine={false} axisLine={false} width={65} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="count" name="Districts" radius={[0, 6, 6, 0]}>
-                            {breakdown.map((entry: any, i: number) => (
-                                <rect key={i} fill={entry.fill} />
-                            ))}
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 3, background: '#F97316' }} />
+                    <span style={{ fontSize: 10, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Flood Coverage (KM²)</span>
+                </div>
             </div>
         </div>
     );

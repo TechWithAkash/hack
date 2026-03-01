@@ -82,9 +82,23 @@ def process():
                 "ndvi_mean": results.get("ndvi_mean"),
                 "aoi_km2": results.get("aoi_km2", 0),
                 "run_logs": results.get("run_logs", []),
-                "bounds": results.get("bounds", [])
+                "bounds": results.get("bounds", []),
+                "threshold": results.get("threshold", 0),
+                "ndvi_thresh": results.get("ndvi_thresh", 0)
             },
-            "tiles": tiles
+            "tiles": tiles,
+            "bbox_str": results.get("bbox_str", "N/A"),
+            "aoi_km2": results.get("aoi_km2", 0),
+            "n_pre_s1": results.get("n_pre_s1", 0),
+            "n_post_s1": results.get("n_post_s1", 0),
+            "n_pre_s2": results.get("n_pre_s2", 0),
+            "n_post_s2": results.get("n_post_s2", 0),
+            "used_cloud": results.get("used_cloud", 0),
+            "pre_start_s": results.get("pre_start_s", "N/A"),
+            "pre_end_s": results.get("pre_end_s", "N/A"),
+            "post_start_s": results.get("post_start_s", "N/A"),
+            "post_end_s": results.get("post_end_s", "N/A"),
+            "scale": results.get("scale", 0)
         }
 
         print(json.dumps(output))

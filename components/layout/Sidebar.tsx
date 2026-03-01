@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, Map, Building2, FileText,
     ScrollText, Settings, Satellite, Activity,
-    ShieldAlert, BarChart2, AlignLeft, Cpu
+    ShieldAlert, BarChart2, AlignLeft, Cpu,
+    MessageSquare, FileCheck
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -19,6 +20,8 @@ const NAV_ITEMS = [
     { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
     { href: '/studio/logs', icon: AlignLeft, label: 'Telemetry Stream' },
     { href: '/studio/api', icon: Cpu, label: 'Rest API' },
+    { href: '/studio/ai', icon: MessageSquare, label: 'Generative AI' },
+    { href: '/studio/pdf', icon: FileCheck, label: 'Assessment Report' },
 ];
 
 export default function Sidebar() {

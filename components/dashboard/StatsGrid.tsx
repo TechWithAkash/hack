@@ -45,24 +45,50 @@ export default function StatsGrid() {
                 <div
                     key={key}
                     style={{
-                        background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 24, padding: '24px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column',
-                        justifyContent: 'space-between', minHeight: 140, transition: 'transform 0.2s', cursor: 'default'
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255, 255, 255, 0.8)',
+                        borderRadius: 24,
+                        padding: '24px',
+                        boxShadow: '0 8px 32px rgba(15, 23, 42, 0.04)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        minHeight: 160,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 12px 48px rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.borderColor = iconColor + '40';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.04)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                    }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                        <div style={{ background: gradient, borderRadius: 10, padding: 8, color: iconColor }}>
-                            <Icon size={18} />
-                        </div>
-                        <div style={{ fontSize: 10, fontWeight: 900, color: '#94A3B8', letterSpacing: '0.1em' }}>DISTRICTS</div>
+                    <div style={{ position: 'absolute', top: -10, right: -10, opacity: 0.03, pointerEvents: 'none' }}>
+                        <Icon size={120} />
                     </div>
-                    <div>
-                        <div style={{ fontSize: 36, fontWeight: 950, color: '#0F172A', lineHeight: 1 }}>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative' }}>
+                        <div style={{ background: gradient, borderRadius: 12, padding: 10, color: iconColor, boxShadow: `0 4px 12px ${iconColor}20` }}>
+                            <Icon size={20} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>DISTRICTS</div>
+                            {riskMap[key] > 0 && <div className="pulse-dot" style={{ background: iconColor, marginTop: 4 }} />}
+                        </div>
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{ fontSize: 48, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.04em' }}>
                             {riskMap[key] ?? 0}
                         </div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
                             {label}
                         </div>
                     </div>
@@ -73,24 +99,47 @@ export default function StatsGrid() {
                 <div
                     key={label}
                     style={{
-                        background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 24, padding: '24px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column',
-                        justifyContent: 'space-between', minHeight: 140, transition: 'transform 0.2s', cursor: 'default'
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        backdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(255, 255, 255, 0.8)',
+                        borderRadius: 24,
+                        padding: '24px',
+                        boxShadow: '0 8px 32px rgba(15, 23, 42, 0.04)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        minHeight: 160,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        overflow: 'hidden'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
+                        e.currentTarget.style.boxShadow = '0 12px 48px rgba(15, 23, 42, 0.08)';
+                        e.currentTarget.style.borderColor = color + '40';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.04)';
+                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                    }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                        <div style={{ background: bg, borderRadius: 10, padding: 8, color }}>
-                            <Icon size={18} />
-                        </div>
-                        <div style={{ fontSize: 10, fontWeight: 900, color: '#64748B', letterSpacing: '0.1em' }}>METRIC</div>
+                    <div style={{ position: 'absolute', top: -10, right: -10, opacity: 0.03, pointerEvents: 'none' }}>
+                        <Icon size={120} />
                     </div>
-                    <div>
-                        <div style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', lineHeight: 1 }}>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative' }}>
+                        <div style={{ background: bg, borderRadius: 12, padding: 10, color, boxShadow: `0 4px 12px ${color}20` }}>
+                            <Icon size={20} />
+                        </div>
+                        <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>METRIC</div>
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                        <div style={{ fontSize: 32, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.02em' }}>
                             {value}
                         </div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                             {label}
                         </div>
                     </div>

@@ -261,7 +261,7 @@ if run:
             opt_conf_layer = optical_flood.multiply(opt_conf_base)
             overlap = flood.And(optical_flood).rename("ensemble")
             confidence = sar_conf_layer.max(opt_conf_layer).where(overlap, peak).rename("confidence")
-            peak_confidence_val = round(peak * 100, 1)
+            peak_confidence_val = int(peak * 1000) / 10.0
 
             # 5. EXTERNAL DATA (Population & JRC)
             run_logs.append(f"[{time.strftime('%H:%M:%S')}] EXTERNAL: Masking WorldPop 100m grids...")
