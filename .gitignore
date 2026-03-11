@@ -39,3 +39,25 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large model files
+*.pth
+*.h5
+*.bin
+*.model
+*.weights
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
