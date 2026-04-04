@@ -3,76 +3,77 @@
 import React from 'react';
 import { useStudio } from '@/components/studio/StudioContext';
 import dynamic from 'next/dynamic';
-import { Map as MapIcon, Layers, Satellite as SatelliteIcon, Globe, MapPin } from 'lucide-react';
+import { Map as MapIcon, Layers, Satellite as SatelliteIcon, MapPin, Eye } from 'lucide-react';
 
 const StudioMap = dynamic<any>(() => import('@/components/studio/StudioMap'), { ssr: false });
+
+const LAYER_DEFS = [
+    { id: 'sarBase',  label: 'SAR Baseline',        desc: 'S1 Backscatter',   color: '#6366F1' },
+    { id: 'flood',    label: 'Flood Mask',           desc: 'Composite',        color: '#0EA5E9' },
+    { id: 'optWater', label: 'Optical Verification', desc: 'S2 Verification',  color: '#2DD4BF' },
+    { id: 'vegDamage',label: 'Vegetation Impact',    desc: 'NDVI Delta',       color: '#F43F5E' },
+];
+
+const BASE_LAYERS = [
+    { id: 'satellite', icon: SatelliteIcon, label: 'Satellite' },
+    { id: 'light',     icon: MapIcon,       label: 'Light'     },
+    { id: 'dark',      icon: Layers,        label: 'Dark'      },
+    { id: 'terrain',   icon: MapPin,        label: 'Terrain'   },
+];
 
 export default function SpatialInsightsPage() {
     const { results, layerVisibility, setLayerVisibility, baseLayer, setBaseLayer } = useStudio();
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
+
+            {/* ── Toolbar ─────────────────────────────────── */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexShrink: 0 }}>
                 <div>
-                    <h2 style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <Globe size={24} className="text-teal-600" /> Geospatial Analysis Matrix
-                    </h2>
-                    <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                        <SatelliteIcon size={13} color="#0D7377" />
+                        <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em', margin: 0 }}>
+                            Geospatial Analysis
+                        </h2>
+                    </div>
+                    <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
                         High-fidelity spectral decomposition of regional hydrological anomalies
                     </p>
                 </div>
 
-                {/* ... Base Layer Control (preserved) ... */}
+                {/* Base layer pills */}
                 <div style={{
-                    display: 'flex',
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(226, 232, 240, 0.5)',
-                    borderRadius: 12,
-                    padding: 4,
-                    gap: 4,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                    display: 'flex', gap: 3,
+                    background: '#F8FAFC', border: '1px solid #E2E8F0',
+                    borderRadius: 10, padding: 4,
                 }}>
-                    {[
-                        { id: 'satellite', icon: SatelliteIcon, label: 'Sat' },
-                        { id: 'light', icon: MapIcon, label: 'Light' },
-                        { id: 'dark', icon: Layers, label: 'Dark' },
-                        { id: 'terrain', icon: MapPin, label: 'Terrain' },
-                    ].map(mode => (
+                    {BASE_LAYERS.map(mode => (
                         <button
                             key={mode.id}
                             onClick={() => setBaseLayer(mode.id as any)}
                             style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                padding: '6px 12px',
-                                borderRadius: 8,
-                                fontSize: 10,
-                                fontWeight: 900,
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                border: 'none',
+                                display: 'flex', alignItems: 'center', gap: 5,
+                                padding: '6px 11px', borderRadius: 7, fontSize: 11,
+                                fontWeight: 700, cursor: 'pointer', border: 'none',
+                                transition: 'all 0.15s',
                                 background: baseLayer === mode.id ? '#0F172A' : 'transparent',
-                                color: baseLayer === mode.id ? '#FFFFFF' : '#64748B'
+                                color: baseLayer === mode.id ? 'white' : '#94A3B8',
+                                boxShadow: baseLayer === mode.id ? '0 1px 4px rgba(0,0,0,0.15)' : 'none',
                             }}
                         >
-                            <mode.icon size={12} />
+                            <mode.icon size={11} />
                             {mode.label}
                         </button>
                     ))}
                 </div>
             </div>
 
+            {/* ── Map canvas ──────────────────────────────── */}
             <div style={{
-                position: 'relative',
-                height: 800, // Massive analytical height
-                flexShrink: 0, // CRITICAL: Stop flex squashing
-                borderRadius: 32,
-                overflow: 'hidden',
-                border: '1px solid rgba(0, 0, 0, 0.15)',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.15)',
-                background: '#0F172A'
+                position: 'relative', flex: 1, minHeight: 480,
+                borderRadius: 16, overflow: 'hidden',
+                border: '1px solid #E2E8F0', background: '#111827',
+                flexShrink: 0,
             }}>
                 <StudioMap
                     bounds={results?.metrics?.bounds}
@@ -81,70 +82,66 @@ export default function SpatialInsightsPage() {
                     baseLayer={baseLayer}
                 />
 
-                {/* Layer Control Legend */}
+                {/* Live badge */}
                 <div style={{
-                    position: 'absolute',
-                    bottom: 32,
-                    left: 32,
-                    zIndex: 1000,
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(25px)',
-                    border: '1px solid rgba(255, 255, 255, 0.6)',
-                    padding: 24,
-                    borderRadius: 24,
-                    boxShadow: '0 12px 40px rgba(15, 23, 42, 0.15)',
-                    minWidth: 260
+                    position: 'absolute', top: 14, left: 14, zIndex: 1000,
+                    background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(8px)',
+                    color: 'white', padding: '6px 12px', borderRadius: 20,
+                    display: 'flex', alignItems: 'center', gap: 7,
+                    fontSize: 10, fontWeight: 700, letterSpacing: '0.04em',
+                    border: '1px solid rgba(255,255,255,0.1)',
                 }}>
-                    <div style={{ fontSize: 10, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', marginBottom: 20, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{ width: 12, height: 2, background: '#0F172A', borderRadius: 2 }} />
-                        Operational Layers
+                    <div style={{
+                        width: 6, height: 6, borderRadius: '50%', background: '#2DD4BF',
+                        animation: 'ping 1.5s ease-in-out infinite',
+                    }} />
+                    Raster Downlink Active
+                </div>
+
+                {/* Layer legend */}
+                <div style={{
+                    position: 'absolute', bottom: 16, left: 16, zIndex: 1000,
+                    background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+                    border: '1px solid #E2E8F0', borderRadius: 14,
+                    padding: '14px 16px', minWidth: 220,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                }}>
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        marginBottom: 12,
+                    }}>
+                        <Eye size={11} color="#94A3B8" />
+                        <span style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                            Operational Layers
+                        </span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        {[
-                            { id: 'sarBase', label: 'SAR Baseline Mapping', color: '#6366F1', desc: 'S1 Backscatter' },
-                            { id: 'flood', label: 'Composite Flood Mask', color: '#0EA5E9', desc: 'Composite' },
-                            { id: 'optWater', label: 'Optical Verification', color: '#2DD4BF', desc: 'S2 Verification' },
-                            { id: 'vegDamage', label: 'Vegetation Impact', color: '#F43F5E', desc: 'NDVI Delta' },
-                        ].map(layer => (
-                            <label key={layer.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.2s', padding: '2px 0' }} onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'} onMouseOut={(e) => e.currentTarget.style.opacity = '1'}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: 3, background: layer.color, boxShadow: `0 0 12px ${layer.color}60` }} />
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>{layer.label}</span>
-                                        <span style={{ fontSize: 8, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>{layer.desc}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {LAYER_DEFS.map(layer => (
+                            <label key={layer.id} style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                cursor: 'pointer', gap: 10,
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                    <div style={{
+                                        width: 8, height: 8, borderRadius: 2,
+                                        background: layer.color,
+                                        boxShadow: `0 0 6px ${layer.color}80`,
+                                        flexShrink: 0,
+                                    }} />
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#0F172A' }}>{layer.label}</div>
+                                        <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{layer.desc}</div>
                                     </div>
                                 </div>
                                 <input
                                     type="checkbox"
                                     checked={layerVisibility[layer.id]}
                                     onChange={e => setLayerVisibility({ ...layerVisibility, [layer.id]: e.target.checked })}
-                                    style={{ width: 16, height: 16, accentColor: '#0F172A', cursor: 'pointer' }}
+                                    style={{ width: 14, height: 14, accentColor: '#0D7377', cursor: 'pointer' }}
                                 />
                             </label>
                         ))}
                     </div>
-                </div>
-
-                {/* Status Badge */}
-                <div style={{
-                    position: 'absolute',
-                    top: 24,
-                    left: 24,
-                    zIndex: 1000,
-                    background: '#0F172A',
-                    color: '#FFF',
-                    padding: '6px 12px',
-                    borderRadius: 10,
-                    fontSize: 10,
-                    fontWeight: 900,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    letterSpacing: '0.05em'
-                }}>
-                    <div className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-pulse" />
-                    Raster Downlink Active
                 </div>
             </div>
         </div>

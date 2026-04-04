@@ -8,121 +8,140 @@ export default function RiskSeverityPage() {
     const { results } = useStudio();
     const metrics = results?.metrics || {};
 
-    const riskState = metrics.severity_score >= 80 ? 'CRITICAL' : metrics.severity_score >= 60 ? 'HIGH' : metrics.severity_score >= 40 ? 'MODERATE' : metrics.severity_score >= 20 ? 'LOW' : 'MINIMAL';
-    const riskColor = riskState === 'CRITICAL' ? '#EF4444' : riskState === 'HIGH' ? '#F97316' : riskState === 'MODERATE' ? '#F59E0B' : riskState === 'LOW' ? '#10B981' : '#3B82F6';
+    const score = metrics.severity_score ?? 0;
+    const riskLabel = score >= 80 ? 'Critical' : score >= 60 ? 'High' : score >= 40 ? 'Moderate' : score >= 20 ? 'Low' : 'Minimal';
+    const riskColor = score >= 80 ? '#EF4444' : score >= 60 ? '#F97316' : score >= 40 ? '#D97706' : score >= 20 ? '#10B981' : '#0D7377';
+    const riskBg    = score >= 80 ? '#FEF2F2' : score >= 60 ? '#FFF7ED' : score >= 40 ? '#FFFBEB' : score >= 20 ? '#F0FDF4' : '#F0FDFA';
 
-    const kpiData = [
-        { label: 'FLOOD EXTENT', val: (metrics.flood_area ?? 0).toFixed(1), unit: 'km²', icon: Activity },
-        { label: 'AGRI DAMAGE', val: (metrics.ndvi_loss_area ?? 0).toFixed(1), unit: 'km²', icon: Database },
-        { label: 'POP EXPOSURE', val: Math.round(metrics.exposed_pop ?? 0).toLocaleString(), unit: 'ppl', icon: Users },
+    const kpis = [
+        { label: 'Flood Extent', val: (metrics.flood_area ?? 0).toFixed(1), unit: 'km²', icon: Activity, color: '#0369A1' },
+        { label: 'Agri Damage',  val: (metrics.ndvi_loss_area ?? 0).toFixed(1), unit: 'km²', icon: Database, color: '#10B981' },
+        { label: 'Pop Exposure', val: Math.round(metrics.exposed_pop ?? 0).toLocaleString(), unit: 'ppl', icon: Users, color: '#D97706' },
     ];
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 32 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-                {/* Main Risk Display */}
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: 24,
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    padding: 32,
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    {/* Background Pattern */}
-                    <div style={{ position: 'absolute', top: -50, right: -50, opacity: 0.03, pointerEvents: 'none' }}>
-                        <TrendingUp size={300} strokeWidth={1} />
-                    </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Header */}
+            <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                    <AlertCircle size={13} color={riskColor} />
+                    <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em', margin: 0 }}>
+                        Risk & Severity Analysis
+                    </h2>
+                </div>
+                <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
+                    Composite risk synthesis factoring SAR, optical, and socio-economic exposure
+                </p>
+            </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, position: 'relative', zIndex: 1 }}>
-                        <div>
-                            <h2 style={{ fontSize: 11, fontWeight: 900, color: '#94A3B8', letterSpacing: '0.15em', marginBottom: 8 }}>COMPOSITE SEVERITY INDEX</h2>
-                            <div style={{ fontSize: 96, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.04em' }}>
-                                {(metrics.severity_score ?? 0).toFixed(1)}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Score card */}
+                    <div style={{
+                        background: 'white', border: '1px solid #E2E8F0',
+                        borderRadius: 14, padding: '20px 24px',
+                        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+                        position: 'relative', overflow: 'hidden',
+                    }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: riskColor, borderRadius: '14px 0 0 14px' }} />
+                        <div style={{ paddingLeft: 8 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                                Composite Severity Index
+                            </div>
+                            <div style={{ fontSize: 72, fontWeight: 800, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.04em' }}>
+                                {score.toFixed(1)}
+                            </div>
+                            <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500, marginTop: 8, maxWidth: 320, lineHeight: 1.5 }}>
+                                Multi-dimensional risk synthesis factoring SAR micro-backscatter anomalies and socio-economic exposure.
                             </div>
                         </div>
                         <div style={{
-                            background: `${riskColor}10`, color: riskColor, padding: '8px 16px',
-                            borderRadius: 12, fontSize: 11, fontWeight: 900, border: `1px solid ${riskColor}20`,
-                            display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '0.05em'
+                            background: riskBg, color: riskColor,
+                            border: `1px solid ${riskColor}30`,
+                            borderRadius: 10, padding: '6px 14px',
+                            fontSize: 11, fontWeight: 800,
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            flexShrink: 0,
                         }}>
-                            <AlertCircle size={14} /> {riskState}
+                            <AlertCircle size={12} />{riskLabel.toUpperCase()}
                         </div>
                     </div>
-                    <div style={{ color: '#64748B', fontSize: 13, lineHeight: 1.6, fontWeight: 500, maxWidth: 480, borderTop: '1px solid rgba(226, 232, 240, 0.5)', paddingTop: 24, position: 'relative', zIndex: 1 }}>
-                        Multi-dimensional risk synthesis factoring SAR micro-backscatter anomalies, multi-spectral vegetation loss indexes, and socio-economic exposure matrices.
-                    </div>
-                </div>
 
-                {/* Sub-KPIs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                    {kpiData.map((kpi, i) => (
-                        <div key={i} style={{
-                            background: 'rgba(255, 255, 255, 0.6)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255, 255, 255, 0.5)',
-                            borderRadius: 20,
-                            padding: 24,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                <kpi.icon size={14} className="text-teal-600" />
-                                <span style={{ fontSize: 9, fontWeight: 900, color: '#94A3B8', letterSpacing: '0.1em' }}>{kpi.label}</span>
-                            </div>
-                            <div style={{ fontSize: 24, fontWeight: 950, color: '#0F172A', display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                                {kpi.val} <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>{kpi.unit}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                {/* Breakdown Card */}
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    borderRadius: 24,
-                    padding: 32,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                        <TrendingUp size={16} className="text-teal-600" />
-                        <h3 style={{ fontSize: 13, fontWeight: 950, color: '#0F172A' }}>Weighted Impact Metrics</h3>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        {metrics.severity_breakdown && Object.entries(metrics.severity_breakdown).map(([key, val]: any) => (
-                            <div key={key}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 8 }}>
-                                    <span style={{ color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800 }}>{key.replace(/_/g, ' ')} Impact</span>
-                                    <span style={{ color: '#0F172A', fontWeight: 950 }}>{(val).toFixed(2)}/10</span>
+                    {/* KPI chips */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+                        {kpis.map(k => (
+                            <div key={k.label} style={{
+                                background: 'white', border: '1px solid #E2E8F0',
+                                borderRadius: 12, padding: '14px 16px',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                    <k.icon size={11} color={k.color} />
+                                    <span style={{ fontSize: 9, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                        {k.label}
+                                    </span>
                                 </div>
-                                <div style={{ height: 6, width: '100%', background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
-                                    <div style={{ height: '100%', width: `${val * 10}%`, background: riskColor, borderRadius: 10, transition: 'width 1.2s cubic-bezier(0.1, 0.7, 1.0, 0.1)' }} />
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                                    <span style={{ fontSize: 20, fontWeight: 800, color: '#0F172A' }}>{k.val}</span>
+                                    <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>{k.unit}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Pro Analysis Box */}
-                <div style={{
-                    background: 'rgba(241, 245, 249, 0.6)',
-                    border: '1px dashed #CBD5E1',
-                    borderRadius: 20,
-                    padding: 24,
-                    display: 'flex',
-                    gap: 16
-                }}>
-                    <ShieldCheck size={20} className="text-indigo-600 flex-shrink-0" />
-                    <div>
-                        <div style={{ fontSize: 10, fontWeight: 900, color: '#64748B', marginBottom: 4, letterSpacing: '0.05em' }}>AUTOMATED RISK ADVISORY</div>
-                        <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.5, fontWeight: 500, margin: 0 }}>
-                            Current intensity profile suggests {riskState.toLowerCase()} humanitarian requirements.
-                        </p>
+                {/* Right breakdown column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Breakdown bars */}
+                    <div style={{
+                        background: 'white', border: '1px solid #E2E8F0',
+                        borderRadius: 14, padding: '16px 18px', flex: 1,
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
+                            <TrendingUp size={12} color="#0D7377" />
+                            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>Weighted Impact Breakdown</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            {metrics.severity_breakdown
+                                ? Object.entries(metrics.severity_breakdown).map(([key, val]: any) => (
+                                    <div key={key}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                                            <span style={{ fontSize: 10, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                                {key.replace(/_/g, ' ')}
+                                            </span>
+                                            <span style={{ fontSize: 10, fontWeight: 800, color: '#0F172A' }}>{(val).toFixed(2)}/10</span>
+                                        </div>
+                                        <div style={{ height: 5, background: '#F1F5F9', borderRadius: 10, overflow: 'hidden' }}>
+                                            <div style={{
+                                                height: '100%', width: `${val * 10}%`,
+                                                background: riskColor, borderRadius: 10,
+                                                transition: 'width 1.2s ease',
+                                            }} />
+                                        </div>
+                                    </div>
+                                ))
+                                : (
+                                    <div style={{ color: '#94A3B8', fontSize: 11, textAlign: 'center', padding: '20px 0' }}>
+                                        Run pipeline to see breakdown
+                                    </div>
+                                )}
+                        </div>
+                    </div>
+
+                    {/* Advisory */}
+                    <div style={{
+                        background: '#F8FAFC', border: '1px dashed #CBD5E1',
+                        borderRadius: 12, padding: '14px 16px',
+                        display: 'flex', gap: 10,
+                    }}>
+                        <ShieldCheck size={14} color="#0D7377" style={{ flexShrink: 0 }} />
+                        <div>
+                            <div style={{ fontSize: 9, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+                                Automated Advisory
+                            </div>
+                            <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.5, margin: 0 }}>
+                                Current profile suggests <strong style={{ color: riskColor }}>{riskLabel.toLowerCase()}</strong> humanitarian requirements.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

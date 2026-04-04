@@ -1,11 +1,15 @@
 export function formatDate(date: string | Date, locale: string = 'en'): string {
+    if (!date) return '—';
     return new Date(date).toLocaleDateString(locale, {
         day: '2-digit', month: 'short', year: 'numeric',
     });
 }
 
 export function formatDateTime(date: string | Date, locale: string = 'en'): string {
-    return new Date(date).toLocaleString(locale, {
+    if (!date) return '—';
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString(locale, {
         day: '2-digit', month: 'short', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
     });

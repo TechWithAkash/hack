@@ -153,10 +153,54 @@ function InjectStyles() {
             .leaflet-popup-content { margin: 0 !important; }
             .cosmeon-flood-polygon { cursor: pointer; transition: all 0.3s; }
             .weather-estimate-polygon { stroke-dasharray: 6, 4; }
+            
+            /* Add alert button styling */
+            .popup-container .alert-btn { opacity: 0; pointer-events: none; transition: all 0.2s ease; margin-left: auto; }
+            .popup-container:hover .alert-btn { opacity: 1; pointer-events: auto; }
         `;
         document.head.appendChild(s);
     }, []);
     return null;
+}
+
+if (typeof window !== 'undefined' && !(window as any).dispatchMapAlert) {
+    (window as any).dispatchMapAlert = async (id: string, name: string, level: string, pop: number, btn: HTMLButtonElement) => {
+        if (btn.disabled) return;
+        
+        const originalText = btn.innerText;
+        const originalBg = btn.style.background;
+        
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+        btn.style.background = "#94A3B8";
+        btn.style.cursor = "wait";
+
+        try {
+            const res = await fetch('/api/alerts/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, name, level, pop })
+            });
+            
+            if (!res.ok) throw new Error('API Error');
+            
+            btn.innerText = "Sent!";
+            btn.style.background = "#10B981";
+        } catch (err) {
+            console.error(err);
+            btn.innerText = "Error";
+            btn.style.background = "#EF4444";
+        } finally {
+            setTimeout(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    btn.style.background = originalBg;
+                    btn.style.cursor = "pointer";
+                }
+            }, 3000);
+        }
+    };
 }
 
 function FloodPopupContent({ properties: p }: { properties: any }) {
@@ -164,11 +208,12 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
     const dn = p.districtName ?? p.districtId?.districtName ?? 'Field Observation';
     const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(0) : '—';
     const area = typeof p.floodAreaKm2 === 'number' ? `${p.floodAreaKm2.toFixed(1)} km²` : '—';
-    const pop = typeof p.affectedPopEst === 'number' ? (p.affectedPopEst / 1000).toFixed(1) + 'k' : '—';
+    const popRaw = typeof p.affectedPopEst === 'number' ? p.affectedPopEst : 0;
+    const pop = popRaw > 0 ? (popRaw / 1000).toFixed(1) + 'k' : '—';
     const isEnsemble = isSatellite(p);
 
     return (
-        <div style={{ padding: '20px', minWidth: '260px', fontFamily: "'Inter', sans-serif" }}>
+        <div className="popup-container" style={{ padding: '20px', minWidth: '260px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: rc.fill, boxShadow: `0 0 10px ${rc.fill}60` }} />
                 <div style={{ fontWeight: 950, fontSize: '15px', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{dn}</div>
@@ -193,9 +238,24 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
                 </div>
             </div>
 
-            <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', fontSize: '11px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, border: '1px solid #F1F5F9' }}>
-                {isEnsemble ? '🛰 Multispectral Analysis Verified' : '🌧 Rainfall Accumulation Model'} ·
-                <span style={{ color: '#0D7377' }}> {p.detectionMethod || 'ENSEMBLE'}</span>
+            <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', fontSize: '11px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, border: '1px solid #F1F5F9', display: 'flex', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                     <div>
+                         {isEnsemble ? '🛰 Multispectral Analysis' : '🌧 Rainfall Accumulation'} ·
+                         <span style={{ color: '#0D7377' }}> {p.detectionMethod || 'ENSEMBLE'}</span>
+                     </div>
+                </div>
+                <div 
+                    dangerouslySetInnerHTML={{ __html: `
+                        <button 
+                            class="alert-btn"
+                            onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${p.riskLevel}', ${popRaw}, this)"
+                            style="background: #0F172A; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(15,23,42,0.15); font-family: 'Inter', sans-serif;"
+                        >
+                            Send Alert
+                        </button>
+                    ` }}
+                />
             </div>
         </div>
     );

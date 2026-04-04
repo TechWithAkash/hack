@@ -1,520 +1,458 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { StudioProvider, useStudio } from '@/components/studio/StudioContext';
-import { ShieldAlert, Layers, Cpu, Info, CheckCircle2, ChevronRight, Eye, Satellite as SatelliteIcon, Terminal, MessageSquare, FileText } from 'lucide-react';
+import {
+    ShieldAlert, Layers, Cpu, Info, CheckCircle2,
+    Satellite as SatelliteIcon, AlertTriangle, Crosshair,
+} from 'lucide-react';
 
+/* ─────────────────────────────────────────────────────────
+   Sidebar
+───────────────────────────────────────────────────────── */
 function StudioSidebar() {
     const { cfg, setCfg, loading, handleRun, aoiMode, setAoiMode, drawnBounds, setDrawnBounds } = useStudio();
 
-    const ParameterLabel = ({ label, info }: { label: string, info: string }) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ fontSize: 10, color: '#64748B', fontWeight: 800 }}>{label}</span>
-            <button
-                onClick={() => alert(`PARAMETER INFO:\n\n${label}\n${info}`)}
-                style={{
-                    background: 'none', border: 'none', padding: 0, margin: 0,
-                    color: '#94A3B8', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                    transition: 'color 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.color = '#0F172A'}
-                onMouseOut={(e) => e.currentTarget.style.color = '#94A3B8'}
-                title="Click for more information"
-            >
-                <Info size={10} />
-            </button>
-        </div>
-    );
+    function SliderRow({
+        label, info, value, min, max, step, accent, display, onChange,
+    }: {
+        label: string; info: string; value: number;
+        min: string; max: string; step: string;
+        accent: string; display: string;
+        onChange: (v: number) => void;
+    }) {
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: '#64748B' }}>{label}</span>
+                        <button
+                            onClick={() => alert(`${label}\n\n${info}`)}
+                            title={info}
+                            style={{
+                                background: 'none', border: 'none', padding: 0,
+                                color: '#CBD5E1', cursor: 'pointer', lineHeight: 0,
+                                transition: 'color 0.15s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#64748B'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}
+                        >
+                            <Info size={10} />
+                        </button>
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: accent }}>{display}</span>
+                </div>
+                <input
+                    type="range" min={min} max={max} step={step} value={value}
+                    onChange={e => onChange(parseFloat(e.target.value))}
+                    style={{ width: '100%', accentColor: accent, cursor: 'pointer', height: 3 }}
+                />
+            </div>
+        );
+    }
+
+    function SectionLabel({ icon: Icon, label }: { icon: any; label: string }) {
+        return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <Icon size={12} color="#0D7377" />
+                <span style={{ fontSize: 9, fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    {label}
+                </span>
+            </div>
+        );
+    }
 
     return (
         <div style={{
-            width: 320,
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(30px)',
-            borderRight: '1px solid rgba(226, 232, 240, 0.5)',
-            padding: '24px 20px', // Massive bottom padding to ensure button visibility
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 24, // Slightly reduced gap
-            overflowY: 'auto',
-            height: '100%',
-            position: 'relative',
-            zIndex: 10
+            width: 288, flexShrink: 0,
+            background: 'white',
+            borderRight: '1px solid #E2E8F0',
+            display: 'flex', flexDirection: 'column',
+            overflowY: 'auto', height: '100%',
         }}>
-            {/* Algorithm Parameters */}
-            <div>
-                <h3 style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.12em', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <Cpu size={14} className="text-teal-600" /> ALGORITHM PARAMETERS
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <ParameterLabel label="SAR BASELINE CONFIDENCE" info="Minimum statistical confidence required for SAR-based water detection anomalies." />
-                            <span style={{ color: '#0F172A', fontWeight: 950, fontSize: 10 }}>{Number(cfg.sar_conf_base).toFixed(2)}</span>
-                        </div>
-                        <input
-                            type="range" min="0.5" max="1.0" step="0.01"
-                            value={Number(cfg.sar_conf_base)}
-                            onChange={(e) => setCfg({ ...cfg, sar_conf_base: parseFloat(e.target.value) })}
-                            style={{ width: '100%', accentColor: '#0F172A', cursor: 'pointer', height: 4 }}
-                        />
-                    </div>
-
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <ParameterLabel label="OPTICAL BASELINE CONFIDENCE" info="Required confidence level for multi-spectral verification of flooded pixels." />
-                            <span style={{ color: '#0F172A', fontWeight: 950, fontSize: 10 }}>{Number(cfg.opt_conf_base).toFixed(2)}</span>
-                        </div>
-                        <input
-                            type="range" min="0.5" max="1.0" step="0.01"
-                            value={Number(cfg.opt_conf_base)}
-                            onChange={(e) => setCfg({ ...cfg, opt_conf_base: parseFloat(e.target.value) })}
-                            style={{ width: '100%', accentColor: '#0F172A', cursor: 'pointer', height: 4 }}
-                        />
-                    </div>
+            {/* Sidebar header */}
+            <div style={{
+                padding: '16px 18px', borderBottom: '1px solid #F1F5F9',
+                display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+                <div style={{
+                    width: 28, height: 28, borderRadius: 8,
+                    background: 'rgba(13,115,119,0.08)', color: '#0D7377',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <Cpu size={13} />
+                </div>
+                <div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#0F172A' }}>Pipeline Controls</div>
+                    <div style={{ fontSize: 9, fontWeight: 500, color: '#94A3B8' }}>GEE Processing Config</div>
                 </div>
             </div>
 
-            {/* Thresholds */}
-            <div>
-                <h3 style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.12em', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <ShieldAlert size={14} className="text-teal-600" /> DETECTION THRESHOLDS
-                </h3>
+            <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 20, flex: 1 }}>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <ParameterLabel label="SAR WATER THRESHOLD (DB)" info="Sentinel-1 backscatter drop (dB) threshold to classify standing water surface." />
-                            <span style={{ color: '#EF4444', fontWeight: 950, fontSize: 10 }}>{Number(cfg.threshold).toFixed(2)}</span>
-                        </div>
-                        <input
-                            type="range" min="-6" max="0" step="0.1"
-                            value={Number(cfg.threshold)}
-                            onChange={(e) => setCfg({ ...cfg, threshold: parseFloat(e.target.value) })}
-                            style={{ width: '100%', accentColor: '#EF4444', cursor: 'pointer', height: 4 }}
+                {/* Algorithm params */}
+                <div>
+                    <SectionLabel icon={Cpu} label="Algorithm Parameters" />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <SliderRow
+                            label="SAR Baseline Confidence"
+                            info="Minimum statistical confidence required for SAR-based water detection anomalies."
+                            value={Number(cfg.sar_conf_base)} min="0.5" max="1.0" step="0.01"
+                            accent="#0D7377" display={Number(cfg.sar_conf_base).toFixed(2)}
+                            onChange={v => setCfg({ ...cfg, sar_conf_base: v })}
                         />
-                    </div>
-
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <ParameterLabel label="NDVI AGRI LOSS THRESHOLD" info="NDVI variation coefficient for detecting submerged or damaged vegetation/crops." />
-                            <span style={{ color: '#10B981', fontWeight: 950, fontSize: 10 }}>{(Number(cfg.ndvi_thresh) * 100).toFixed(0)}%</span>
-                        </div>
-                        <input
-                            type="range" min="-0.5" max="0" step="0.01"
-                            value={Number(cfg.ndvi_thresh)}
-                            onChange={(e) => setCfg({ ...cfg, ndvi_thresh: parseFloat(e.target.value) })}
-                            style={{ width: '100%', accentColor: '#10B981', cursor: 'pointer', height: 4 }}
-                        />
-                    </div>
-
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <ParameterLabel label="MAX CLOUD COVER (%)" info="Automatic rejection of Sentinel-2 scenes exceeding this cloud percentage over AOI." />
-                            <span style={{ color: '#0D7377', fontWeight: 950, fontSize: 10 }}>{cfg.cloud_pct}%</span>
-                        </div>
-                        <input
-                            type="range" min="5" max="80" step="1"
-                            value={Number(cfg.cloud_pct)}
-                            onChange={(e) => setCfg({ ...cfg, cloud_pct: parseInt(e.target.value) })}
-                            style={{ width: '100%', accentColor: '#0D7377', cursor: 'pointer', height: 4 }}
+                        <SliderRow
+                            label="Optical Baseline Confidence"
+                            info="Required confidence level for multi-spectral verification of flooded pixels."
+                            value={Number(cfg.opt_conf_base)} min="0.5" max="1.0" step="0.01"
+                            accent="#0369A1" display={Number(cfg.opt_conf_base).toFixed(2)}
+                            onChange={v => setCfg({ ...cfg, opt_conf_base: v })}
                         />
                     </div>
                 </div>
-            </div>
 
-            {/* Geographic AOI */}
-            <div>
-                <h3 style={{ fontSize: 10, fontWeight: 900, color: '#0F172A', letterSpacing: '0.12em', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <Layers size={14} className="text-teal-600" /> GEOGRAPHIC AOI
-                </h3>
+                <div style={{ height: 1, background: '#F1F5F9' }} />
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                    <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.05)', borderRadius: 12, padding: 6, gap: 6 }}>
-                        <button
-                            onClick={() => setAoiMode('draw')}
-                            style={{ flex: 1, padding: '10px 12px', fontSize: 11, fontWeight: 900, borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', background: aoiMode === 'draw' ? '#0F172A' : 'transparent', color: aoiMode === 'draw' ? '#FFF' : '#64748B', boxShadow: aoiMode === 'draw' ? '0 8px 20px rgba(15, 23, 42, 0.2)' : 'none', transform: aoiMode === 'draw' ? 'scale(1.02)' : 'scale(1)' }}>
-                            DRAW AOI
-                        </button>
-                        <button
-                            onClick={() => setAoiMode('manual')}
-                            style={{ flex: 1, padding: '10px 12px', fontSize: 11, fontWeight: 900, borderRadius: 8, border: 'none', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', background: aoiMode === 'manual' ? '#0F172A' : 'transparent', color: aoiMode === 'manual' ? '#FFF' : '#64748B', boxShadow: aoiMode === 'manual' ? '0 8px 20px rgba(15, 23, 42, 0.2)' : 'none', transform: aoiMode === 'manual' ? 'scale(1.02)' : 'scale(1)' }}>
-                            LAT / LON
-                        </button>
+                {/* Detection thresholds */}
+                <div>
+                    <SectionLabel icon={ShieldAlert} label="Detection Thresholds" />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <SliderRow
+                            label="SAR Water Threshold (dB)"
+                            info="Sentinel-1 backscatter drop (dB) threshold to classify standing water surface."
+                            value={Number(cfg.threshold)} min="-6" max="0" step="0.1"
+                            accent="#EF4444" display={Number(cfg.threshold).toFixed(2)}
+                            onChange={v => setCfg({ ...cfg, threshold: v })}
+                        />
+                        <SliderRow
+                            label="NDVI Agri Loss Threshold"
+                            info="NDVI variation coefficient for detecting submerged or damaged vegetation/crops."
+                            value={Number(cfg.ndvi_thresh)} min="-0.5" max="0" step="0.01"
+                            accent="#10B981" display={`${(Number(cfg.ndvi_thresh) * 100).toFixed(0)}%`}
+                            onChange={v => setCfg({ ...cfg, ndvi_thresh: v })}
+                        />
+                        <SliderRow
+                            label="Max Cloud Cover"
+                            info="Automatic rejection of Sentinel-2 scenes exceeding this cloud percentage over AOI."
+                            value={Number(cfg.cloud_pct)} min="5" max="80" step="1"
+                            accent="#D97706" display={`${cfg.cloud_pct}%`}
+                            onChange={v => setCfg({ ...cfg, cloud_pct: Math.round(v) })}
+                        />
+                    </div>
+                </div>
+
+                <div style={{ height: 1, background: '#F1F5F9' }} />
+
+                {/* Geographic AOI */}
+                <div>
+                    <SectionLabel icon={Layers} label="Geographic AOI" />
+
+                    {/* AOI mode pills */}
+                    <div style={{
+                        display: 'flex', gap: 4,
+                        background: '#F8FAFC', border: '1px solid #E2E8F0',
+                        borderRadius: 9, padding: 3, marginBottom: 12,
+                    }}>
+                        {[
+                            { id: 'draw',   label: 'Draw AOI' },
+                            { id: 'manual', label: 'Lat / Lon' },
+                        ].map(m => (
+                            <button
+                                key={m.id}
+                                onClick={() => setAoiMode(m.id as any)}
+                                style={{
+                                    flex: 1, padding: '7px', fontSize: 10, fontWeight: 700,
+                                    borderRadius: 7, border: 'none', cursor: 'pointer',
+                                    transition: 'all 0.15s',
+                                    background: aoiMode === m.id ? 'white' : 'transparent',
+                                    color: aoiMode === m.id ? '#0F172A' : '#94A3B8',
+                                    boxShadow: aoiMode === m.id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                                }}
+                            >
+                                {m.label}
+                            </button>
+                        ))}
                     </div>
 
                     {aoiMode === 'manual' ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                             {[
-                                { label: 'MIN LON', key: 'min_lon' },
-                                { label: 'MAX LON', key: 'max_lon' },
-                                { label: 'MIN LAT', key: 'min_lat' },
-                                { label: 'MAX LAT', key: 'max_lat' },
-                            ].map(field => (
-                                <div key={field.key}>
-                                    <label style={{ fontSize: 8, color: '#94A3B8', fontWeight: 900, display: 'block', marginBottom: 3 }}>{field.label}</label>
+                                { label: 'Min Lon', key: 'min_lon' },
+                                { label: 'Max Lon', key: 'max_lon' },
+                                { label: 'Min Lat', key: 'min_lat' },
+                                { label: 'Max Lat', key: 'max_lat' },
+                            ].map(f => (
+                                <div key={f.key}>
+                                    <label style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, display: 'block', marginBottom: 3, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                        {f.label}
+                                    </label>
                                     <input
                                         type="number" step="0.1"
-                                        value={Number(cfg[field.key as keyof typeof cfg])}
-                                        onChange={e => setCfg({ ...cfg, [field.key]: parseFloat(e.target.value) })}
-                                        style={{ width: '100%', background: 'rgba(255, 255, 255, 0.4)', border: '1px solid rgba(226, 232, 240, 0.4)', borderRadius: 8, padding: '7px 9px', color: '#0F172A', fontSize: 11, fontWeight: 800, outline: 'none' }}
+                                        value={Number(cfg[f.key as keyof typeof cfg])}
+                                        onChange={e => setCfg({ ...cfg, [f.key]: parseFloat(e.target.value) })}
+                                        style={{
+                                            width: '100%', background: 'white',
+                                            border: '1px solid #E2E8F0', borderRadius: 7,
+                                            padding: '6px 8px', color: '#0F172A',
+                                            fontSize: 11, fontWeight: 700, outline: 'none',
+                                        }}
                                     />
                                 </div>
                             ))}
                         </div>
                     ) : drawnBounds ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                            <div style={{ background: 'rgba(20, 184, 166, 0.06)', border: '1px solid rgba(20, 184, 166, 0.2)', borderRadius: 12, padding: 12 }}>
-                                <div style={{ fontSize: 9, fontWeight: 900, color: '#14B8A6', letterSpacing: '0.1em', marginBottom: 8 }}>✓ AOI SELECTED</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{
+                                background: '#F0FDF4', border: '1px solid #BBF7D0',
+                                borderRadius: 10, padding: '10px 12px',
+                            }}>
+                                <div style={{ fontSize: 9, fontWeight: 800, color: '#15803D', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                    ✓ AOI Selected
+                                </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                                     {[
-                                        { label: 'MIN LON', val: drawnBounds[0].toFixed(4) },
-                                        { label: 'MIN LAT', val: drawnBounds[1].toFixed(4) },
-                                        { label: 'MAX LON', val: drawnBounds[2].toFixed(4) },
-                                        { label: 'MAX LAT', val: drawnBounds[3].toFixed(4) },
+                                        { label: 'Min Lon', val: drawnBounds[0].toFixed(4) },
+                                        { label: 'Min Lat', val: drawnBounds[1].toFixed(4) },
+                                        { label: 'Max Lon', val: drawnBounds[2].toFixed(4) },
+                                        { label: 'Max Lat', val: drawnBounds[3].toFixed(4) },
                                     ].map(f => (
-                                        <div key={f.label} style={{ padding: '4px 8px', background: 'rgba(255,255,255,0.3)', borderRadius: 6 }}>
-                                            <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 900, letterSpacing: '0.08em' }}>{f.label}</div>
-                                            <div style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>{f.val}</div>
+                                        <div key={f.label} style={{ background: 'white', borderRadius: 6, padding: '4px 8px' }}>
+                                            <div style={{ fontSize: 7, color: '#94A3B8', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{f.label}</div>
+                                            <div style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>{f.val}</div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             <button
-                                onClick={() => {
-                                    setDrawnBounds(null);
-                                    setCfg({ ...cfg, min_lon: 0, max_lon: 0, min_lat: 0, max_lat: 0 });
-                                }}
+                                onClick={() => { setDrawnBounds(null); setCfg({ ...cfg, min_lon: 0, max_lon: 0, min_lat: 0, max_lat: 0 }); }}
                                 style={{
-                                    width: '100%', padding: '8px', fontSize: 10, fontWeight: 800,
-                                    background: 'rgba(239, 68, 68, 0.08)', color: '#EF4444',
-                                    border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8,
-                                    cursor: 'pointer', transition: 'all 0.2s'
+                                    padding: '7px', fontSize: 10, fontWeight: 700,
+                                    background: '#FEF2F2', color: '#EF4444',
+                                    border: '1px solid #FCA5A5', borderRadius: 8, cursor: 'pointer',
                                 }}
                             >
-                                RESET AOI — DRAW AGAIN
+                                Reset — Draw Again
                             </button>
                         </div>
                     ) : (
-                        <div style={{ background: 'rgba(241, 245, 249, 0.6)', border: '1px dashed #CBD5E1', borderRadius: 12, padding: 14, textAlign: 'center' }}>
+                        <div style={{
+                            background: '#F8FAFC', border: '1px dashed #CBD5E1',
+                            borderRadius: 10, padding: '12px 14px', textAlign: 'center',
+                        }}>
+                            <Crosshair size={16} color="#CBD5E1" style={{ marginBottom: 6 }} />
                             <p style={{ fontSize: 10, color: '#64748B', fontWeight: 600, lineHeight: 1.5, margin: 0 }}>
-                                📌 Click & drag on the map to select any region. The pipeline will auto-run for your selected area.
-                            </p>
-                            <p style={{ fontSize: 9, color: '#94A3B8', fontWeight: 500, margin: '6px 0 0 0' }}>
-                                🎯 Cursor is set to crosshair in draw mode
+                                Click & drag on the map to select your area of interest.
                             </p>
                         </div>
                     )}
                 </div>
-            </div>
 
-            {/* Execution Section */}
-            <div style={{ paddingTop: 20, borderTop: '1px solid rgba(226, 232, 240, 0.5)', flexShrink: 0 }}>
-                <div style={{ marginBottom: 18 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <ParameterLabel label="RESOLUTION" info="Spatial resolution (scale) for GEE processing. Lower values increase precision but require more computation data." />
-                        <span style={{ color: '#0F172A', fontWeight: 950, fontSize: 10 }}>{cfg.scale}m</span>
-                    </div>
-                    <input type="range" min="10" max="1000" step="10" value={cfg.scale} onChange={(e) => setCfg({ ...cfg, scale: parseInt(e.target.value) })} style={{ width: '100%', accentColor: '#0F172A', cursor: 'pointer', height: 4 }} />
+                <div style={{ height: 1, background: '#F1F5F9' }} />
+
+                {/* Resolution + Run */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <SliderRow
+                        label="Resolution"
+                        info="Spatial resolution (scale) for GEE processing. Lower values increase precision but require more computation."
+                        value={cfg.scale} min="10" max="1000" step="10"
+                        accent="#0D7377" display={`${cfg.scale}m`}
+                        onChange={v => setCfg({ ...cfg, scale: Math.round(v) })}
+                    />
+                    <button
+                        onClick={() => handleRun()} disabled={loading}
+                        style={{
+                            width: '100%', padding: '11px',
+                            background: loading ? '#94A3B8' : '#0F172A',
+                            border: 'none', borderRadius: 10, color: 'white',
+                            fontWeight: 800, fontSize: 11, letterSpacing: '0.06em',
+                            cursor: loading ? 'not-allowed' : 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                            transition: 'background 0.15s',
+                        }}
+                    >
+                        {loading
+                            ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', animation: 'spin 0.8s linear infinite' }} /> Processing…</>
+                            : <><Cpu size={13} /> Run Pipeline</>}
+                    </button>
                 </div>
-                <button
-                    onClick={() => handleRun()} disabled={loading}
-                    style={{
-                        width: '100%', padding: '14px', background: loading ? '#0D172AB3' : '#0F172A',
-                        border: 'none', borderRadius: 12, color: '#fff', fontWeight: 900, fontSize: 11, letterSpacing: '0.08em',
-                        cursor: loading ? 'wait' : 'pointer', transition: 'all 0.3s',
-                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.2)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        textTransform: 'uppercase'
-                    }}
-                >
-                    {loading ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white" /> : <Cpu size={14} />}
-                    {loading ? 'CALCULATING...' : 'INGEST & PROCESS DATA'}
-                </button>
             </div>
         </div>
     );
 }
 
+/* ─────────────────────────────────────────────────────────
+   Header (metrics bar)
+───────────────────────────────────────────────────────── */
 function StudioHeader() {
     const { results } = useStudio();
-    const metrics = results?.metrics || {};
+    const m = results?.metrics || {};
 
-    const riskState = metrics.severity_score >= 80 ? 'CRITICAL' : metrics.severity_score >= 60 ? 'HIGH' : metrics.severity_score >= 40 ? 'MODERATE' : metrics.severity_score >= 20 ? 'LOW' : 'MINIMAL';
-    const riskColor = riskState === 'CRITICAL' ? '#EF4444' : riskState === 'HIGH' ? '#F97316' : riskState === 'MODERATE' ? '#F59E0B' : riskState === 'LOW' ? '#10B981' : '#3B82F6';
+    const severity = m.severity_score ?? 0;
+    const riskLabel = severity >= 80 ? 'Critical' : severity >= 60 ? 'High' : severity >= 40 ? 'Moderate' : severity >= 20 ? 'Low' : 'Minimal';
+    const riskColor = severity >= 80 ? '#EF4444' : severity >= 60 ? '#F97316' : severity >= 40 ? '#D97706' : severity >= 20 ? '#10B981' : '#0D7377';
 
-    const renderCard = (label: string, value: string, unit: string, color?: string) => (
-        <div style={{
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.8)',
-            borderRadius: 16,
-            padding: '12px 20px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
-            transition: 'all 0.3s',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-        }}>
-            <div style={{ fontSize: 8, color: '#94A3B8', fontWeight: 950, letterSpacing: '0.12em', marginBottom: 4, textTransform: 'uppercase' }}>{label}</div>
-            <div style={{ fontSize: 18, fontWeight: 950, color: color || '#0F172A', display: 'flex', alignItems: 'baseline', gap: 3, lineHeight: 1 }}>
-                {value} <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700 }}>{unit}</span>
-            </div>
-        </div>
-    );
+    const metrics = [
+        { label: 'Flood Area',   val: `${(m.flood_area ?? 0).toFixed(1)} km²`,              color: '#0369A1' },
+        { label: 'Veg Damage',   val: `${(m.ndvi_loss_area ?? 0).toFixed(1)} km²`,          color: '#10B981' },
+        { label: 'Pop Exposed',  val: Math.round(m.exposed_pop ?? 0).toLocaleString(),       color: '#D97706' },
+        { label: 'Confidence',   val: `${((m.peak_confidence ?? 0) * 100).toFixed(1)}%`,    color: '#0D7377' },
+    ];
 
     return (
-        <div style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <div>
-                    <div style={{ fontSize: 10, fontWeight: 900, color: '#10B981', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, background: 'rgba(16, 185, 129, 0.08)', padding: '4px 12px', borderRadius: 10, width: 'fit-content', border: '1px solid rgba(16, 185, 129, 0.15)', letterSpacing: '0.05em' }}>
-                        <div className="h-1.5 w-1.5 rounded-full bg-teal-500 animate-pulse" /> PIXEL-PERFECT CLIMATE INTELLIGENCE
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+
+                {/* Title */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                        <SatelliteIcon size={13} color="#0D7377" />
+                        <span style={{ fontSize: 14, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                            Intelligence Studio
+                        </span>
+                        <span style={{
+                            fontSize: 9, fontWeight: 700, color: '#10B981',
+                            background: '#F0FDF4', border: '1px solid #BBF7D0',
+                            borderRadius: 5, padding: '1px 7px',
+                        }}>LIVE</span>
                     </div>
-                    <h1 style={{ fontSize: 28, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-                        NETRA<span style={{ color: '#0D7377' }}>.AI</span> Intelligence Studio <span style={{ color: '#94A3B8', fontWeight: 500 }}>v1.0</span>
-                    </h1>
+                    <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
+                        GEE Distributed Fusion v1.2.4 · Pixel-perfect climate intelligence
+                    </p>
                 </div>
+
+                {/* Metric chips */}
                 {results && (
-                    <div style={{
-                        background: '#0F172A',
-                        color: '#FFF',
-                        padding: '12px 24px',
-                        borderRadius: 16,
-                        fontSize: 11,
-                        fontWeight: 900,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        boxShadow: '0 12px 32px rgba(15, 23, 42, 0.25)',
-                        border: '1px solid rgba(255,255,255,0.1)'
-                    }}>
-                        <CheckCircle2 size={16} className="text-teal-400" />
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: 8, opacity: 0.6 }}>SYSTEM STATUS</span>
-                            <span>OPTIMAL / SYNCED</span>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        {metrics.map(m => (
+                            <div key={m.label} style={{
+                                background: 'white', border: '1px solid #E2E8F0',
+                                borderRadius: 10, padding: '8px 12px', textAlign: 'center',
+                            }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: m.color, whiteSpace: 'nowrap' }}>{m.val}</div>
+                                <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 1 }}>{m.label}</div>
+                            </div>
+                        ))}
+
+                        {/* Risk bar */}
+                        <div style={{
+                            background: 'white', border: '1px solid #E2E8F0',
+                            borderRadius: 10, padding: '8px 14px',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4,
+                            minWidth: 140,
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Severity</span>
+                                <span style={{ fontSize: 9, fontWeight: 800, color: riskColor }}>{riskLabel.toUpperCase()}</span>
+                            </div>
+                            <div style={{ height: 5, background: '#F1F5F9', borderRadius: 6, overflow: 'hidden' }}>
+                                <div style={{
+                                    height: '100%', width: `${Math.min(100, Math.max(0, severity))}%`,
+                                    background: `linear-gradient(90deg, #10B981, #D97706, #EF4444)`,
+                                    borderRadius: '6px 0 0 6px',
+                                    transition: 'width 1.5s cubic-bezier(0.16,1,0.3,1)',
+                                }} />
+                            </div>
                         </div>
                     </div>
                 )}
-            </div>
 
-            <div style={{
-                display: 'flex',
-                gap: 20,
-                padding: '20px',
-                background: 'rgba(255, 255, 255, 0.4)',
-                borderRadius: 24,
-                border: '1px solid rgba(255, 255, 255, 0.6)',
-                boxShadow: '0 8px 32px rgba(15, 23, 42, 0.05)',
-                backdropFilter: 'blur(10px)'
-            }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, flex: 1 }}>
-                    {renderCard("FLOOD AREA", (metrics.flood_area ?? 0).toFixed(1), "km²")}
-                    {renderCard("VEG DAMAGE", (metrics.ndvi_loss_area ?? 0).toFixed(1), "km²")}
-                    {renderCard("POP EXPOSED", Math.round(metrics.exposed_pop ?? 0).toLocaleString(), "ppl", "#F59E0B")}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, flex: 1 }}>
-                    {renderCard("CONFIDENCE", ((metrics.peak_confidence ?? 0) * 100).toFixed(1), "%", "#10B981")}
-                    {renderCard("SEVERITY", (metrics.severity_score ?? 0).toFixed(1), "/ 100", riskColor)}
-                </div>
-
-            </div>
-
-            {/* AI Action Center & Composite Risk */}
-            <div style={{
-                marginTop: 24,
-                display: 'grid',
-                gridTemplateColumns: '1fr 340px',
-                gap: 20
-            }}>
-                {/* Actions Grid */}
-                {/* <div style={{
-                    background: 'rgba(255, 255, 255, 0.4)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: 24,
-                    border: '1px solid rgba(255, 255, 255, 0.6)',
-                    padding: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12
-                }}>
+                {!results && (
                     <div style={{
-                        padding: '0 16px',
-                        borderRight: '1px solid rgba(0, 0, 0, 0.05)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center'
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        background: '#F8FAFC', border: '1px solid #E2E8F0',
+                        borderRadius: 10, padding: '8px 14px',
                     }}>
-                        <span style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.1em' }}>OPERATIONAL</span>
-                        <span style={{ fontSize: 11, fontWeight: 900, color: '#0F172A' }}>ACTIONS</span>
+                        <AlertTriangle size={12} color="#D97706" />
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#64748B' }}>No results yet — run pipeline to see metrics</span>
                     </div>
-
-                    <div style={{ display: 'flex', gap: 10, flex: 1 }}>
-                        {[
-                            { id: 'api', label: 'REST API Endpoint', icon: <Terminal size={14} />, path: '/studio/api', color: '#6366F1' },
-                            { id: 'ai', label: 'Generative AI', icon: <MessageSquare size={14} />, path: '/studio/ai', color: '#8B5CF6' },
-                            { id: 'pdf', label: 'PDF Report Gen', icon: <FileText size={18} />, path: '/studio/pdf', isPrimary: true },
-                        ].map(action => (
-                            <Link
-                                key={action.id}
-                                href={action.path}
-                                style={{
-                                    flex: action.isPrimary ? '0 0 160px' : 1,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: 10,
-                                    padding: '16px',
-                                    borderRadius: 16,
-                                    textDecoration: 'none',
-                                    fontSize: 11,
-                                    fontWeight: 900,
-                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                    background: action.isPrimary ? '#0F172A' : '#FFFFFF',
-                                    color: action.isPrimary ? '#FFFFFF' : '#0F172A',
-                                    border: action.isPrimary ? 'none' : '1px solid rgba(226, 232, 240, 0.8)',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                    e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.03)';
-                                }}
-                            >
-                                {action.icon}
-                                {action.label.toUpperCase()}
-                            </Link>
-                        ))}
-                    </div>
-                </div> */}
-
-                {/* Composite Risk Meter (Moved here for better visual weight) */}
-                <div style={{
-                    background: '#FFFFFF',
-                    borderRadius: 24,
-                    border: '1px solid rgba(226, 232, 240, 0.8)',
-                    padding: '20px 24px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    boxShadow: '0 8px 32px rgba(15, 23, 42, 0.05)',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div style={{ fontSize: 9, fontWeight: 950, color: '#64748B', letterSpacing: '0.15em', textTransform: 'uppercase' }}>COMPOSITE RISK METER</div>
-                        <div style={{ fontSize: 10, fontWeight: 950, color: riskColor, letterSpacing: '0.05em', background: `${riskColor}10`, padding: '4px 12px', borderRadius: 8 }}>{riskState}</div>
-                    </div>
-                    <div style={{ height: 8, width: '100%', background: '#F1F5F9', borderRadius: 10, overflow: 'hidden', position: 'relative' }}>
-                        <div style={{
-                            height: '100%',
-                            width: `${Math.min(100, Math.max(0, metrics.severity_score ?? 0))}%`,
-                            background: `linear-gradient(90deg, #10B981, #F59E0B, #EF4444)`,
-                            transition: 'width 2s cubic-bezier(0.16, 1, 0.3, 1)',
-                            borderRadius: '0 10px 10px 0'
-                        }} />
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                        <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 800 }}>MINIMAL</span>
-                        <span style={{ fontSize: 8, color: '#CBD5E1', fontWeight: 800 }}>CRITICAL</span>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
 }
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+/* ─────────────────────────────────────────────────────────
+   Tabs
+───────────────────────────────────────────────────────── */
+const TABS = [
+    { id: 'spatial',    label: 'Spatial',    icon: SatelliteIcon, path: '/studio/spatial'    },
+    { id: 'core',       label: 'Core',       icon: Cpu,           path: '/studio/core'       },
+    { id: 'veg',        label: 'Vegetation', icon: Layers,        path: '/studio/veg'        },
+    { id: 'risk',       label: 'Risk',       icon: ShieldAlert,   path: '/studio/risk'       },
+    { id: 'confidence', label: 'Confidence', icon: Info,          path: '/studio/confidence' },
+    { id: 'logs',       label: 'Logs',       icon: CheckCircle2,  path: '/studio/logs'       },
+];
 
+function StudioTabs() {
+    const pathname = usePathname();
+    return (
+        <div style={{
+            display: 'flex', gap: 2, padding: '10px 20px',
+            borderBottom: '1px solid #F1F5F9', flexShrink: 0,
+            background: 'white',
+        }}>
+            {TABS.map(tab => {
+                const active = pathname === tab.path;
+                return (
+                    <Link
+                        key={tab.id} href={tab.path}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '7px 14px', borderRadius: 8,
+                            fontSize: 11, fontWeight: 700, textDecoration: 'none',
+                            transition: 'all 0.15s',
+                            background: active ? '#0F172A' : 'transparent',
+                            color: active ? 'white' : '#64748B',
+                        }}
+                        onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            if (!active) {
+                                e.currentTarget.style.background = '#F8FAFC';
+                                e.currentTarget.style.color = '#0F172A';
+                            }
+                        }}
+                        onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            if (!active) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = '#64748B';
+                            }
+                        }}
+                    >
+                        <tab.icon size={12} />
+                        {tab.label}
+                    </Link>
+                );
+            })}
+        </div>
+    );
+}
+
+/* ─────────────────────────────────────────────────────────
+   Layout shell
+───────────────────────────────────────────────────────── */
 function StudioLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-
-    const tabs = [
-        { id: 'spatial', label: 'Spatial Insights', icon: <SatelliteIcon size={14} />, path: '/studio/spatial' },
-        { id: 'core', label: 'Core Analysis', icon: <Cpu size={14} />, path: '/studio/core' },
-        { id: 'veg', label: 'Vegetation (NDVI)', icon: <Layers size={14} />, path: '/studio/veg' },
-        { id: 'risk', label: 'Risk & Severity', icon: <ShieldAlert size={14} />, path: '/studio/risk' },
-        { id: 'confidence', label: 'Confidence Engine', icon: <Info size={14} />, path: '/studio/confidence' },
-        { id: 'logs', label: 'State Table & Logs', icon: <CheckCircle2 size={14} />, path: '/studio/logs' },
-    ];
-
     const isFullPage = ['/studio/ai', '/studio/pdf'].includes(pathname);
 
     return (
-        <div style={{
-            display: 'flex',
-            height: '100%',
-            background: 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
-            position: 'relative',
-            overflow: 'hidden'
-        }}>
-            {/* Background Texture */}
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1, pointerEvents: 'none', background: 'radial-gradient(circle at 2px 2px, #CBD5E1 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+        <div style={{ display: 'flex', height: '100%', background: '#F8FAFC' }}>
+            {/* Left sidebar */}
+            {!isFullPage && <StudioSidebar />}
 
-            <StudioSidebar />
-
-            <div style={{
-                flex: 1,
-                padding: isFullPage ? 0 : '32px 48px',
-                overflow: isFullPage ? 'hidden' : 'auto',
-                position: 'relative',
-                zIndex: 1,
-                display: 'flex',
-                flexDirection: 'column'
-            }}>
+            {/* Right content */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
                 {!isFullPage && (
                     <>
                         <StudioHeader />
-
-                        {/* Tabs Navigation */}
-                        <div style={{
-                            display: 'flex',
-                            gap: 6,
-                            marginBottom: 32,
-                            background: 'rgba(255, 255, 255, 0.5)',
-                            padding: 6,
-                            borderRadius: 18,
-                            width: 'fit-content',
-                            border: '1px solid rgba(255, 255, 255, 0.6)',
-                            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
-                            backdropFilter: 'blur(10px)'
-                        }}>
-                            {tabs.map(tab => {
-                                const active = pathname === tab.path;
-                                return (
-                                    <Link
-                                        key={tab.id}
-                                        href={tab.path}
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 10,
-                                            padding: '10px 20px',
-                                            borderRadius: 14,
-                                            fontSize: 11,
-                                            fontWeight: 900,
-                                            textDecoration: 'none',
-                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                            background: active ? '#0F172A' : 'transparent',
-                                            color: active ? '#FFFFFF' : '#64748B',
-                                            boxShadow: active ? '0 10px 25px -5px rgba(15, 23, 42, 0.2)' : 'none',
-                                            transform: active ? 'scale(1.02)' : 'scale(1)',
-                                        }}
-                                    >
-                                        <div style={{ opacity: active ? 1 : 0.7, transform: 'translateY(-0.5px)' }}>
-                                            {tab.icon}
-                                        </div>
-                                        {tab.label.toUpperCase()}
-                                    </Link>
-                                );
-                            })}
-                        </div>
+                        <StudioTabs />
                     </>
                 )}
-
-                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                <div style={{
+                    flex: 1, overflowY: isFullPage ? 'hidden' : 'auto',
+                    padding: isFullPage ? 0 : '20px 24px',
+                    minHeight: 0,
+                }}>
                     {children}
                 </div>
             </div>

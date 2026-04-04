@@ -4,20 +4,86 @@ import { useMemo } from 'react';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
 import { formatArea, formatPopulation } from '@/lib/utils/formatters';
-import {
-    AlertCircle, Activity, TrendingUp, Users,
-    Droplets, Map, ShieldAlert, Cpu
-} from 'lucide-react';
+import { AlertCircle, ShieldAlert, TrendingUp, Droplets, Map, Users } from 'lucide-react';
+
+const RISK_CONFIG = [
+    { key: 'CRITICAL', label: 'Critical', icon: AlertCircle, color: '#EF4444', bg: '#FEF2F2' },
+    { key: 'HIGH',     label: 'High',     icon: ShieldAlert,  color: '#F97316', bg: '#FFF7ED' },
+    { key: 'MEDIUM',   label: 'Medium',   icon: TrendingUp,   color: '#D97706', bg: '#FFFBEB' },
+    { key: 'LOW',      label: 'Low',      icon: Droplets,     color: '#10B981', bg: '#F0FDF4' },
+];
+
+function StatCard({
+    label, value, icon: Icon, color, bg, sub,
+}: {
+    label: string; value: string | number; icon: any;
+    color: string; bg: string; sub?: string;
+}) {
+    return (
+        <div style={{
+            background: 'white',
+            border: '1px solid #E2E8F0',
+            borderRadius: 12,
+            padding: '14px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            transition: 'all 0.15s ease',
+            cursor: 'default',
+            position: 'relative',
+            overflow: 'hidden',
+        }}
+            onMouseEnter={e => {
+                e.currentTarget.style.borderColor = color + '60';
+                e.currentTarget.style.boxShadow = `0 4px 16px ${color}12`;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#E2E8F0';
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}
+        >
+            {/* left accent bar */}
+            <div style={{
+                position: 'absolute', left: 0, top: 0, bottom: 0,
+                width: 3, background: color, borderRadius: '14px 0 0 14px',
+            }} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: '#64748B' }}>{label}</span>
+                <div style={{
+                    width: 26, height: 26, borderRadius: 7, background: bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color,
+                }}>
+                    <Icon size={13} />
+                </div>
+            </div>
+            <div style={{ paddingLeft: 6 }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                    {value}
+                </div>
+                {sub && (
+                    <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        {sub}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function SkeletonCard() {
+    return (
+        <div style={{
+            background: '#F8FAFC', border: '1px solid #E2E8F0',
+            borderRadius: 12, padding: '14px 16px', height: 78,
+            animation: 'pulse 1.5s ease-in-out infinite',
+        }} />
+    );
+}
 
 export default function StatsGrid() {
     const { data, isLoading } = useSWR('/api/insights/summary', fetcher, { refreshInterval: 60000 });
-
-    const RISK_CARDS = [
-        { key: 'CRITICAL', label: 'Critical Alert', icon: AlertCircle, iconColor: '#EF4444', gradient: 'linear-gradient(135deg, #FEF2F2, #FEE2E2)' },
-        { key: 'HIGH', label: 'High Severity', icon: ShieldAlert, iconColor: '#F97316', gradient: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)' },
-        { key: 'MEDIUM', label: 'Medium Risk', icon: TrendingUp, iconColor: '#EAB308', gradient: 'linear-gradient(135deg, #FEFCE8, #FEF9C3)' },
-        { key: 'LOW', label: 'Low Impact', icon: Droplets, iconColor: '#10B981', gradient: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' },
-    ];
 
     const riskMap: Record<string, number> = {};
     (data?.riskBreakdown ?? []).forEach((r: any) => { riskMap[r._id] = r.count; });
@@ -25,127 +91,44 @@ export default function StatsGrid() {
     const totalFlood = data?.totals?.total ?? 0;
     const totalPop = data?.totals?.totalPop ?? 0;
 
-    const extraCards = [
-        { label: 'Total Flood Area', value: formatArea(totalFlood), icon: Map, color: '#0D7377', bg: '#F0FDFA' },
-        { label: 'Exposed Population', value: formatPopulation(totalPop), icon: Users, color: '#0369A1', bg: '#F0F9FF' },
-    ];
-
     if (isLoading) {
         return (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 14 }}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="glass-card shimmer" style={{ height: 120, borderRadius: 20 }} />
-                ))}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+                {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
         );
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: 14 }}>
-            {RISK_CARDS.map(({ key, label, icon: Icon, iconColor, gradient }) => (
-                <div
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12 }}>
+            {RISK_CONFIG.map(({ key, label, icon, color, bg }) => (
+                <StatCard
                     key={key}
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        borderRadius: 24,
-                        padding: '24px',
-                        boxShadow: '0 8px 32px rgba(15, 23, 42, 0.04)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        minHeight: 160,
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 12px 48px rgba(15, 23, 42, 0.08)';
-                        e.currentTarget.style.borderColor = iconColor + '40';
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.04)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-                    }}
-                >
-                    <div style={{ position: 'absolute', top: -10, right: -10, opacity: 0.03, pointerEvents: 'none' }}>
-                        <Icon size={120} />
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative' }}>
-                        <div style={{ background: gradient, borderRadius: 12, padding: 10, color: iconColor, boxShadow: `0 4px 12px ${iconColor}20` }}>
-                            <Icon size={20} />
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Districts</span>
-                            {riskMap[key] > 0 && <div className="pulse-dot" style={{ background: iconColor, marginTop: 4 }} />}
-                        </div>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                        <div style={{ fontSize: 48, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.04em' }}>
-                            {riskMap[key] ?? 0}
-                        </div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            {label}
-                        </div>
-                    </div>
-                </div>
+                    label={label}
+                    value={riskMap[key] ?? 0}
+                    icon={icon}
+                    color={color}
+                    bg={bg}
+                    sub="districts"
+                />
             ))}
 
-            {extraCards.map(({ label, value, icon: Icon, color, bg }) => (
-                <div
-                    key={label}
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        borderRadius: 24,
-                        padding: '24px',
-                        boxShadow: '0 8px 32px rgba(15, 23, 42, 0.04)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        minHeight: 160,
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'hidden'
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.transform = 'translateY(-6px) scale(1.02)';
-                        e.currentTarget.style.boxShadow = '0 12px 48px rgba(15, 23, 42, 0.08)';
-                        e.currentTarget.style.borderColor = color + '40';
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                        e.currentTarget.style.boxShadow = '0 8px 32px rgba(15, 23, 42, 0.04)';
-                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-                    }}
-                >
-                    <div style={{ position: 'absolute', top: -10, right: -10, opacity: 0.03, pointerEvents: 'none' }}>
-                        <Icon size={120} />
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, position: 'relative' }}>
-                        <div style={{ background: bg, borderRadius: 12, padding: 10, color, boxShadow: `0 4px 12px ${color}20` }}>
-                            <Icon size={20} />
-                        </div>
-                        <div style={{ fontSize: 9, fontWeight: 950, color: '#94A3B8', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Metric</div>
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                        <div style={{ fontSize: 32, fontWeight: 950, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.02em' }}>
-                            {value}
-                        </div>
-                        <div style={{ fontSize: 11, color: '#64748B', fontWeight: 800, marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                            {label}
-                        </div>
-                    </div>
-                </div>
-            ))}
+            <StatCard
+                label="Flood Area"
+                value={formatArea(totalFlood)}
+                icon={Map}
+                color="#0D7377"
+                bg="#F0FDFA"
+                sub="total affected"
+            />
+            <StatCard
+                label="At-Risk Population"
+                value={formatPopulation(totalPop)}
+                icon={Users}
+                color="#0369A1"
+                bg="#F0F9FF"
+                sub="estimated exposure"
+            />
         </div>
     );
 }

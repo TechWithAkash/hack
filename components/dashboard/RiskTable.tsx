@@ -4,9 +4,18 @@ import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
 import RiskBadge from '@/components/shared/RiskBadge';
 import ConfidenceBar from '@/components/shared/ConfidenceBar';
-import DataSourceTag from '@/components/shared/DataSourceTag';
 import { formatArea, formatDate, formatPopulation, formatScore } from '@/lib/utils/formatters';
-import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, List } from 'lucide-react';
+
+const COLUMNS = [
+    { key: 'district',    label: 'District'     },
+    { key: 'riskLevel',   label: 'Risk'         },
+    { key: 'floodArea',   label: 'Flood Area'   },
+    { key: 'affectedPop', label: 'Population'   },
+    { key: 'delta',       label: 'Δ Change'     },
+    { key: 'confidence',  label: 'Confidence'   },
+    { key: 'date',        label: 'Date'         },
+];
 
 export default function RiskTable() {
     const { data, isLoading } = useSWR('/api/insights/latest?limit=20', fetcher, { refreshInterval: 60000 });
@@ -14,13 +23,11 @@ export default function RiskTable() {
     if (isLoading) {
         return (
             <div style={{
-                background: 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(22px)',
-                borderRadius: 24,
-                padding: 0,
-                overflow: 'hidden'
-            }} className="shimmer">
-                <div style={{ height: 400 }} />
+                background: 'white', border: '1px solid #E2E8F0',
+                borderRadius: 16, overflow: 'hidden',
+            }}>
+                <div style={{ height: 3, background: '#0D7377' }} />
+                <div style={{ height: 340, animation: 'pulse 1.5s ease-in-out infinite', background: '#F8FAFC' }} />
             </div>
         );
     }
@@ -29,64 +36,47 @@ export default function RiskTable() {
 
     return (
         <div style={{
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(22px)',
-            border: '1px solid rgba(255, 255, 255, 0.8)',
-            borderRadius: 24,
-            padding: 0,
+            background: 'white',
+            border: '1px solid #E2E8F0',
+            borderRadius: 16,
             overflow: 'hidden',
-            boxShadow: '0 12px 48px rgba(15, 23, 42, 0.06)'
         }}>
+            {/* Accent */}
+            <div style={{ height: 3, background: '#0D7377' }} />
+
             {/* Header */}
-            <div
-                style={{
-                    padding: '24px 28px',
-                    borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-            >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ background: '#F8FAFC', borderRadius: 10, padding: 8, color: '#64748B' }}>
-                        <Activity size={18} />
-                    </div>
-                    <div>
-                        <h2 style={{ fontSize: 18, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.02em' }}>Live Event Registry</h2>
-                        <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 700, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            Currently monitoring {events.length} regional anomalies
-                        </p>
-                    </div>
+            <div style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #F1F5F9',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <List size={14} color="#0D7377" />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Live Event Registry</span>
+                    <span style={{
+                        marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#0D7377',
+                        background: 'rgba(13,115,119,0.08)', border: '1px solid rgba(13,115,119,0.2)',
+                        borderRadius: 5, padding: '2px 7px',
+                    }}>
+                        {events.length} anomalies
+                    </span>
                 </div>
-                <DataSourceTag source="ENSEMBLE" />
+                <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>Refreshes every 60s</span>
             </div>
 
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                        <tr style={{ background: 'rgba(248, 250, 252, 0.5)', borderBottom: '1px solid rgba(226, 232, 240, 0.5)' }}>
-                            {[
-                                { key: 'district', label: 'District' },
-                                { key: 'state', label: 'State' },
-                                { key: 'riskLevel', label: 'Risk Level' },
-                                { key: 'score', label: 'Score' },
-                                { key: 'floodArea', label: 'Flood Area' },
-                                { key: 'affectedPop', label: 'Affected Pop' },
-                                { key: 'deltaChange', label: 'Δ Change' },
-                                { key: 'confidence', label: 'Confidence' },
-                                { key: 'method', label: 'Method' },
-                                { key: 'date', label: 'Date' }
-                            ].map((h) => (
-                                <th
-                                    key={h.key}
-                                    style={{
-                                        padding: '16px 20px',
-                                        textAlign: 'left',
-                                        fontSize: 10, fontWeight: 950,
-                                        color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.12em',
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    {h.label}
+                        <tr style={{ background: '#FAFAFA' }}>
+                            {COLUMNS.map(col => (
+                                <th key={col.key} style={{
+                                    padding: '10px 16px', textAlign: 'left',
+                                    fontSize: 10, fontWeight: 700, color: '#94A3B8',
+                                    textTransform: 'uppercase', letterSpacing: '0.08em',
+                                    whiteSpace: 'nowrap', borderBottom: '1px solid #F1F5F9',
+                                }}>
+                                    {col.label}
                                 </th>
                             ))}
                         </tr>
@@ -94,59 +84,57 @@ export default function RiskTable() {
                     <tbody>
                         {events.length === 0 ? (
                             <tr>
-                                <td colSpan={10} style={{ padding: '60px', textAlign: 'center', color: '#94A3B8' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                                        <Activity size={32} opacity={0.2} />
-                                        <span style={{ fontSize: 14, fontWeight: 600 }}>No active anomalies detected in Bihar archive.</span>
-                                    </div>
+                                <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#CBD5E1' }}>
+                                    <List size={28} style={{ margin: '0 auto 8px' }} />
+                                    <p style={{ fontSize: 13, fontWeight: 600, color: '#94A3B8', margin: 0 }}>
+                                        No active anomalies detected.
+                                    </p>
                                 </td>
                             </tr>
                         ) : events.map((e: any) => {
                             const delta = e.changeFromPrevKm2 ?? 0;
                             return (
-                                <tr
-                                    key={e._id}
-                                    className="risk-table-row"
-                                    style={{
-                                        borderBottom: '1px solid rgba(241, 245, 249, 0.5)',
-                                        transition: 'all 0.1s ease'
-                                    }}
+                                <tr key={e._id}
+                                    style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.12s' }}
+                                    onMouseEnter={el => el.currentTarget.style.background = '#FAFBFD'}
+                                    onMouseLeave={el => el.currentTarget.style.background = 'transparent'}
                                 >
-                                    <td style={{ padding: '16px 20px', fontSize: 14, fontWeight: 800, color: '#0F172A', whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap' }}>
                                         {e.districtId?.districtName ?? '—'}
+                                        {e.districtId?.stateName && (
+                                            <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 500, marginTop: 1 }}>
+                                                {e.districtId.stateName}
+                                            </div>
+                                        )}
                                     </td>
-                                    <td style={{ padding: '16px 20px', fontSize: 12, color: '#64748B', fontWeight: 600 }}>
-                                        {e.districtId?.stateName ?? '—'}
-                                    </td>
-                                    <td style={{ padding: '16px 20px' }}>
+                                    <td style={{ padding: '12px 16px' }}>
                                         <RiskBadge level={e.riskLevel} />
                                     </td>
-                                    <td style={{ padding: '16px 20px', fontSize: 14, fontWeight: 950, color: '#0F172A' }}>
-                                        {formatScore(e.riskScore)}
-                                    </td>
-                                    <td style={{ padding: '16px 20px', fontSize: 13, color: '#475569', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
                                         {formatArea(e.floodAreaKm2)}
                                     </td>
-                                    <td style={{ padding: '16px 20px', fontSize: 13, color: '#475569', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
                                         {formatPopulation(e.affectedPopEst)}
                                     </td>
-                                    <td style={{ padding: '16px 20px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            {delta > 5 ? <TrendingUp size={14} color="#EF4444" /> :
-                                                delta < -5 ? <TrendingDown size={14} color="#22C55E" /> :
-                                                    <Minus size={14} color="#94A3B8" />}
-                                            <span style={{ fontSize: 12, fontWeight: 800, color: delta > 5 ? '#EF4444' : delta < -5 ? '#22C55E' : '#94A3B8' }}>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                            {delta > 5
+                                                ? <TrendingUp size={12} color="#EF4444" />
+                                                : delta < -5
+                                                    ? <TrendingDown size={12} color="#10B981" />
+                                                    : <Minus size={12} color="#CBD5E1" />}
+                                            <span style={{
+                                                fontSize: 11, fontWeight: 700,
+                                                color: delta > 5 ? '#EF4444' : delta < -5 ? '#10B981' : '#94A3B8',
+                                            }}>
                                                 {delta > 0 ? '+' : ''}{delta.toFixed(1)} km²
                                             </span>
                                         </div>
                                     </td>
-                                    <td style={{ padding: '16px 20px', minWidth: 140 }}>
+                                    <td style={{ padding: '12px 16px', minWidth: 130 }}>
                                         <ConfidenceBar score={e.confidenceScore ?? 0.8} />
                                     </td>
-                                    <td style={{ padding: '16px 20px' }}>
-                                        <DataSourceTag source={e.detectionMethod ?? 'S2'} />
-                                    </td>
-                                    <td style={{ padding: '16px 20px', fontSize: 11, color: '#94A3B8', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                    <td style={{ padding: '12px 16px', fontSize: 11, color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap' }}>
                                         {formatDate(e.eventDate)}
                                     </td>
                                 </tr>

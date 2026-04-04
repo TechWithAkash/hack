@@ -2,98 +2,126 @@
 
 import React from 'react';
 import { useStudio } from '@/components/studio/StudioContext';
-import { Target, Zap, ShieldCheck, Database, BrainCircuit, Activity } from 'lucide-react';
+import { Target, Zap, ShieldCheck, Database, Activity } from 'lucide-react';
 
 export default function ConfidenceEnginePage() {
     const { results, cfg } = useStudio();
     const metrics = results?.metrics || {};
 
-    const confidenceVal = (metrics.peak_confidence ?? 0) * 100;
-    const confidenceColor = confidenceVal >= 90 ? '#10B981' : confidenceVal >= 70 ? '#F59E0B' : '#EF4444';
+    const confVal   = (metrics.peak_confidence ?? 0) * 100;
+    const confColor = confVal >= 90 ? '#10B981' : confVal >= 70 ? '#D97706' : '#EF4444';
+    const confLabel = confVal >= 90 ? 'High' : confVal >= 70 ? 'Nominal' : 'Low';
+    const confBg    = confVal >= 90 ? '#F0FDF4' : confVal >= 70 ? '#FFFBEB' : '#FEF2F2';
+
+    const biasItems = [
+        { label: 'SAR Bias',     val: (cfg.sar_conf_base * 100).toFixed(1), icon: Zap,      color: '#0369A1' },
+        { label: 'Optical Bias', val: (cfg.opt_conf_base * 100).toFixed(1), icon: Activity,  color: '#0D7377' },
+    ];
+
+    const techniqueItems = [
+        { title: 'Morphological Smoothing', icon: Database,   color: '#0EA5E9', desc: 'Applied 30m focal filter for contiguous damage zones.' },
+        { title: 'Consensus Masking',        icon: ShieldCheck, color: '#8B5CF6', desc: 'Cross-satellite binary consensus on orbital noise.' },
+        { title: 'Temporal Filter',          icon: Activity,    color: '#10B981', desc: 'Baselines from 5-year historical GSW datasets.' },
+    ];
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 32 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.8)',
-                    borderRadius: 32,
-                    padding: 40,
-                    boxShadow: '0 12px 48px rgba(0,0,0,0.06)',
-                    position: 'relative',
-                    overflow: 'hidden'
-                }}>
-                    <div style={{ position: 'absolute', top: -40, right: -40, opacity: 0.05, pointerEvents: 'none' }}>
-                        <BrainCircuit size={240} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                        <Target size={16} className="text-teal-600" />
-                        <h2 style={{ fontSize: 11, color: '#94A3B8', fontWeight: 950, letterSpacing: '0.15em', textTransform: 'uppercase' }}>PEAK ENSEMBLE CONFIDENCE</h2>
-                    </div>
-                    <div style={{ fontSize: 110, fontWeight: 950, color: confidenceColor, lineHeight: 1, letterSpacing: '-0.06em' }}>
-                        {confidenceVal.toFixed(1)}<span style={{ fontSize: 32, fontWeight: 700, opacity: 0.6 }}>%</span>
-                    </div>
-                    <div style={{ display: 'inline-flex', background: `${confidenceColor}10`, color: confidenceColor, borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 900, marginTop: 32, alignItems: 'center', gap: 8, border: `1px solid ${confidenceColor}15` }}>
-                        <ShieldCheck size={16} /> Model Reliability: {confidenceVal >= 70 ? 'High' : 'Nominal'}
-                    </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Header */}
+            <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
+                    <Target size={13} color="#0D7377" />
+                    <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em', margin: 0 }}>
+                        Confidence Engine
+                    </h2>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        borderRadius: 24,
-                        padding: 28,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.04)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                            <Zap size={16} className="text-teal-600" />
-                            <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 950, letterSpacing: '0.1em' }}>SAR BIAS</span>
-                        </div>
-                        <div style={{ fontSize: 32, fontWeight: 950, color: '#0F172A' }}>{(cfg.sar_conf_base * 100).toFixed(1)}%</div>
-                    </div>
-                    <div style={{
-                        background: 'rgba(255, 255, 255, 0.7)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        borderRadius: 24,
-                        padding: 28,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.04)'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                            <Activity size={16} className="text-teal-600" />
-                            <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 950, letterSpacing: '0.1em' }}>OPTICAL BIAS</span>
-                        </div>
-                        <div style={{ fontSize: 32, fontWeight: 950, color: '#0F172A' }}>{(cfg.opt_conf_base * 100).toFixed(1)}%</div>
-                    </div>
-                </div>
+                <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
+                    Probabilistic precision metrics and ensemble reliability scoring
+                </p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 950, color: '#0F172A', marginBottom: 4, letterSpacing: '0.02em', textTransform: 'uppercase' }}>Probabilistic Precision Metrics</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {[
-                        { title: 'Morphological Smoothing', icon: Database, color: '#0EA5E9', desc: 'Applied 30m focal filter for contiguous damage zones.' },
-                        { title: 'Consensus Masking', icon: ShieldCheck, color: '#8B5CF6', desc: 'Cross-satellite binary consensus on orbital noise.' },
-                        { title: 'Temporal Filter', icon: Activity, color: '#10B981', desc: 'baselines based on 5-year historical GSW datasets.' }
-                    ].map((item, i) => (
-                        <div key={i} style={{
-                            background: 'rgba(255, 255, 255, 0.7)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(255, 255, 255, 0.8)',
-                            padding: 28,
-                            borderRadius: 24,
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
-                            position: 'relative',
-                            transition: 'all 0.3s'
-                        }} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                            <div style={{ position: 'absolute', top: 24, right: 24, color: `${item.color}30` }}>
-                                <item.icon size={22} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+                {/* Left column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {/* Main score card */}
+                    <div style={{
+                        background: 'white', border: '1px solid #E2E8F0',
+                        borderRadius: 14, padding: '20px 24px',
+                        position: 'relative', overflow: 'hidden',
+                    }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: confColor, borderRadius: '14px 0 0 14px' }} />
+                        <div style={{ paddingLeft: 8 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                                Peak Ensemble Confidence
                             </div>
-                            <h4 style={{ fontSize: 14, fontWeight: 950, color: '#0F172A', marginBottom: 10 }}>{item.title}</h4>
-                            <p style={{ fontSize: 12, color: '#64748B', lineHeight: 1.6, fontWeight: 500, margin: 0 }}>{item.desc}</p>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 12 }}>
+                                <span style={{ fontSize: 64, fontWeight: 800, color: confColor, lineHeight: 1 }}>{confVal.toFixed(1)}</span>
+                                <span style={{ fontSize: 20, color: confColor, fontWeight: 600, opacity: 0.7 }}>%</span>
+                            </div>
+                            <div style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                background: confBg, color: confColor,
+                                border: `1px solid ${confColor}30`, borderRadius: 8,
+                                padding: '5px 12px', fontSize: 11, fontWeight: 700,
+                            }}>
+                                <ShieldCheck size={12} /> Model Reliability: {confLabel}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bias cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {biasItems.map(b => (
+                            <div key={b.label} style={{
+                                background: 'white', border: '1px solid #E2E8F0',
+                                borderRadius: 12, padding: '14px 16px',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                                    <b.icon size={11} color={b.color} />
+                                    <span style={{ fontSize: 9, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                                        {b.label}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                                    <span style={{ fontSize: 24, fontWeight: 800, color: '#0F172A' }}>{b.val}</span>
+                                    <span style={{ fontSize: 11, color: '#94A3B8', fontWeight: 600 }}>%</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Right column - techniques */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#0F172A', marginBottom: 2 }}>
+                        Precision Techniques
+                    </div>
+                    {techniqueItems.map(item => (
+                        <div key={item.title} style={{
+                            background: 'white', border: '1px solid #E2E8F0',
+                            borderRadius: 12, padding: '14px 16px',
+                            display: 'flex', gap: 12, alignItems: 'flex-start',
+                            transition: 'border-color 0.15s, transform 0.15s',
+                        }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.borderColor = item.color + '60';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.borderColor = '#E2E8F0';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                        >
+                            <div style={{
+                                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                                background: item.color + '12', color: item.color,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}>
+                                <item.icon size={13} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: '#0F172A', marginBottom: 4 }}>{item.title}</div>
+                                <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.5, margin: 0 }}>{item.desc}</p>
+                            </div>
                         </div>
                     ))}
                 </div>
