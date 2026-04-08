@@ -164,8 +164,8 @@ function InjectStyles() {
 }
 
 if (typeof window !== 'undefined' && !(window as any).dispatchMapAlert) {
-    (window as any).dispatchMapAlert = async (id: string, name: string, level: string, pop: number, btn: HTMLButtonElement) => {
-        if (btn.disabled) return;
+    (window as any).dispatchMapAlert = async (id: string, name: string, level: string, pop: number, lat: number, lng: number, btn: HTMLButtonElement) => {
+        if (!btn || btn.disabled) return;
         
         const originalText = btn.innerText;
         const originalBg = btn.style.background;
@@ -179,7 +179,7 @@ if (typeof window !== 'undefined' && !(window as any).dispatchMapAlert) {
             const res = await fetch('/api/alerts/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, name, level, pop })
+                body: JSON.stringify({ id, name, level, pop, lat, lng })
             });
             
             if (!res.ok) throw new Error('API Error');
@@ -211,6 +211,9 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
     const popRaw = typeof p.affectedPopEst === 'number' ? p.affectedPopEst : 0;
     const pop = popRaw > 0 ? (popRaw / 1000).toFixed(1) + 'k' : '—';
     const isEnsemble = isSatellite(p);
+    const center = getEventCenter(p);
+    const lat = center ? center[0] : 20.59;
+    const lng = center ? center[1] : 78.96;
 
     return (
         <div className="popup-container" style={{ padding: '20px', minWidth: '260px', fontFamily: "'Inter', sans-serif" }}>
@@ -249,7 +252,7 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
                     dangerouslySetInnerHTML={{ __html: `
                         <button 
                             class="alert-btn"
-                            onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${p.riskLevel}', ${popRaw}, this)"
+                            onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${p.riskLevel}', ${popRaw}, ${lat}, ${lng}, event.currentTarget)"
                             style="background: #0F172A; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(15,23,42,0.15); font-family: 'Inter', sans-serif;"
                         >
                             Send Alert
