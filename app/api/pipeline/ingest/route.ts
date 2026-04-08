@@ -38,6 +38,14 @@ export async function POST(req: NextRequest) {
                 { upsert: true, new: true, returnDocument: 'after' }
             );
 
+            // Sanitize Geometry (MongoDB 2dsphere rejects polygons with 0 area / perfectly identical coords)
+            let safeGeometry = result.floodGeometry;
+            if (safeGeometry?.type === 'Polygon' && safeGeometry.coordinates?.[0]?.length > 2) {
+                const ring = safeGeometry.coordinates[0];
+                const allSame = ring.every((pt: number[]) => pt[0] === ring[0][0] && pt[1] === ring[0][1]);
+                if (allSame) safeGeometry = undefined; // Drop geometry if it's a point cast as a polygon
+            }
+
             const event = await RiskEvent.create({
                 districtId: district._id,
                 sceneId: scene._id,
@@ -50,7 +58,7 @@ export async function POST(req: NextRequest) {
                 confidenceScore: result.confidenceScore,
                 detectionMethod: sanitizedMethod,
                 changeFromPrevKm2: result.changeFromPrevKm2,
-                floodGeometry: result.floodGeometry,
+                floodGeometry: safeGeometry,
                 enrichment: result.enrichment,
                 metadata: result.metadata ?? {},   // ← SAR ΔdB, NDWI, windows
                 status: result.status ?? 'active',
@@ -61,7 +69,12 @@ export async function POST(req: NextRequest) {
 
         if (payload.logs?.length > 0) {
             await ProcessingLog.insertMany(
-                payload.logs.map((log: any) => ({ ...log, runId: payload.runId }))
+                payload.logs.map((log: any) => ({ 
+                    ...log, 
+                    message: log.message || "Pipeline telemetry updated",
+                    stage: log.stage || "DATA_INGESTION",
+                    runId: payload.runId 
+                }))
             );
         }
 
