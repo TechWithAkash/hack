@@ -18,29 +18,37 @@ export async function POST(req: NextRequest) {
         const scene = await SatelliteScene.findOneAndUpdate(
             { geeAssetId: payload.scene.geeAssetId },
             { ...payload.scene, status: 'processed' },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: 'after' }
         );
 
         const eventIds: string[] = [];
 
         for (const result of payload.districtResults) {
+            
+            // Sanitize payload enums to strictly match Mongoose schema expected arrays
+            let sanitizedRiskLevel = result.riskLevel;
+            if (sanitizedRiskLevel === 'MINIMAL') sanitizedRiskLevel = 'LOW';
+            
+            let sanitizedMethod = result.detectionMethod;
+            if (sanitizedMethod === 'ENSEMBLE_STREAMLIT') sanitizedMethod = 'ENSEMBLE';
+
             const district = await District.findOneAndUpdate(
                 { districtName: result.districtName, stateName: result.stateName },
-                { currentRiskLevel: result.riskLevel, lastAssessedAt: new Date(), $inc: { totalEventsCount: 1 } },
-                { upsert: true, new: true }
+                { currentRiskLevel: sanitizedRiskLevel, lastAssessedAt: new Date(), $inc: { totalEventsCount: 1 } },
+                { upsert: true, new: true, returnDocument: 'after' }
             );
 
             const event = await RiskEvent.create({
                 districtId: district._id,
                 sceneId: scene._id,
                 eventDate: new Date(payload.eventDate),
-                riskLevel: result.riskLevel,
+                riskLevel: sanitizedRiskLevel,
                 riskScore: result.riskScore,
                 floodAreaKm2: result.floodAreaKm2,
                 floodPctDistrict: result.floodPctDistrict,
                 affectedPopEst: result.affectedPopEst,
                 confidenceScore: result.confidenceScore,
-                detectionMethod: result.detectionMethod,
+                detectionMethod: sanitizedMethod,
                 changeFromPrevKm2: result.changeFromPrevKm2,
                 floodGeometry: result.floodGeometry,
                 enrichment: result.enrichment,
