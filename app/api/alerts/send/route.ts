@@ -60,40 +60,72 @@ on the Netra Dashboard and align ground units if needed.
         const targetEmail = process.env.SMTP_USER;
 
         const mailOptions = {
-            from: `"Netra Intelligence" <${process.env.SMTP_USER}>`,
+            from: `"Netra Intelligence Command" <${process.env.SMTP_USER}>`,
             to: targetEmail, // Sending to yourself so you actually receive it!
-            subject: `[${level} ALERT] Geospatial Anomaly in ${name}`,
+            subject: `[${level} PRIORITY] Geospatial Intelligence Dispatch: ${name}`,
             text: emailText,
             html: `
-                <div style="font-family: sans-serif; padding: 20px; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; margin: 0 auto;">
-                    <div style="background: ${level === 'CRITICAL' ? '#EF4444' : level === 'HIGH' ? '#F97316' : '#0D7377'}; padding: 16px; border-radius: 8px 8px 0 0; color: white;">
+                <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; max-width: 650px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    
+                    <!-- Top Secret Banner -->
+                    <div style="text-align: center; font-size: 10px; font-weight: bold; color: #ef4444; letter-spacing: 2px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                        RESTRICTED DISPATCH // FOR OFFICIAL USE ONLY // TLP:AMBER
+                    </div>
+
+                    <!-- Header -->
+                    <div style="background: ${level === 'CRITICAL' ? '#991b1b' : level === 'HIGH' ? '#c2410c' : '#0f766e'}; padding: 20px; border-radius: 8px 8px 0 0; color: white;">
                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                             <tr>
                                 <td>
-                                    <h2 style="margin: 0; font-size: 18px;">🚨 AUTOMATIC EMERGENCY ALERT</h2>
-                                    <p style="margin: 4px 0 0; font-size: 14px; opacity: 0.9;">System: Netra.ai Pipeline</p>
+                                    <h2 style="margin: 0; font-size: 20px; text-transform: uppercase;">🚨 AUTOMATIC EMERGENCY DISPATCH</h2>
+                                    <p style="margin: 4px 0 0; font-size: 13px; opacity: 0.85; font-family: monospace;">NETRA.AI // PIPELINE_ID: ${id.substring(0, 8).toUpperCase()}</p>
+                                </td>
+                                <td align="right" style="vertical-align: top;">
+                                    <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                                        STATUS: ACTIVE
+                                    </div>
                                 </td>
                             </tr>
                         </table>
                     </div>
-                    <div style="background: white; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
-                        <h3 style="margin-top: 0; color: #0f172a;">Anomaly Detected: ${name}</h3>
+
+                    <!-- Body -->
+                    <div style="background: white; padding: 28px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0; border-top: none;">
+                        <h3 style="margin: 0 0 16px 0; color: #0f172a; font-size: 18px;">Incident Target: <span style="color: ${level === 'CRITICAL' ? '#dc2626' : '#2563eb'}">${name}</span></h3>
                         
-                        <div style="margin-bottom: 24px; border-radius: 8px; border: 1px solid #e2e8f0; background: #0f172a;">
+                        <!-- Satellite Image -->
+                        <div style="margin-bottom: 24px; border-radius: 8px; border: 1px solid #cbd5e1; background: #0f172a;">
                             <img src="${mapUrl}" alt="Satellite Map of ${name}" width="600" height="300" style="display: block; width: 100%; max-width: 100%; height: auto; border-radius: 8px 8px 0 0;" />
-                            <div style="padding: 8px; text-align: center; color: #94a3b8; font-size: 11px; text-transform: uppercase;">
-                                📡 ESRI Live Satellite Feed · Target Centered
+                            <div style="padding: 8px; text-align: center; color: #94a3b8; font-size: 11px; text-transform: uppercase; font-family: monospace; letter-spacing: 1px;">
+                                📡 \u00A0 ESRI LIVE SATELLITE FEED \u00A0 · \u00A0 \u00A0 ${Number(lat).toFixed(4)}°N, ${Number(lng).toFixed(4)}°E \u00A0 · \u00A0 TARGET CENTERED
                             </div>
                         </div>
 
-                        <table style="width: 100%; margin-bottom: 20px; text-align: left; border-collapse: collapse;">
-                            <tr><th style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #64748b; width: 140px;">Coordinates</th><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}</td></tr>
-                            <tr><th style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">Risk Level</th><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">${level}</td></tr>
-                            <tr><th style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">Est. Pop Exposed</th><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">${Number(pop || 0).toLocaleString()} people</td></tr>
-                            <tr><th style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; color: #64748b;">Event ID</th><td style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">${id}</td></tr>
+                        <!-- Data Table -->
+                        <table style="width: 100%; margin-bottom: 24px; text-align: left; border-collapse: collapse; font-size: 14px;">
+                            <tr><th style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; width: 140px;">Dispatched At</th><td style="padding: 10px; border: 1px solid #e2e8f0; font-family: monospace; color: #0f172a;">${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC</td></tr>
+                            <tr><th style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;">Risk Level</th><td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; color: ${level === 'CRITICAL' ? '#dc2626' : '#0f172a'};">${level}</td></tr>
+                            <tr><th style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;">Population Exp.</th><td style="padding: 10px; border: 1px solid #e2e8f0; font-weight: bold; color: #0f172a;">~${Number(pop || 0).toLocaleString()} personnel</td></tr>
+                            <tr><th style="padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569;">Event Hash</th><td style="padding: 10px; border: 1px solid #e2e8f0; font-family: monospace; color: #64748b; font-size: 12px;">${id}</td></tr>
                         </table>
-                        <p style="color: #475569; font-weight: bold;">${getUrgency(level)}.</p>
-                        <p style="color: #475569; line-height: 1.5; margin-bottom: 0;">An automated geospatial pipeline has flagged this zone. Please review the live telemetry on the Netra Dashboard and align ground units if needed.</p>
+
+                        <!-- Summary & Directive -->
+                        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin-bottom: 24px; border-radius: 0 4px 4px 0;">
+                            <p style="color: #92400e; font-weight: bold; margin: 0 0 8px 0; text-transform: uppercase;">${getUrgency(level)}</p>
+                            <p style="color: #92400e; line-height: 1.5; margin: 0; font-size: 14px;">An automated geospatial SAR/Multispectral pipeline has flagged this zone with high confidence. Immediate assessment requires alignment of regional ground units. Please review live telemetry immediately.</p>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://localhost:3000/dashboard" style="background: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; margin-right: 10px; font-size: 14px;">View Live Dashboard</a>
+                            <a href="#" style="background: white; color: #0f172a; border: 1px solid #cbd5e1; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">Acknowledge Dispatch</a>
+                        </div>
+                    </div>
+
+                    <!-- Footer Warning -->
+                    <div style="text-align: center; margin-top: 24px; font-size: 10px; color: #94a3b8; line-height: 1.6;">
+                        <p style="margin: 0;"><strong>CONFIDENTIALITY NOTICE:</strong> This electronic dispatch contains privileged geospatial intelligence intended solely for the use of emergency management directors and authorized personnel. If you are not the intended recipient, any disclosure, copying, or distribution is strictly prohibited.</p>
+                        <p style="margin: 8px 0 0 0; text-transform: uppercase;">Generated securely by Netra AI Command Engine</p>
                     </div>
                 </div>
             `,
