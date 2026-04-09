@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Satellite, Eye, EyeOff, ArrowRight, Shield, Lock, Sparkles } from 'lucide-react';
+import { Satellite, Eye, EyeOff, ArrowRight, Shield, Lock, Sparkles, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const DEMO_EMAIL = 'admin@netra.ai';
 const DEMO_PASS = 'netra2026';
@@ -39,128 +40,174 @@ export default function LoginPage() {
     return (
         <div style={{
             minHeight: '100vh',
-            background: '#060B14',
+            background: '#04080F',
             display: 'flex',
             position: 'relative',
             overflow: 'hidden',
             fontFamily: "'Inter', sans-serif",
         }}>
-            {/* Background grid */}
-            <div style={{
-                position: 'absolute', inset: 0,
-                backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+            {/* Animated Background grid */}
+            <div className="animated-grid" style={{
+                position: 'absolute', inset: -100,
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)`,
                 backgroundSize: '50px 50px',
+                zIndex: 0,
             }} />
 
-            {/* Glow effects */}
-            <div style={{
-                position: 'absolute', top: '20%', left: '30%',
-                width: 400, height: 400,
-                background: 'radial-gradient(circle, rgba(13,115,119,0.15) 0%, transparent 70%)',
-                filter: 'blur(60px)',
-            }} />
-            <div style={{
-                position: 'absolute', bottom: '10%', right: '20%',
-                width: 300, height: 300,
-                background: 'radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%)',
-                filter: 'blur(50px)',
-            }} />
+            {/* Orbiting Glow effects */}
+            <motion.div 
+                animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                style={{
+                    position: 'absolute', top: '10%', left: '20%',
+                    width: 600, height: 600,
+                    background: 'radial-gradient(circle, rgba(13,115,119,0.1) 0%, transparent 60%)',
+                    filter: 'blur(80px)',
+                    zIndex: 0
+                }} 
+            />
+            <motion.div 
+                animate={{ rotate: -360, scale: [1, 1.1, 1] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                style={{
+                    position: 'absolute', bottom: '-10%', right: '10%',
+                    width: 500, height: 500,
+                    background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 60%)',
+                    filter: 'blur(60px)',
+                    zIndex: 0
+                }} 
+            />
 
             {/* Left Panel — Branding */}
             <div style={{
                 flex: 1,
-                display: 'flex', flexDirection: 'column', justifyContent: 'center',
-                padding: '60px 60px 60px 80px',
+                display: 'flex', flexDirection: 'column', justifyItems: 'center', justifyContent: 'center',
+                padding: '60px 60px 60px 10%',
                 position: 'relative', zIndex: 1,
             }}>
-                {/* Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 48 }}>
-                    <div style={{
-                        width: 44, height: 44, borderRadius: 12,
-                        background: 'linear-gradient(135deg, #0D7377, #14A5AA)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 0 24px rgba(13,115,119,0.4)',
-                    }}>
-                        <Satellite size={20} color="white" />
-                    </div>
-                    <div>
-                        <div style={{ fontWeight: 900, fontSize: 20, color: '#fff', letterSpacing: '-0.02em' }}>
-                            NETRA<span style={{ color: '#14A5AA' }}>.AI</span>
+                <motion.div 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.1 }}
+                    style={{ marginBottom: 40 }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{
+                            width: 52, height: 52, borderRadius: 14,
+                            background: 'linear-gradient(135deg, #0D7377, #14A5AA)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 8px 32px rgba(13,115,119,0.5)',
+                            border: '1px solid rgba(255,255,255,0.2)'
+                        }}>
+                            <Satellite size={24} color="white" />
                         </div>
-                        <div style={{ fontSize: 10, color: '#14A5AA', fontWeight: 700, letterSpacing: '0.12em' }}>
-                            INTELLIGENCE ENGINE
+                        <div>
+                            <div style={{ fontWeight: 900, fontSize: 26, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                                NETRA<span style={{ color: '#14A5AA' }}>.AI</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: '#14A5AA', fontWeight: 800, letterSpacing: '0.15em' }}>
+                                COMMAND ENGINE
+                            </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <h1 style={{
-                    fontSize: 'clamp(32px, 4vw, 48px)',
-                    fontWeight: 900, color: '#fff',
-                    lineHeight: 1.15, letterSpacing: '-0.03em',
-                    margin: '0 0 20px 0',
-                }}>
-                    Satellite-Derived<br />
+                <motion.h1 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.2 }}
+                    style={{
+                        fontSize: 'clamp(40px, 4.5vw, 64px)',
+                        fontWeight: 900, color: '#fff',
+                        lineHeight: 1.1, letterSpacing: '-0.04em',
+                        margin: '0 0 24px 0',
+                    }}
+                >
+                    Geospatial<br />
                     <span style={{
-                        background: 'linear-gradient(135deg, #14A5AA, #22D3EE)',
+                        background: 'linear-gradient(135deg, #14A5AA, #22D3EE, #F8FAFC)',
+                        backgroundSize: '200% auto',
                         WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                        animation: 'shine 4s linear infinite'
                     }}>
-                        Climate Risk Intelligence
+                        Risk Intelligence
                     </span>
-                </h1>
+                </motion.h1>
 
-                <p style={{
-                    fontSize: 16, color: 'rgba(255,255,255,0.45)',
-                    lineHeight: 1.7, maxWidth: 420, margin: 0,
-                }}>
-                    Real-time flood detection powered by Sentinel-1 SAR, Google Earth Engine, and Bayesian risk scoring — built for PS-06.
-                </p>
+                <motion.p 
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    style={{
+                        fontSize: 18, color: 'rgba(255,255,255,0.5)',
+                        lineHeight: 1.6, maxWidth: 480, margin: 0,
+                    }}
+                >
+                    Real-time situational awareness powered by Sentinel-1 SAR, Google Earth Engine, and Bayesian predictive modeling.
+                </motion.p>
 
-                {/* Trust badges */}
-                <div style={{ display: 'flex', gap: 24, marginTop: 48 }}>
+                {/* Animated Trust Badges */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.6 }}
+                    style={{ display: 'flex', flexWrap: 'wrap', gap: 24, marginTop: 48 }}
+                >
                     {[
-                        { icon: Shield, label: 'SAR + Optical Fusion' },
-                        { icon: Lock, label: 'Audit-Grade Provenance' },
-                        { icon: Sparkles, label: 'AI Risk Scoring' },
+                        { icon: Shield, label: 'SAR + Optical Array' },
+                        { icon: Lock, label: 'Audit-Grade Security' },
+                        { icon: Activity, label: 'Live Telemetry' },
                     ].map((b, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div key={i} style={{ 
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '8px 16px', borderRadius: 30,
+                            background: 'rgba(20, 165, 170, 0.05)',
+                            border: '1px solid rgba(20, 165, 170, 0.15)'
+                        }}>
                             <b.icon size={14} color="#14A5AA" />
-                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600, letterSpacing: '0.02em' }}>
                                 {b.label}
                             </span>
                         </div>
                     ))}
-                </div>
+                </motion.div>
             </div>
 
             {/* Right Panel — Login Form */}
             <div style={{
-                width: 480, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '40px 48px',
-                position: 'relative', zIndex: 1,
+                width: '50%', maxWidth: 640, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '40px', position: 'relative', zIndex: 1,
             }}>
-                <div style={{
-                    width: '100%', maxWidth: 380,
-                    background: 'rgba(255,255,255,0.04)',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 24, padding: '40px 32px',
-                    boxShadow: '0 25px 50px rgba(0,0,0,0.4)',
-                }}>
-                    <h2 style={{
-                        fontSize: 22, fontWeight: 800, color: '#fff',
-                        letterSpacing: '-0.02em', margin: '0 0 6px 0',
-                    }}>
-                        Welcome back
-                    </h2>
-                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 32px 0', fontWeight: 500 }}>
-                        Sign in to access the dashboard
-                    </p>
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, x: 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2, type: 'spring', bounce: 0.2 }}
+                    style={{
+                        width: '100%', maxWidth: 420,
+                        background: 'rgba(15, 23, 42, 0.6)',
+                        backdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 24, padding: '48px 40px',
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+                    }}
+                >
+                    <div style={{ marginBottom: 32 }}>
+                        <h2 style={{
+                            fontSize: 26, fontWeight: 800, color: '#fff',
+                            letterSpacing: '-0.02em', margin: '0 0 8px 0',
+                        }}>
+                            Secure Uplink
+                        </h2>
+                        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0, fontWeight: 500 }}>
+                            Authenticate to access the operational dashboard.
+                        </p>
+                    </div>
 
                     <form onSubmit={handleLogin}>
                         {/* Email */}
-                        <div style={{ marginBottom: 16 }}>
-                            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: 8, letterSpacing: '0.05em' }}>
-                                EMAIL
+                        <div style={{ marginBottom: 20 }}>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#14A5AA', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                Operator ID
                             </label>
                             <input
                                 type="email"
@@ -169,22 +216,28 @@ export default function LoginPage() {
                                 placeholder="admin@netra.ai"
                                 required
                                 style={{
-                                    width: '100%', padding: '12px 16px',
-                                    background: 'rgba(255,255,255,0.06)',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: 12, color: '#fff', fontSize: 14,
-                                    outline: 'none', transition: 'border 0.2s',
+                                    width: '100%', padding: '14px 16px',
+                                    background: 'rgba(0,0,0,0.2)',
+                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    borderRadius: 12, color: '#fff', fontSize: 15,
+                                    outline: 'none', transition: 'all 0.2s',
                                     boxSizing: 'border-box',
                                 }}
-                                onFocus={e => e.currentTarget.style.borderColor = '#0D7377'}
-                                onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                onFocus={e => {
+                                    e.currentTarget.style.borderColor = '#14A5AA';
+                                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(20,165,170,0.1)';
+                                }}
+                                onBlur={e => {
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
                             />
                         </div>
 
                         {/* Password */}
-                        <div style={{ marginBottom: 24 }}>
-                            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginBottom: 8, letterSpacing: '0.05em' }}>
-                                PASSWORD
+                        <div style={{ marginBottom: 32 }}>
+                            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#14A5AA', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                Passkey
                             </label>
                             <div style={{ position: 'relative' }}>
                                 <input
@@ -194,15 +247,21 @@ export default function LoginPage() {
                                     placeholder="••••••••"
                                     required
                                     style={{
-                                        width: '100%', padding: '12px 44px 12px 16px',
-                                        background: 'rgba(255,255,255,0.06)',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: 12, color: '#fff', fontSize: 14,
-                                        outline: 'none', transition: 'border 0.2s',
+                                        width: '100%', padding: '14px 44px 14px 16px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: 12, color: '#fff', fontSize: 15,
+                                        outline: 'none', transition: 'all 0.2s',
                                         boxSizing: 'border-box',
                                     }}
-                                    onFocus={e => e.currentTarget.style.borderColor = '#0D7377'}
-                                    onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                    onFocus={e => {
+                                        e.currentTarget.style.borderColor = '#14A5AA';
+                                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(20,165,170,0.1)';
+                                    }}
+                                    onBlur={e => {
+                                        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
                                 />
                                 <button
                                     type="button"
@@ -210,11 +269,13 @@ export default function LoginPage() {
                                     style={{
                                         position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                                         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        height: '100%'
                                     }}
                                 >
                                     {showPass
-                                        ? <EyeOff size={16} color="rgba(255,255,255,0.35)" />
-                                        : <Eye size={16} color="rgba(255,255,255,0.35)" />
+                                        ? <EyeOff size={18} color="rgba(255,255,255,0.3)" />
+                                        : <Eye size={18} color="rgba(255,255,255,0.3)" />
                                     }
                                 </button>
                             </div>
@@ -222,85 +283,109 @@ export default function LoginPage() {
 
                         {/* Error */}
                         {error && (
-                            <div style={{
-                                fontSize: 12, color: '#EF4444', fontWeight: 600,
-                                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                                borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-                            }}>
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                                style={{
+                                    fontSize: 12, color: '#EF4444', fontWeight: 600,
+                                    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+                                    borderRadius: 10, padding: '12px 16px', marginBottom: 20,
+                                }}
+                            >
                                 {error}
-                            </div>
+                            </motion.div>
                         )}
 
                         {/* Submit */}
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             type="submit"
                             disabled={loading}
                             style={{
-                                width: '100%', padding: '13px 0',
+                                width: '100%', padding: '16px 0',
                                 background: loading
                                     ? 'rgba(13,115,119,0.5)'
                                     : 'linear-gradient(135deg, #0D7377, #14A5AA)',
                                 color: '#fff', border: 'none', borderRadius: 12,
-                                fontSize: 14, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                                boxShadow: '0 4px 20px rgba(13,115,119,0.3)',
-                                transition: 'all 0.2s',
+                                fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                                boxShadow: '0 8px 24px rgba(13,115,119,0.4)',
+                                transition: 'background 0.2s',
                             }}
                         >
                             {loading ? (
                                 <div style={{
-                                    width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)',
+                                    width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
                                     borderTopColor: '#fff', borderRadius: '50%',
                                     animation: 'spin 0.6s linear infinite',
                                 }} />
                             ) : (
-                                <>Sign In <ArrowRight size={16} /></>
+                                <>Access Dashboard <ArrowRight size={18} /></>
                             )}
-                        </button>
+                        </motion.button>
                     </form>
 
                     {/* Demo credentials */}
                     <div style={{
-                        marginTop: 24, padding: '16px 18px',
-                        background: 'rgba(13,115,119,0.08)',
-                        border: '1px solid rgba(13,115,119,0.2)',
-                        borderRadius: 14,
+                        marginTop: 28, padding: '20px',
+                        background: 'rgba(20,165,170,0.06)',
+                        border: '1px solid rgba(20,165,170,0.15)',
+                        borderRadius: 16,
                     }}>
-                        <div style={{
-                            fontSize: 9, fontWeight: 900, color: '#14A5AA',
-                            letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10,
-                        }}>
-                            🔑 Demo Credentials
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                            <Sparkles size={14} color="#14A5AA" />
+                            <div style={{
+                                fontSize: 10, fontWeight: 800, color: '#14A5AA',
+                                letterSpacing: '0.12em', textTransform: 'uppercase',
+                            }}>
+                                Demo Credentials
+                            </div>
                         </div>
-                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
-                            <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Email:</strong> {DEMO_EMAIL}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 12 }}>
-                            <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Password:</strong> {DEMO_PASS}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>ID:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_EMAIL}</strong>
+                            </div>
+                            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'flex', justifyContent: 'space-between' }}>
+                                <span>KY:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_PASS}</strong>
+                            </div>
                         </div>
                         <button
                             type="button"
                             onClick={fillDemo}
                             style={{
-                                width: '100%', padding: '9px 0',
-                                background: 'rgba(13,115,119,0.15)',
-                                border: '1px solid rgba(13,115,119,0.3)',
+                                width: '100%', padding: '10px 0',
+                                background: 'rgba(20,165,170,0.1)',
+                                border: '1px solid rgba(20,165,170,0.2)',
                                 borderRadius: 10, color: '#14A5AA',
-                                fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                                transition: 'all 0.15s',
+                                fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(13,115,119,0.25)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(13,115,119,0.15)'; }}
+                            onMouseEnter={e => { 
+                                e.currentTarget.style.background = 'rgba(20,165,170,0.2)'; 
+                                e.currentTarget.style.color = '#fff';
+                            }}
+                            onMouseLeave={e => { 
+                                e.currentTarget.style.background = 'rgba(20,165,170,0.1)'; 
+                                e.currentTarget.style.color = '#14A5AA';
+                            }}
                         >
-                            Click to Insert Demo Credentials
+                            Auto-Fill Credentials
                         </button>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
             <style>{`
                 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                input::placeholder { color: rgba(255,255,255,0.2); }
+                @keyframes panBg { from { background-position: 0 0; } to { background-position: -50px -50px; } }
+                @keyframes shine { 
+                    0% { background-position: -200% center; } 
+                    100% { background-position: 200% center; } 
+                }
+                .animated-grid {
+                    animation: panBg 4s linear infinite;
+                }
+                input::placeholder { color: rgba(255,255,255,0.2) !important; }
             `}</style>
         </div>
     );

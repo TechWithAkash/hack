@@ -24,24 +24,22 @@ function CardShell({ children, title, icon: Icon, accent = '#0D7377' }: {
     return (
         <div style={{
             background: 'white',
-            border: '1px solid #E2E8F0',
-            borderRadius: 16,
-            overflow: 'hidden',
+            border: '1px solid #E5E7EB',
+            borderRadius: 20,
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
         }}>
-            <div style={{ height: 3, background: accent }} />
-            <div style={{ padding: '18px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <div style={{
-                        width: 28, height: 28, borderRadius: 8,
-                        background: `${accent}12`, color: accent,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <Icon size={13} />
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{title}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+                <div style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: `${accent}12`, color: accent,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                    <Icon size={16} />
                 </div>
-                {children}
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>{title}</span>
             </div>
+            {children}
         </div>
     );
 }

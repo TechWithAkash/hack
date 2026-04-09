@@ -61,18 +61,22 @@ export default function WeatherPanel() {
     return (
         <div style={{
             background: 'white',
-            border: '1px solid #E2E8F0',
-            borderRadius: 16,
+            border: '1px solid #E5E7EB',
+            borderRadius: 20,
             overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
         }}>
-            {/* Accent bar */}
-            <div style={{ height: 3, background: 'linear-gradient(90deg, #0369A1, #0891B2)' }} />
-
-            <div style={{ padding: '16px 18px' }}>
+            <div style={{ padding: '24px' }}>
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                    <CloudRain size={14} color="#0369A1" />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', flex: 1 }}>Precipitation</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{
+                        width: 32, height: 32, borderRadius: 10,
+                        background: '#0369A112', color: '#0369A1',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <CloudRain size={16} />
+                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', flex: 1, letterSpacing: '-0.01em' }}>Precipitation</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Clock size={10} color="#94A3B8" />
                         <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 500 }}>

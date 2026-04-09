@@ -22,34 +22,28 @@ function StatCard({
     return (
         <div style={{
             background: 'white',
-            border: '1px solid #E2E8F0',
-            borderRadius: 12,
-            padding: '14px 16px',
+            border: '1px solid #E5E7EB',
+            borderRadius: 16,
+            padding: '18px 20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: 10,
+            gap: 12,
             transition: 'all 0.15s ease',
             cursor: 'default',
-            position: 'relative',
-            overflow: 'hidden',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
             onMouseEnter={e => {
-                e.currentTarget.style.borderColor = color + '60';
-                e.currentTarget.style.boxShadow = `0 4px 16px ${color}12`;
+                e.currentTarget.style.borderColor = color + '40';
+                e.currentTarget.style.boxShadow = `0 8px 24px ${color}10`;
                 e.currentTarget.style.transform = 'translateY(-2px)';
             }}
             onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#E2E8F0';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.borderColor = '#E5E7EB';
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.02)';
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
-            {/* left accent bar */}
-            <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0,
-                width: 3, background: color, borderRadius: '14px 0 0 14px',
-            }} />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: '#64748B' }}>{label}</span>
                 <div style={{
                     width: 26, height: 26, borderRadius: 7, background: bg,
@@ -58,12 +52,12 @@ function StatCard({
                     <Icon size={13} />
                 </div>
             </div>
-            <div style={{ paddingLeft: 6 }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1 }}>
+            <div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em', lineHeight: 1 }}>
                     {value}
                 </div>
                 {sub && (
-                    <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    <div style={{ fontSize: 9, color: '#64748B', fontWeight: 600, marginTop: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                         {sub}
                     </div>
                 )}

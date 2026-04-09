@@ -405,25 +405,30 @@ export default function GeospatialMapPage() {
                             selectedId={selectedEventId}
                         />
 
-                        {/* Live indicator */}
+                        {/* Cinematic HUD: Live Telemetry Stream Overlay */}
                         <div style={{
-                            position: 'absolute', top: 14, left: 14, zIndex: 1000,
-                            background: 'rgba(255,255,255,0.92)',
-                            backdropFilter: 'blur(8px)',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: 20, padding: '6px 14px',
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                            position: 'absolute', bottom: 20, left: 20, zIndex: 1000,
+                            background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px',
+                            padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px',
+                            width: '280px', pointerEvents: 'none',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                         }}>
-                            <div style={{
-                                width: 7, height: 7, borderRadius: '50%',
-                                background: '#EF4444',
-                                boxShadow: '0 0 0 2px rgba(239,68,68,0.25)',
-                                animation: 'ping 1.5s ease-in-out infinite',
-                            }} />
-                            <span style={{ fontSize: 10, fontWeight: 700, color: '#0F172A', letterSpacing: '0.04em' }}>
-                                Live Telemetry
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#00FF85', boxShadow: '0 0 10px #00FF85', animation: 'ping 1s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#F8FAFC', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                                        Secure Geo-Stream
+                                    </span>
+                                </div>
+                                <span style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, letterSpacing: '0.05em' }}>LINK_UP</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontFamily: "'JetBrains Mono', monospace, sans-serif", fontSize: '10px', color: '#94A3B8' }}>
+                                <div style={{ opacity: 0.4 }}>{`> [SYS_INIT] Uplink connected`}</div>
+                                <div style={{ opacity: 0.6 }}>{`> [NET] Analyzing sentinel vectors`}</div>
+                                <div style={{ opacity: 0.8, color: '#00FF85' }}>{`> [SYNC] Radar streams mapping`}</div>
+                                <div style={{ opacity: 1.0 }}>{`> [AWAITing Data...]`}</div>
+                            </div>
                         </div>
                     </div>
 

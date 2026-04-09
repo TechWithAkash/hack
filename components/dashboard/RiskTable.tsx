@@ -37,22 +37,26 @@ export default function RiskTable() {
     return (
         <div style={{
             background: 'white',
-            border: '1px solid #E2E8F0',
-            borderRadius: 16,
+            border: '1px solid #E5E7EB',
+            borderRadius: 20,
             overflow: 'hidden',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
         }}>
-            {/* Accent */}
-            <div style={{ height: 3, background: '#0D7377' }} />
-
             {/* Header */}
             <div style={{
-                padding: '16px 20px',
+                padding: '24px 24px 16px 24px',
                 borderBottom: '1px solid #F1F5F9',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <List size={14} color="#0D7377" />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Live Event Registry</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                        width: 32, height: 32, borderRadius: 10,
+                        background: '#0D737712', color: '#0D7377',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <List size={16} />
+                    </div>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>Live Event Registry</span>
                     <span style={{
                         marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#0D7377',
                         background: 'rgba(13,115,119,0.08)', border: '1px solid rgba(13,115,119,0.2)',

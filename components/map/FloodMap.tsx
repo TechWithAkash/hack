@@ -31,29 +31,58 @@ const TILES = {
     light: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
 };
 
-/* ── Pulse Marker CSS ── */
+/* ── Advanced Radar Pulse Marker CSS ── */
 const PULSE_STYLES = `
     .pulse-marker {
         border-radius: 50%;
         cursor: pointer;
-        box-shadow: 0 0 0 rgba(0, 0, 0, 0.4);
-        animation: pulse 2s infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0px rgba(0, 255, 133, 0.7); }
-        70% { box-shadow: 0 0 0 15px rgba(0, 255, 133, 0); }
-        100% { box-shadow: 0 0 0 0px rgba(0, 255, 133, 0); }
+    .pulse-marker::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        animation: radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
-    .pulse-critical { background: #FF2E2E; border: 2px solid white; }
-    .pulse-high { background: #FF8A00; border: 2px solid white; animation-delay: 0.5s; }
-    .pulse-medium { background: #FFD600; border: 2px solid white; animation-delay: 1s; }
-    .pulse-low { background: #00FF85; border: 2px solid white; animation-delay: 1.5s; box-shadow: 0 0 15px rgba(0, 255, 133, 0.4); }
+    .pulse-marker::after {
+        content: '';
+        position: absolute;
+        width: 30%;
+        height: 30%;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    }
+    @keyframes radar-ping {
+        75%, 100% { transform: scale(3.5); opacity: 0; }
+    }
+    
+    .pulse-critical { background: rgba(255, 46, 46, 0.7); }
+    .pulse-critical::before { background: rgba(255, 46, 46, 0.9); }
+    
+    .pulse-high { background: rgba(255, 138, 0, 0.7); }
+    .pulse-high::before { background: rgba(255, 138, 0, 0.9); animation-delay: 0.2s; }
+    
+    .pulse-medium { background: rgba(255, 214, 0, 0.7); }
+    .pulse-medium::before { background: rgba(255, 214, 0, 0.9); animation-delay: 0.4s; }
+    
+    .pulse-low { background: rgba(0, 255, 133, 0.7); }
+    .pulse-low::before { background: rgba(0, 255, 133, 0.9); animation-delay: 0.6s; }
+    
+    .pulse-marker.hovered {
+        transform: scale(1.3);
+    }
     .pulse-marker.selected {
-        transform: scale(1.8);
-        box-shadow: 0 0 40px rgba(255, 255, 255, 1), 0 0 0 6px rgba(15, 23, 42, 0.4) !important;
+        transform: scale(1.6);
+        box-shadow: 0 0 0 4px rgba(255,255,255,0.9), 0 0 30px rgba(0,0,0,0.8) !important;
         z-index: 10000 !important;
     }
+    .pulse-marker.selected::after { width: 50%; height: 50%; }
 `;
 
 function isSatellite(event: any): boolean {
@@ -125,7 +154,11 @@ function SelectionManager({ events, selectedId }: { events: any[], selectedId: s
 
         const center = getEventCenter(event);
         if (center) {
-            map.flyTo(center, 12, { duration: 1.5, easeLinearity: 0.25 });
+            // Cinematic sweeping flight animation when a side panel item is clicked
+            map.flyTo(center, 13, { 
+                duration: 2.5, 
+                easeLinearity: 0.15 
+            });
         }
     }, [selectedId, events, map]);
 
@@ -135,21 +168,24 @@ function SelectionManager({ events, selectedId }: { events: any[], selectedId: s
 function InjectStyles() {
     useEffect(() => {
         const id = 'cosmeon-map-tactical-styles';
-        if (document.getElementById(id)) return;
-        const s = document.createElement('style');
-        s.id = id;
+        let s = document.getElementById(id) as HTMLStyleElement;
+        if (!s) {
+            s = document.createElement('style');
+            s.id = id;
+            document.head.appendChild(s);
+        }
         s.textContent = `
             ${PULSE_STYLES}
             .leaflet-popup-content-wrapper {
-                background: rgba(255, 255, 255, 0.98) !important;
-                backdrop-filter: blur(16px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.1) !important;
-                border-radius: 14px !important;
-                box-shadow: 0 24px 64px rgba(0,0,0,0.18) !important;
-                color: #0F172A !important;
+                background: rgba(15, 23, 42, 0.92) !important;
+                backdrop-filter: blur(24px) !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+                color: #F8FAFC !important;
                 padding: 0 !important;
             }
-            .leaflet-popup-tip { background: #FFFFFF !important; }
+            .leaflet-popup-tip { background: rgba(15, 23, 42, 0.92) !important; }
             .leaflet-popup-content { margin: 0 !important; }
             .cosmeon-flood-polygon { cursor: pointer; transition: all 0.3s; }
             .weather-estimate-polygon { stroke-dasharray: 6, 4; }
@@ -158,7 +194,6 @@ function InjectStyles() {
             .popup-container .alert-btn { opacity: 0; pointer-events: none; transition: all 0.2s ease; margin-left: auto; }
             .popup-container:hover .alert-btn { opacity: 1; pointer-events: auto; }
         `;
-        document.head.appendChild(s);
     }, []);
     return null;
 }
@@ -206,54 +241,63 @@ if (typeof window !== 'undefined' && !(window as any).dispatchMapAlert) {
 function FloodPopupContent({ properties: p }: { properties: any }) {
     const rc = RISK[p.riskLevel] ?? RISK.UNKNOWN;
     const dn = p.districtName ?? p.districtId?.districtName ?? 'Field Observation';
-    const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(0) : '—';
+    const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(0) : '0';
+    const numScore = Number(score);
     const area = typeof p.floodAreaKm2 === 'number' ? `${p.floodAreaKm2.toFixed(1)} km²` : '—';
     const popRaw = typeof p.affectedPopEst === 'number' ? p.affectedPopEst : 0;
     const pop = popRaw > 0 ? (popRaw / 1000).toFixed(1) + 'k' : '—';
-    const isEnsemble = isSatellite(p);
     const center = getEventCenter(p);
     const lat = center ? center[0] : 20.59;
     const lng = center ? center[1] : 78.96;
 
     return (
-        <div className="popup-container" style={{ padding: '20px', minWidth: '260px', fontFamily: "'Inter', sans-serif" }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: rc.fill, boxShadow: `0 0 10px ${rc.fill}60` }} />
-                <div style={{ fontWeight: 950, fontSize: '15px', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{dn}</div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div>
-                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Risk Level</div>
-                    <div style={{ fontSize: '14px', fontWeight: 950, color: rc.fill }}>{p.riskLevel}</div>
+        <div className="popup-container" style={{ padding: '16px', minWidth: '280px', fontFamily: "'Inter', sans-serif", color: 'white' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: rc.fill, boxShadow: `0 0 12px ${rc.fill}` }} />
+                    <div style={{ fontWeight: 800, fontSize: '13px', letterSpacing: '0.05em', color: '#E2E8F0', textTransform: 'uppercase' }}>{dn}</div>
                 </div>
-                <div>
-                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Intensity</div>
-                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{score}%</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Detection</div>
-                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{area}</div>
-                </div>
-                <div>
-                    <div style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Exposure</div>
-                    <div style={{ fontSize: '14px', fontWeight: 950, color: '#0F172A' }}>{pop}</div>
+                <div style={{ fontSize: '10px', background: `${rc.fill}20`, color: rc.fill, padding: '2px 6px', borderRadius: '4px', fontWeight: 800, border: `1px solid ${rc.fill}40` }}>
+                    {p.riskLevel}
                 </div>
             </div>
 
-            <div style={{ padding: '12px', background: '#F8FAFC', borderRadius: '10px', fontSize: '11px', color: '#64748B', fontWeight: 600, lineHeight: 1.5, border: '1px solid #F1F5F9', display: 'flex', alignItems: 'center' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                     <div>
-                         {isEnsemble ? '🛰 Multispectral Analysis' : '🌧 Rainfall Accumulation'} ·
-                         <span style={{ color: '#0D7377' }}> {p.detectionMethod || 'ENSEMBLE'}</span>
-                     </div>
+            {/* Confidence Bar */}
+            <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94A3B8', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
+                    <span>Threat Confidence</span>
+                    <span style={{ color: numScore > 70 ? rc.fill : '#94A3B8' }}>{score}%</span>
+                </div>
+                <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${score}%`, background: rc.fill, boxShadow: `0 0 10px ${rc.fill}` }} />
+                </div>
+            </div>
+
+            {/* Metrics Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Affected Area</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{area}</div>
+                </div>
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Est. Personnel</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{pop}</div>
+                </div>
+            </div>
+
+            {/* Action Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ fontSize: '10px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0D7377', animation: 'pulse 2s infinite' }}/>
+                    {p.detectionMethod || 'ENSEMBLE'}
                 </div>
                 <div 
                     dangerouslySetInnerHTML={{ __html: `
                         <button 
                             class="alert-btn"
                             onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${p.riskLevel}', ${popRaw}, ${lat}, ${lng}, event.currentTarget)"
-                            style="background: #0F172A; color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 10px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(15,23,42,0.15); font-family: 'Inter', sans-serif;"
+                            style="background: #EF4444; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);"
                         >
                             Send Alert
                         </button>
