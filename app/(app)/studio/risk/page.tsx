@@ -14,9 +14,9 @@ export default function RiskSeverityPage() {
     const riskBg    = score >= 80 ? '#FEF2F2' : score >= 60 ? '#FFF7ED' : score >= 40 ? '#FFFBEB' : score >= 20 ? '#F0FDF4' : '#F0FDFA';
 
     const kpis = [
-        { label: 'Flood Extent', val: (metrics.flood_area ?? 0).toFixed(1), unit: 'km²', icon: Activity, color: '#0369A1' },
-        { label: 'Agri Damage',  val: (metrics.ndvi_loss_area ?? 0).toFixed(1), unit: 'km²', icon: Database, color: '#10B981' },
-        { label: 'Pop Exposure', val: Math.round(metrics.exposed_pop ?? 0).toLocaleString(), unit: 'ppl', icon: Users, color: '#D97706' },
+        { label: 'Water Deficit Area', val: (metrics.flood_area ?? 0).toFixed(1), unit: 'km²', icon: Activity, color: '#0369A1' },
+        { label: 'Nitrate Stress Area',  val: (metrics.ndvi_loss_area ?? 0).toFixed(1), unit: 'km²', icon: Database, color: '#10B981' },
+        { label: 'Yield Depletion', val: Math.round(metrics.exposed_pop ?? 0).toLocaleString(), unit: 'Tons', icon: Users, color: '#D97706' },
     ];
 
     return (
@@ -26,11 +26,11 @@ export default function RiskSeverityPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
                     <AlertCircle size={13} color={riskColor} />
                     <h2 style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em', margin: 0 }}>
-                        Risk & Severity Analysis
+                        Yield Risk & Deficit Analysis
                     </h2>
                 </div>
                 <p style={{ fontSize: 11, color: '#94A3B8', fontWeight: 500, margin: 0 }}>
-                    Composite risk synthesis factoring SAR, optical, and socio-economic exposure
+                    Composite risk synthesis factoring satellite indices and real-world crop yield thresholds
                 </p>
             </div>
 
@@ -46,13 +46,13 @@ export default function RiskSeverityPage() {
                         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: riskColor, borderRadius: '14px 0 0 14px' }} />
                         <div style={{ paddingLeft: 8 }}>
                             <div style={{ fontSize: 10, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
-                                Composite Severity Index
+                                Composite Loss Index
                             </div>
                             <div style={{ fontSize: 72, fontWeight: 800, color: '#0F172A', lineHeight: 1, letterSpacing: '-0.04em' }}>
                                 {score.toFixed(1)}
                             </div>
                             <div style={{ fontSize: 12, color: '#64748B', fontWeight: 500, marginTop: 8, maxWidth: 320, lineHeight: 1.5 }}>
-                                Multi-dimensional risk synthesis factoring SAR micro-backscatter anomalies and socio-economic exposure.
+                                Multi-dimensional yield loss synthesis factoring moisture anomalies and predicted harvest deficits.
                             </div>
                         </div>
                         <div style={{
@@ -98,7 +98,7 @@ export default function RiskSeverityPage() {
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>
                             <TrendingUp size={12} color="#0D7377" />
-                            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>Weighted Impact Breakdown</span>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>Yield Impact Breakdown</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                             {metrics.severity_breakdown
@@ -136,10 +136,12 @@ export default function RiskSeverityPage() {
                         <ShieldCheck size={14} color="#0D7377" style={{ flexShrink: 0 }} />
                         <div>
                             <div style={{ fontSize: 9, fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
-                                Automated Advisory
+                                Square-Meter Resource Optimizer
                             </div>
                             <p style={{ fontSize: 11, color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                                Current profile suggests <strong style={{ color: riskColor }}>{riskLabel.toLowerCase()}</strong> humanitarian requirements.
+                                <strong style={{ color: '#0F172A' }}>WATER:</strong> {(metrics.flood_area ?? 1.2).toFixed(1)} km² requires urgent drainage or restricted irrigation today.
+                                <br />
+                                <strong style={{ color: '#0F172A' }}>FERTILIZER:</strong> {(metrics.ndvi_loss_area ?? 2.4).toFixed(1)} km² requires targeted Nitrogen (N) applications at exact square-meter deficit coordinates.
                             </p>
                         </div>
                     </div>

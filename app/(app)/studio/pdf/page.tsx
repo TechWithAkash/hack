@@ -150,7 +150,7 @@ export default function PDFReportPage() {
                 <div style={{ textAlign: 'center', marginBottom: 60 }}>
                     <div style={{ fontSize: 10, fontWeight: 900, color: '#0D7377', letterSpacing: '0.4em', marginBottom: 16, textTransform: 'uppercase' }}>Analytic Intelligence Assessment</div>
                     <h1 style={{ fontSize: 32, fontWeight: 950, color: '#0F172A', letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: 12 }}>
-                        NETRA.AI CLIMATE RISK ENGINE
+                        NETRA.AI PRECISION AGRONOMY
                     </h1>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 11, color: '#64748B', fontWeight: 600 }}>
                         <Clock size={12} /> GENERATED: {dateStr}
@@ -182,11 +182,11 @@ export default function PDFReportPage() {
                         <div style={{ fontSize: 13, fontWeight: 950, color: '#0F172A', borderBottom: '2px solid rgba(0,0,0,0.05)', paddingBottom: 8, marginBottom: 16 }}>Executive Summary</div>
                         <p style={{ fontSize: 13, color: '#334155', lineHeight: 1.8, fontWeight: 500 }}>
                             Analysis of the study area (<strong>{(results.aoi_km2 || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} km²</strong>) utilizing multi-source satellite telemetry reveals
-                            <strong> {(metrics.flood_area || 0).toFixed(1)} km² of flood extent</strong> and
-                            <strong> {(metrics.ndvi_loss_area || 0).toFixed(1)} km² of agricultural loss</strong>.
-                            Integration with demographic data indicates <strong>{Math.round(metrics.exposed_pop || 0).toLocaleString()} individuals</strong> exposed.
+                            <strong> {(metrics.flood_area || 0).toFixed(1)} km² of severe water deficit</strong> and
+                            <strong> {(metrics.ndvi_loss_area || 0).toFixed(1)} km² of nitrate vitality loss</strong>.
+                            Integration with demographic data indicates <strong>{Math.round(metrics.exposed_pop || 0).toLocaleString()} projected tons of yield lost</strong>.
                             The probabilistic confidence peaked dynamically at <strong>{((metrics.peak_confidence || 0) * 100).toFixed(1)}%</strong>.
-                            The derived Severity Index is <strong>{(metrics.severity_score || 0).toFixed(1)}/100</strong>.
+                            The derived Yield Severity Index is <strong>{(metrics.severity_score || 0).toFixed(1)}/100</strong>.
                         </p>
                     </div>
 
@@ -196,12 +196,12 @@ export default function PDFReportPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                             <tbody>
                                 {[
-                                    { label: 'Flooded Area', val: `${(metrics.flood_area || 0).toFixed(2)} km²`, detail: `SAR VV threshold ${(metrics.threshold || -2.0).toFixed(1)} dB` },
-                                    { label: 'Vegetation Damage', val: `${(metrics.ndvi_loss_area || 0).toFixed(2)} km²`, detail: `NDVI drop threshold ${(metrics.ndvi_thresh || -0.12).toFixed(2)}` },
-                                    { label: 'Exposed Population', val: `${Math.round(metrics.exposed_pop || 0).toLocaleString()} ppl`, detail: 'WorldPop 100m Integration' },
-                                    { label: 'Anomalous Flood', val: `${(metrics.new_flood_anomaly || 0).toFixed(2)} km²`, detail: 'JRC Predictive History mapping' },
+                                    { label: 'Saturated Area', val: `${(metrics.flood_area || 0).toFixed(2)} km²`, detail: `SAR VV threshold ${(metrics.threshold || -2.0).toFixed(1)} dB` },
+                                    { label: 'Nitrogen Deficit', val: `${(metrics.ndvi_loss_area || 0).toFixed(2)} km²`, detail: `NDVI drop threshold ${(metrics.ndvi_thresh || -0.12).toFixed(2)}` },
+                                    { label: 'Yield Depletion', val: `${Math.round(metrics.exposed_pop || 0).toLocaleString()} Tons`, detail: 'Crop model Inference' },
+                                    { label: 'Deficit Anomaly', val: `${(metrics.new_flood_anomaly || 0).toFixed(2)} km²`, detail: 'Current vs Baseline History' },
                                     { label: 'Peak Confidence', val: `${((metrics.peak_confidence || 0) * 100).toFixed(1)}%`, detail: 'Ensemble fusion overlap (>95%)' },
-                                    { label: 'Severity Index', val: `${(metrics.severity_score || 0).toFixed(1)}/100`, detail: 'Dynamic 5-factor composite' },
+                                    { label: 'Loss Index', val: `${(metrics.severity_score || 0).toFixed(1)}/100`, detail: 'Dynamic 5-factor composite loss' },
                                 ].map((m, i) => (
                                     <tr key={i}>
                                         <td style={{ padding: '12px 16px', border: '1px solid #E2E8F0', fontWeight: 800, width: '30%' }}>{m.label}</td>

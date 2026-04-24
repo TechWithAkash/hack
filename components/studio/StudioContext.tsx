@@ -22,6 +22,9 @@ interface StudioContextType {
     setCfg: (cfg: any) => void;
     results: any;
     loading: boolean;
+    fromCache: boolean;
+    farmerMode: boolean;
+    setFarmerMode: (v: boolean) => void;
     handleRun: (overrideCfg?: any) => Promise<void>;
     layerVisibility: any;
     setLayerVisibility: (v: any) => void;
@@ -48,6 +51,8 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<any>(null);
+    const [fromCache, setFromCache] = useState(false);
+    const [farmerMode, setFarmerMode] = useState(false);
     const [drawnBounds, setDrawnBounds] = useState<[number, number, number, number] | null>(null);
 
     const [layerVisibility, setLayerVisibility] = useState({
@@ -60,42 +65,74 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     const handleRun = async (overrideCfg?: any) => {
         const currentCfg = overrideCfg || cfg;
 
-        // Validate AOI is set
         if (!currentCfg.min_lon && !currentCfg.max_lon && !currentCfg.min_lat && !currentCfg.max_lat) {
             toast.error('Please draw an AOI on the map or enter coordinates first.', { id: 'gee' });
             return;
         }
 
-        // Calculate AOI area and auto-scale resolution
         const area = aoiKm2(currentCfg.min_lon, currentCfg.min_lat, currentCfg.max_lon, currentCfg.max_lat);
-
         if (area > 200000) {
-            toast.error(`AOI too large (${Math.round(area).toLocaleString()} km²). Max ~200,000 km². Draw a smaller region.`, { id: 'gee' });
+            toast.error(`AOI too large (${Math.round(area).toLocaleString()} km²). Max ~200,000 km².`, { id: 'gee' });
             return;
         }
 
-        // Smart auto-scale: override resolution for large regions
         const smartScale = autoScale(area);
         if (smartScale > currentCfg.scale) {
             currentCfg.scale = smartScale;
             setCfg({ ...currentCfg });
-            toast(`Resolution auto-adjusted to ${smartScale}m for ${Math.round(area).toLocaleString()} km² AOI`, { id: 'scale-info', icon: '📐' });
+            toast(`Resolution auto-adjusted to ${smartScale}m`, { id: 'scale-info', icon: '📐' });
         }
 
         setLoading(true);
-        toast.loading('Initializing Earth Engine Pipeline...', { id: 'gee' });
+        setFromCache(false);
+        toast.loading('Dispatching to Earth Engine…', { id: 'gee' });
+
         try {
-            const res = await fetch('/api/studio/run', {
+            // ── Step 1: Submit job (non-blocking, returns job_id) ──────
+            const submitRes = await fetch('/api/studio/run', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(currentCfg),
             });
-            const data = await res.json();
-            if (data.success) {
-                setResults(data);
-                toast.success('Analysis Synchronized Successfully', { id: 'gee' });
-            } else {
-                toast.error(`Ingestion Failed: ${data.error || 'Unknown'}`, { id: 'gee' });
+            const submit = await submitRes.json();
+
+            // ── Cache HIT: result returned immediately ─────────────────
+            if (submit.fromCache) {
+                setResults(submit);
+                setFromCache(true);
+                toast.success('✅ Served from 24h ARD Cache — instant results!', { id: 'gee' });
+                setLoading(false);
+                return;
+            }
+
+            const jobId = submit.job_id;
+            if (!jobId) throw new Error(submit.error || 'No job_id returned');
+
+            toast.loading('Pipeline running… polling for results', { id: 'gee' });
+
+            // ── Step 2: Poll every 3s until done ──────────────────────
+            let attempts = 0;
+            const maxAttempts = 60; // 3 min max
+            while (attempts < maxAttempts) {
+                await new Promise(r => setTimeout(r, 3000));
+                attempts++;
+
+                const pollRes  = await fetch(`/api/studio/job/${jobId}`);
+                const pollData = await pollRes.json();
+
+                if (pollData.status === 'done') {
+                    setResults(pollData.result);
+                    setFromCache(false);
+                    toast.success('Analysis Synchronized Successfully', { id: 'gee' });
+                    break;
+                }
+                if (pollData.status === 'error') {
+                    toast.error(`Pipeline Error: ${pollData.error}`, { id: 'gee' });
+                    break;
+                }
+            }
+            if (attempts >= maxAttempts) {
+                toast.error('Pipeline timed out. Draw a smaller AOI or increase resolution.', { id: 'gee' });
             }
         } catch (e: any) {
             toast.error(`Operational Error: ${e.message || 'Unknown'}`, { id: 'gee' });
@@ -106,7 +143,7 @@ export function StudioProvider({ children }: { children: ReactNode }) {
 
     return (
         <StudioContext.Provider value={{
-            cfg, setCfg, results, loading, handleRun,
+            cfg, setCfg, results, loading, fromCache, farmerMode, setFarmerMode, handleRun,
             layerVisibility, setLayerVisibility,
             baseLayer, setBaseLayer,
             aoiMode, setAoiMode,

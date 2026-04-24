@@ -2,18 +2,16 @@
 
 import useSWR from 'swr';
 import { fetcher } from '@/lib/api/fetcher';
-import RiskBadge from '@/components/shared/RiskBadge';
 import ConfidenceBar from '@/components/shared/ConfidenceBar';
-import { formatArea, formatDate, formatPopulation, formatScore } from '@/lib/utils/formatters';
-import { TrendingUp, TrendingDown, Minus, List } from 'lucide-react';
+import { formatDate } from '@/lib/utils/formatters';
+import { List, Droplets, FlaskConical, Navigation } from 'lucide-react';
 
 const COLUMNS = [
-    { key: 'district',    label: 'District'     },
-    { key: 'riskLevel',   label: 'Risk'         },
-    { key: 'floodArea',   label: 'Flood Area'   },
-    { key: 'affectedPop', label: 'Population'   },
-    { key: 'delta',       label: 'Δ Change'     },
-    { key: 'confidence',  label: 'Confidence'   },
+    { key: 'farm',        label: 'Farm Plot'    },
+    { key: 'crop',        label: 'Crop'         },
+    { key: 'healthScore', label: 'Health'       },
+    { key: 'ndvi_ndmi',   label: 'NDVI / NDMI'  },
+    { key: 'needs',       label: 'Prescription' },
     { key: 'date',        label: 'Date'         },
 ];
 
@@ -56,13 +54,13 @@ export default function RiskTable() {
                     }}>
                         <List size={16} />
                     </div>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>Live Event Registry</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>Precision Plot Status</span>
                     <span style={{
                         marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#0D7377',
                         background: 'rgba(13,115,119,0.08)', border: '1px solid rgba(13,115,119,0.2)',
                         borderRadius: 5, padding: '2px 7px',
                     }}>
-                        {events.length} anomalies
+                        {events.length} plots assessed
                     </span>
                 </div>
                 <span style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600 }}>Refreshes every 60s</span>
@@ -88,58 +86,64 @@ export default function RiskTable() {
                     <tbody>
                         {events.length === 0 ? (
                             <tr>
-                                <td colSpan={7} style={{ padding: '48px', textAlign: 'center', color: '#CBD5E1' }}>
+                                <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: '#CBD5E1' }}>
                                     <List size={28} style={{ margin: '0 auto 8px' }} />
                                     <p style={{ fontSize: 13, fontWeight: 600, color: '#94A3B8', margin: 0 }}>
-                                        No active anomalies detected.
+                                        No farm data available.
                                     </p>
                                 </td>
                             </tr>
                         ) : events.map((e: any) => {
-                            const delta = e.changeFromPrevKm2 ?? 0;
+                            let healthColor = '#10B981';
+                            if (e.healthScore < 50) healthColor = '#F97316';
+                            if (e.healthScore < 25) healthColor = '#EF4444';
+                            
                             return (
                                 <tr key={e._id}
                                     style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.12s' }}
-                                    onMouseEnter={el => el.currentTarget.style.background = '#FAFBFD'}
-                                    onMouseLeave={el => el.currentTarget.style.background = 'transparent'}
                                 >
                                     <td style={{ padding: '12px 16px', fontSize: 13, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap' }}>
-                                        {e.districtId?.districtName ?? '—'}
-                                        {e.districtId?.stateName && (
-                                            <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 500, marginTop: 1 }}>
-                                                {e.districtId.stateName}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '12px 16px' }}>
-                                        <RiskBadge level={e.riskLevel} />
-                                    </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                        {formatArea(e.floodAreaKm2)}
-                                    </td>
-                                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                        {formatPopulation(e.affectedPopEst)}
-                                    </td>
-                                    <td style={{ padding: '12px 16px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                            {delta > 5
-                                                ? <TrendingUp size={12} color="#EF4444" />
-                                                : delta < -5
-                                                    ? <TrendingDown size={12} color="#10B981" />
-                                                    : <Minus size={12} color="#CBD5E1" />}
-                                            <span style={{
-                                                fontSize: 11, fontWeight: 700,
-                                                color: delta > 5 ? '#EF4444' : delta < -5 ? '#10B981' : '#94A3B8',
-                                            }}>
-                                                {delta > 0 ? '+' : ''}{delta.toFixed(1)} km²
-                                            </span>
+                                        {e.farmId?.farmName ?? 'Unknown'}
+                                        <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 500, marginTop: 1, display: 'flex', alignItems: 'center', gap: 3 }}>
+                                            <Navigation size={9} />
+                                            {(e.farmId?.areaSqm / 10000).toFixed(2)} Ha
                                         </div>
                                     </td>
-                                    <td style={{ padding: '12px 16px', minWidth: 130 }}>
-                                        <ConfidenceBar score={e.confidenceScore ?? 0.8} />
+                                    <td style={{ padding: '12px 16px', fontSize: 12, color: '#475569', fontWeight: 600 }}>
+                                        {e.farmId?.cropType}
+                                    </td>
+                                    <td style={{ padding: '12px 16px', minWidth: 100 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <div style={{ width: 40, height: 4, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
+                                                <div style={{ width: `${e.healthScore}%`, height: '100%', background: healthColor }} />
+                                            </div>
+                                            <span style={{ fontSize: 11, fontWeight: 700, color: healthColor }}>{e.healthScore}</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                            <span>I: {e.avgNDVI.toFixed(2)}</span>
+                                            <span>M: {e.avgNDMI.toFixed(2)}</span>
+                                        </div>
+                                    </td>
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                 <Droplets size={12} color="#0ea5e9" />
+                                                 <span style={{ fontSize: 11, fontWeight: 700, color: '#0ea5e9' }}>
+                                                    {e.waterDeficitLiters.toLocaleString(undefined, {maximumFractionDigits: 0})} L
+                                                 </span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                                 <FlaskConical size={12} color="#8b5cf6" />
+                                                 <span style={{ fontSize: 11, fontWeight: 700, color: '#8b5cf6' }}>
+                                                    {e.nitrogenReqKg.toLocaleString(undefined, {maximumFractionDigits: 1})} Kg N
+                                                 </span>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td style={{ padding: '12px 16px', fontSize: 11, color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                        {formatDate(e.eventDate)}
+                                        {formatDate(e.date)}
                                     </td>
                                 </tr>
                             );

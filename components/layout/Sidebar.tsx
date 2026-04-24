@@ -3,129 +3,159 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    LayoutDashboard, Map, Building2, FileText,
-    ScrollText, Settings, Satellite, Activity,
-    ShieldAlert, BarChart2, AlignLeft, Cpu,
-    MessageSquare, FileCheck
+    LayoutDashboard, Map, Building2, Satellite,
+    Sprout, ShieldAlert, BarChart2, AlignLeft,
+    Cpu, MessageSquare, FileCheck, Activity,
+    Radio,
 } from 'lucide-react';
+
+const NAV_GROUPS = [
+    {
+        label: 'MAIN',
+        items: [
+            { href: '/dashboard',  icon: LayoutDashboard, label: 'Home' },
+            { href: '/map',        icon: Map,             label: 'India Farm Map' },
+            { href: '/districts',  icon: Building2,       label: 'Districts' },
+        ],
+    },
+    {
+        label: 'SATELLITE',
+        items: [
+            { href: '/studio/spatial',     icon: Satellite,   label: 'Scan My Farm' },
+            { href: '/studio/veg',         icon: Sprout,      label: 'Crop Health Map' },
+            { href: '/studio/risk',        icon: ShieldAlert, label: 'Crop Risk' },
+            { href: '/studio/confidence',  icon: BarChart2,   label: 'How Accurate?' },
+        ],
+    },
+    {
+        label: 'REPORTS',
+        items: [
+            { href: '/logs',        icon: AlignLeft,     label: 'Activity Log' },
+            { href: '/studio/ai',   icon: MessageSquare, label: 'Ask Kisan Bot' },
+            { href: '/studio/pdf',  icon: FileCheck,     label: 'Download Report' },
+            { href: '/studio/api',  icon: Cpu,           label: 'API Access' },
+        ],
+    },
+];
 
 export default function Sidebar() {
     const pathname = usePathname();
 
-    const NAV_ITEMS = [
-        { href: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-        { href: '/map', icon: Map, label: 'Regional Map' },
-        { href: '/districts', icon: Building2, label: 'Districts' },
-        { href: '/studio/spatial', icon: Satellite, label: 'Spatial Insights' },
-        { href: '/studio/risk', icon: ShieldAlert, label: 'Risk Analysis' },
-        { href: '/studio/confidence', icon: BarChart2, label: 'Model Reliability' },
-        { href: '/studio/logs', icon: AlignLeft, label: 'Telemetry Stream' },
-        { href: '/studio/api', icon: Cpu, label: 'Rest API' },
-        { href: '/studio/ai', icon: MessageSquare, label: 'Generative AI' },
-        { href: '/studio/pdf', icon: FileCheck, label: 'Assessment Report' },
-    ];
-
     return (
-        <aside
-            className="flex flex-col"
-            style={{
-                width: 220,
-                minWidth: 220,
-                background: 'white',
-                borderRight: '1px solid #E2E8F0',
-                padding: '0',
-                overflow: 'hidden',
-            }}
-        >
-            {/* Logo */}
-            <div
-                style={{
-                    padding: '20px 18px 16px',
-                    borderBottom: '1px solid #F1F5F9',
-                }}
-            >
+        <aside style={{
+            width: 218, minWidth: 218,
+            background: 'white',
+            borderRight: '1px solid #E2E8F0',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden', flexShrink: 0,
+        }}>
+
+            {/* ── LOGO ───────────────────────────────── */}
+            <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid #F1F5F9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div
-                        style={{
-                            width: 36, height: 36,
-                            borderRadius: 9,
-                            background: 'linear-gradient(135deg, #0A1628, #0D7377)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0,
-                        }}
-                    >
-                        <Satellite size={18} color="white" />
+                    <div style={{
+                        width: 36, height: 36, borderRadius: 10,
+                        background: 'linear-gradient(135deg, #0A1628, #0D7377)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                    }}>
+                        <Satellite size={17} color="white" />
                     </div>
                     <div>
                         <div style={{ fontWeight: 900, fontSize: 14, color: '#0A1628', letterSpacing: '-0.02em' }}>
                             NETRA<span style={{ color: '#0D7377' }}>.AI</span>
                         </div>
-                        <div style={{ fontSize: 10, color: '#64748B', fontWeight: 600, letterSpacing: '0.06em' }}>
-                            INTELLIGENCE ENGINE
+                        <div style={{ fontSize: 10, color: '#94A3B8', fontWeight: 600, marginTop: 1 }}>
+                            Kisan Saathi
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Pipeline status indicator */}
-            <div style={{ padding: '12px 18px', borderBottom: '1px solid #F1F5F9' }}>
-                <div
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        background: '#F0FDF4', borderRadius: 8,
-                        padding: '8px 12px',
-                        border: '1px solid #BBF7D0',
-                    }}
-                >
-                    <Activity size={12} color="#22C55E" />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#16A34A' }}>Pipeline Online</span>
-                    <div className="pulse-dot" style={{ background: '#22C55E', marginLeft: 'auto' }} />
+            {/* ── SATELLITE STATUS ───────────────────── */}
+            <div style={{ padding: '10px 12px', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{
+                    background: '#F0FDF4', border: '1px solid #BBF7D0',
+                    borderRadius: 8, padding: '7px 10px',
+                    display: 'flex', alignItems: 'center', gap: 7,
+                }}>
+                    <Radio size={11} color="#16A34A" />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#15803D', flex: 1 }}>
+                        Satellite Connected
+                    </span>
+                    <div style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: '#22C55E',
+                        boxShadow: '0 0 0 2px rgba(34,197,94,0.25)',
+                    }} />
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
-                <div style={{ fontSize: 9, color: '#475569', fontWeight: 900, padding: '0 8px 12px', letterSpacing: '0.15em' }}>
-                    COMMAND CENTER
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
-                        const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
-                        return (
-                            <Link
-                                key={href}
-                                href={href}
-                                className={`sidebar-link ${isActive ? 'active' : ''}`}
-                                style={{
-                                    color: isActive ? '#FFFFFF' : '#475569',
-                                    background: isActive ? 'linear-gradient(90deg, #3B82F6, #2563EB)' : 'transparent',
-                                    padding: '10px 16px',
-                                    borderRadius: '12px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                    fontSize: '13px',
-                                    fontWeight: isActive ? 700 : 500,
-                                    textDecoration: 'none',
-                                    transition: 'all 0.2s',
-                                    boxShadow: isActive ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none'
-                                }}
-                            >
-                                <Icon size={16} />
-                                {label}
-                            </Link>
-                        );
-                    })}
-                </div>
+            {/* ── NAVIGATION ─────────────────────────── */}
+            <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 8px' }}>
+                {NAV_GROUPS.map((group) => (
+                    <div key={group.label} style={{ marginBottom: 18 }}>
+                        <div style={{
+                            fontSize: 9, fontWeight: 800, color: '#CBD5E1',
+                            letterSpacing: '0.12em', padding: '0 10px 8px',
+                        }}>
+                            {group.label}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {group.items.map(({ href, icon: Icon, label }) => {
+                                const isActive = pathname === href
+                                    || (href !== '/dashboard' && pathname.startsWith(href));
+
+                                return (
+                                    <Link key={href} href={href} style={{ textDecoration: 'none' }}>
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', gap: 10,
+                                            padding: '9px 12px', borderRadius: 10,
+                                            background: isActive ? '#EFF6FF' : 'transparent',
+                                            borderLeft: isActive ? '3px solid #0D7377' : '3px solid transparent',
+                                            cursor: 'pointer', transition: 'all 0.15s',
+                                        }}
+                                            onMouseEnter={e => {
+                                                if (!isActive) (e.currentTarget as HTMLDivElement).style.background = '#F8FAFC';
+                                            }}
+                                            onMouseLeave={e => {
+                                                if (!isActive) (e.currentTarget as HTMLDivElement).style.background = 'transparent';
+                                            }}
+                                        >
+                                            <Icon
+                                                size={15}
+                                                color={isActive ? '#0D7377' : '#94A3B8'}
+                                                strokeWidth={isActive ? 2.5 : 1.8}
+                                            />
+                                            <span style={{
+                                                fontSize: 13,
+                                                fontWeight: isActive ? 700 : 500,
+                                                color: isActive ? '#0D7377' : '#475569',
+                                            }}>
+                                                {label}
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </nav>
 
-            {/* Footer */}
-            <div style={{ padding: '20px', borderTop: '1px solid #E2E8F0', background: '#F8FAFC' }}>
-                <div style={{ fontSize: 9, color: '#475569', fontWeight: 600, textAlign: 'center', letterSpacing: '0.05em' }}>
-                    SENTINEL-1/2 · LANDSAT-9
+            {/* ── FOOTER ─────────────────────────────── */}
+            <div style={{ padding: '14px 16px', borderTop: '1px solid #F1F5F9', background: '#FAFAFA' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Activity size={10} color="#94A3B8" />
+                    <span style={{ fontSize: 9, fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Data Sources
+                    </span>
                 </div>
-                <div style={{ fontSize: 8, color: '#334155', textAlign: 'center', marginTop: 4 }}>
-                    Distributed GEE Fusion v1.2.4
+                <div style={{ fontSize: 10, color: '#CBD5E1', lineHeight: 1.9, paddingLeft: 2 }}>
+                    Sentinel-1 + Sentinel-2<br />
+                    Google Earth Engine<br />
+                    Open-Meteo Weather
                 </div>
             </div>
         </aside>

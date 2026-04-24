@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import { RiskEvent } from '@/lib/models/RiskEvent';
-import { District } from '@/lib/models/District';
+import { FarmPlot } from '@/lib/models/FarmPlot';
+import { PlotHealthLog } from '@/lib/models/PlotHealthLog';
 import { SatelliteScene } from '@/lib/models/SatelliteScene';
 import { ProcessingLog } from '@/lib/models/ProcessingLog';
 
@@ -15,63 +15,57 @@ export async function POST(req: NextRequest) {
         await connectDB();
         const payload = await req.json();
 
-        const scene = await SatelliteScene.findOneAndUpdate(
-            { geeAssetId: payload.scene.geeAssetId },
-            { ...payload.scene, status: 'processed' },
-            { upsert: true, returnDocument: 'after' }
-        );
-
+        // Optional: you can save scene metadata similarly if sent
         const eventIds: string[] = [];
 
-        for (const result of payload.districtResults) {
-            
-            // Sanitize payload enums to strictly match Mongoose schema expected arrays
-            let sanitizedRiskLevel = result.riskLevel;
-            if (sanitizedRiskLevel === 'MINIMAL') sanitizedRiskLevel = 'LOW';
-            
-            let sanitizedMethod = result.detectionMethod;
-            if (sanitizedMethod === 'ENSEMBLE_STREAMLIT') sanitizedMethod = 'ENSEMBLE';
+        if (payload.type === "AGRI_INFERENCE" && payload.results) {
+            for (const result of payload.results) {
+                // Upsert the FarmPlot
+                const healthStatus = result.healthScore > 75 ? 'EXCELLENT' : 
+                                      (result.healthScore > 50 ? 'GOOD' : 
+                                      (result.healthScore > 25 ? 'FAIR' : 'POOR'));
 
-            const district = await District.findOneAndUpdate(
-                { districtName: result.districtName, stateName: result.stateName },
-                { currentRiskLevel: sanitizedRiskLevel, lastAssessedAt: new Date(), $inc: { totalEventsCount: 1 } },
-                { upsert: true, new: true, returnDocument: 'after' }
-            );
+                const farm = await FarmPlot.findOneAndUpdate(
+                    { ownerId: result.ownerId, farmName: result.farmName },
+                    { 
+                        cropType: result.cropType,
+                        geometry: { type: 'Point', coordinates: [result.lon, result.lat] },
+                        areaSqm: result.areaSqm,
+                        currentHealthStatus: healthStatus,
+                        lastAssessedAt: new Date(),
+                        $inc: { totalLogsCount: 1 }
+                    },
+                    { upsert: true, new: true, returnDocument: 'after' }
+                );
 
-            // Sanitize Geometry (MongoDB 2dsphere rejects polygons with 0 area / perfectly identical coords)
-            let safeGeometry = result.floodGeometry;
-            if (safeGeometry?.type === 'Polygon' && safeGeometry.coordinates?.[0]?.length > 2) {
-                const ring = safeGeometry.coordinates[0];
-                const allSame = ring.every((pt: number[]) => pt[0] === ring[0][0] && pt[1] === ring[0][1]);
-                if (allSame) safeGeometry = undefined; // Drop geometry if it's a point cast as a polygon
+                // Create the PlotHealthLog
+                const healthLog = await PlotHealthLog.create({
+                    farmId: farm._id,
+                    date: new Date(payload.eventDate),
+                    avgNDVI: result.avgNDVI,
+                    avgNDMI: result.avgNDMI,
+                    healthScore: result.healthScore,
+                    waterDeficitLiters: result.waterDeficitLiters,
+                    nitrogenReqKg: result.nitrogenReqKg,
+                    subGridHeatmap: { type: 'PointHeatmap', coordinates: result.subGrid },
+                    enrichment: {
+                        evapotranspirationMm: result.weather?.et0 || 0,
+                        rainfallMm7d: result.weather?.rain_7d || 0,
+                        soilMoistureEst: result.weather?.soil_mst || 0,
+                        landSurfaceTempAvg: 0
+                    },
+                    metadata: { s2Scene: result.s2Scene }
+                });
+
+                eventIds.push(healthLog._id.toString());
             }
-
-            const event = await RiskEvent.create({
-                districtId: district._id,
-                sceneId: scene._id,
-                eventDate: new Date(payload.eventDate),
-                riskLevel: sanitizedRiskLevel,
-                riskScore: result.riskScore,
-                floodAreaKm2: result.floodAreaKm2,
-                floodPctDistrict: result.floodPctDistrict,
-                affectedPopEst: result.affectedPopEst,
-                confidenceScore: result.confidenceScore,
-                detectionMethod: sanitizedMethod,
-                changeFromPrevKm2: result.changeFromPrevKm2,
-                floodGeometry: safeGeometry,
-                enrichment: result.enrichment,
-                metadata: result.metadata ?? {},   // ← SAR ΔdB, NDWI, windows
-                status: result.status ?? 'active',
-            });
-
-            eventIds.push(event._id.toString());
         }
 
         if (payload.logs?.length > 0) {
             await ProcessingLog.insertMany(
                 payload.logs.map((log: any) => ({ 
                     ...log, 
-                    message: log.message || "Pipeline telemetry updated",
+                    message: log.message || "Precision Agri telemetry updated",
                     stage: log.stage || "DATA_INGESTION",
                     runId: payload.runId 
                 }))

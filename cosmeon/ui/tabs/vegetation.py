@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ui/tabs/vegetation.py
 =====================

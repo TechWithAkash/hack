@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 ui/tabs/spatial_map.py
 ======================

@@ -10,11 +10,11 @@ import {
 } from 'recharts';
 import { BarChart2, PieChart as PieIcon, TrendingUp } from 'lucide-react';
 
-const RISK_COLORS: Record<string, string> = {
-    CRITICAL: '#EF4444',
-    HIGH: '#F97316',
-    MEDIUM: '#D97706',
-    LOW: '#10B981',
+const HEALTH_COLORS: Record<string, string> = {
+    POOR: '#EF4444',
+    FAIR: '#F97316',
+    GOOD: '#D97706',
+    EXCELLENT: '#10B981',
 };
 const FALLBACK = ['#0D7377', '#0891B2', '#6366F1', '#F97316', '#EC4899', '#10B981'];
 
@@ -53,17 +53,17 @@ const tooltipStyle = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
 };
 
-/* ── Risk Distribution Donut ─────────────────────── */
-function RiskDonut({ data }: { data: any[] }) {
+/* ── Health Distribution Donut ─────────────────────── */
+function HealthDonut({ data }: { data: any[] }) {
     const total = data.reduce((s, d) => s + d.value, 0);
     const withColor = data.map((d, i) => ({
         ...d,
-        color: RISK_COLORS[d.name] ?? FALLBACK[i % FALLBACK.length],
+        color: HEALTH_COLORS[d.name] ?? FALLBACK[i % FALLBACK.length],
         pct: total > 0 ? Math.round((d.value / total) * 100) : 0,
     }));
 
     return (
-        <CardShell title="Risk Distribution" icon={PieIcon} accent="#F97316">
+        <CardShell title="Field Health Overview (Khet Ki Sehat)" icon={PieIcon} accent="#10B981">
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <div style={{ width: 160, height: 160, position: 'relative', flexShrink: 0 }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -85,7 +85,7 @@ function RiskDonut({ data }: { data: any[] }) {
                         transform: 'translate(-50%,-50%)', textAlign: 'center', pointerEvents: 'none',
                     }}>
                         <div style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{total}</div>
-                        <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>events</div>
+                        <div style={{ fontSize: 9, color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginTop: 2 }}>plots</div>
                     </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
@@ -106,14 +106,14 @@ function RiskDonut({ data }: { data: any[] }) {
 /* ── Trend Line ────────────────────────────────── */
 function TrendLine({ data }: { data: any[] }) {
     return (
-        <CardShell title="Risk Score Trend" icon={TrendingUp} accent="#0D7377">
+        <CardShell title="Crop Health Over Time" icon={TrendingUp} accent="#0ea5e9">
             <div style={{ height: 160 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
                         <defs>
                             <linearGradient id="riskGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#0D7377" stopOpacity={0.15} />
-                                <stop offset="95%" stopColor="#0D7377" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.15} />
+                                <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="2 4" stroke="#F1F5F9" vertical={false} />
@@ -122,8 +122,8 @@ function TrendLine({ data }: { data: any[] }) {
                         <YAxis axisLine={false} tickLine={false}
                             tick={{ fontSize: 9, fill: '#94A3B8', fontWeight: 600 }} domain={[0, 100]} />
                         <Tooltip contentStyle={tooltipStyle} />
-                        <Area type="monotone" dataKey="avgRiskScore" name="Risk Score"
-                            stroke="#0D7377" strokeWidth={2} fill="url(#riskGrad)" dot={false} activeDot={{ r: 4, fill: '#0D7377' }} />
+                        <Area type="monotone" dataKey="avgHealthScore" name="Health Score"
+                            stroke="#0ea5e9" strokeWidth={2} fill="url(#riskGrad)" dot={false} activeDot={{ r: 4, fill: '#0ea5e9' }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
@@ -134,17 +134,17 @@ function TrendLine({ data }: { data: any[] }) {
 /* ── District Bar Chart ──────────────────────── */
 function DistrictBars({ data }: { data: any[] }) {
     return (
-        <CardShell title="Top Affected Districts" icon={BarChart2} accent="#6366F1">
+        <CardShell title="Fields That Need Urgent Attention 🚨" icon={BarChart2} accent="#6366F1">
             <div style={{ height: 160 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} layout="vertical" margin={{ top: 0, right: 4, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="2 4" stroke="#F1F5F9" horizontal={false} />
-                        <XAxis type="number" axisLine={false} tickLine={false}
+                        <XAxis type="number" axisLine={false} tickLine={false} domain={[0, 100]}
                             tick={{ fontSize: 9, fill: '#94A3B8', fontWeight: 600 }} />
                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false}
                             tick={{ fontSize: 9, fill: '#64748B', fontWeight: 600 }} width={80} />
                         <Tooltip contentStyle={tooltipStyle} />
-                        <Bar dataKey="conf" name="Confidence %" fill="#6366F1" radius={[0, 4, 4, 0]} barSize={10} />
+                        <Bar dataKey="healthScore" name="Health Score" fill="#EF4444" radius={[0, 4, 4, 0]} barSize={10} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -155,26 +155,25 @@ function DistrictBars({ data }: { data: any[] }) {
 /* ── Default Export ───────────────────────────── */
 export default function DashboardCharts() {
     const { data: summaryData } = useSWR('/api/insights/summary', fetcher, { refreshInterval: 60000 });
-    const { data: latestData } = useSWR('/api/insights/latest?limit=20', fetcher, { refreshInterval: 60000 });
 
     const charts = useMemo(() => {
-        const riskBreakdown = summaryData?.riskBreakdown ?? [];
-        const incidentData = riskBreakdown.length > 0
-            ? riskBreakdown.map((rb: any) => ({ name: rb._id ?? 'UNKNOWN', value: rb.count }))
-            : [{ name: 'MEDIUM', value: 28 }, { name: 'HIGH', value: 14 }, { name: 'LOW', value: 10 }, { name: 'CRITICAL', value: 5 }];
+        const healthBreakdown = summaryData?.healthBreakdown ?? [];
+        let incidentData = healthBreakdown.length > 0
+            ? healthBreakdown.map((rb: any) => ({ name: rb._id ?? 'UNKNOWN', value: rb.count }))
+            : []; // Will be empty until seeded
 
         const trendData = (summaryData?.trendData ?? []).slice(-10).map((td: any, i: number) => ({
             name: `D${i + 1}`,
-            avgRiskScore: td.avgRiskScore ?? 0,
+            avgHealthScore: td.avgHealthScore ?? 0,
         }));
 
-        const barData = (latestData?.events ?? []).slice(0, 6).map((e: any) => ({
-            name: e.districtId?.districtName?.slice(0, 10) || 'Zone',
-            conf: Math.round((e.confidenceScore ?? 0.8) * 100),
-        })).sort((a: any, b: any) => b.conf - a.conf);
+        const barData = (summaryData?.topFarms ?? []).slice(0, 6).map((f: any) => ({
+            name: f.farmName?.slice(0, 10) || 'Plot',
+            healthScore: Math.round(f.healthScore ?? 0),
+        })).sort((a: any, b: any) => a.healthScore - b.healthScore); // Sort by lowest score
 
         return { incidentData, trendData, barData };
-    }, [summaryData, latestData]);
+    }, [summaryData]);
 
     const isLoading = !summaryData;
 
@@ -194,7 +193,7 @@ export default function DashboardCharts() {
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            <RiskDonut data={charts.incidentData} />
+            <HealthDonut data={charts.incidentData} />
             <TrendLine data={charts.trendData} />
             <div style={{ gridColumn: 'span 2' }}>
                 <DistrictBars data={charts.barData} />

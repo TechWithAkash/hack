@@ -11,38 +11,38 @@
 ╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝  ╚═╝╚═╝
 ```
 
-### **NETRA.AI — Near-Earth Environmental Telemetry & Regional Anomalies**
+### **NETRA.AI — Near-Earth Telemetry & Resource Agronomy**
 
-### **Satellite Data → Insight Engine → Climate Risk**
+### **Satellite Data → Insight Engine → Precision Yield Optimization**
 
-*"We don’t just show you a map. We tell you exactly who is at risk, how much land is lost, and what the financial impact will be — powered by the eye in the sky."*
+*"We don’t just show you a map of a farm. We tell you exactly where nitrogen is depleted, where water is pooling, and how much yield is at risk — powered by the eye in the sky."*
 
 <br />
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-000000?style=for-the-badge\&logo=nextdotjs\&logoColor=white)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge\&logo=typescript\&logoColor=white)](https://www.typescriptlang.org)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge\&logo=python\&logoColor=white)](https://python.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge\&logo=mongodb\&logoColor=white)](https://mongodb.com)
-[![Google Earth Engine](https://img.shields.io/badge/Google_Earth_Engine-4285F4?style=for-the-badge\&logo=google\&logoColor=white)](https://earthengine.google.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com)
+[![Google Earth Engine](https://img.shields.io/badge/Google_Earth_Engine-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://earthengine.google.com)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/CyberJarvis/Refactor_PS06/pulls)
 [![Build Status](https://img.shields.io/badge/Build-Passing-22C55E?style=flat-square)](https://github.com/CyberJarvis/Refactor_PS06)
-[![Problem Statement](https://img.shields.io/badge/PS--06-Climate_Risk_Intelligence-0D7377?style=flat-square)]()
+[![Problem Statement](https://img.shields.io/badge/PS--06-AgriTech_Precision_Farming-0D7377?style=flat-square)]()
 
 </div>
 
 ---
 
-# 🌍 What is NETRA.AI?
+# 🌾 What is NETRA.AI?
 
-**NETRA.AI (Near-Earth Environmental Telemetry & Regional Anomalies)** is a full-stack **Climate Risk Intelligence Engine** built for **HackX 4.0 — Problem Statement PS-06**.
+**NETRA.AI (Near-Earth Telemetry & Resource Agronomy)** is a full-stack **Precision Resource Optimizer** built for **HackX 4.0 — Problem Statement DOM-06 (AgriTech)**.
 
-Earth observation satellites generate terabytes of imagery every day. Yet most of that data never reaches the people who actually need it. Governments, insurers, planners, and aid organizations still rely on delayed field reports and fragmented datasets.
+Modern agriculture is flying blind. Farmers and large-scale agricultural networks attempt to maximize yield using guesswork and fragmented local weather data, resulting in massive fertilizer waste, unrecognized water deficits, and avoidable crop failure.
 
-NETRA.AI closes this gap by building an **automated pipeline** that transforms open satellite data (Sentinel-1 SAR, Sentinel-2 Optical, Landsat-8/9) into **structured, decision-ready climate risk insights** — complete with real-time dashboards, population exposure maps, confidence scores, and auto-generated PDF reports.
+NETRA.AI closes this gap by building an **automated pipeline** that transforms open satellite data (Sentinel-1 SAR, Sentinel-2 Optical) and live weather APIs (Open-Meteo) into **structured, sub-meter precision farming insights** — complete with real-time dashboards, nitrogen deficit maps, yield depletion scores, and auto-generated prescriptive PDFs.
 
-No mock data. No manual interpretation. Just automated geospatial truth.
+No mock data. No manual interpretation. Just automated agronomy truth.
 
 ---
 
@@ -51,12 +51,12 @@ No mock data. No manual interpretation. Just automated geospatial truth.
 | Capability                                  | Status | Implementation               |
 | ------------------------------------------- | ------ | ---------------------------- |
 | Satellite ingestion (Sentinel-1/2, Landsat) | ✅      | Google Earth Engine pipeline |
-| Automated flood detection                   | ✅      | VV backscatter + NDWI fusion |
-| Pre/Post change detection                   | ✅      | Temporal baseline comparison |
-| Population exposure estimation              | ✅      | WorldPop overlay             |
-| Terrain false-positive filtering            | ✅      | DEM slope masking            |
-| Risk scoring                                | ✅      | Bayesian weighted model      |
-| 7-day rainfall trend integration            | ✅      | CHIRPS + Open-Meteo          |
+| Soil Saturation & Moisture Detection        | ✅      | VV backscatter algorithms    |
+| Nitrogen Stress / Vitality Tracking         | ✅      | Multi-spectral NDVI indices  |
+| Crop Yield Depletion Estimation             | ✅      | WorldPop / Baseline Overlay  |
+| Square-Meter Resolution Precision           | ✅      | 10m-30m Focal Smoothing      |
+| Generative AI Agronomist                    | ✅      | Groq + Llama 3.3 LLM Chatbot |
+| Real-Time Weather Integration               | ✅      | Open-Meteo live API          |
 | Structured state tables                     | ✅      | MongoDB schemas              |
 | REST API (15+ endpoints)                    | ✅      | Next.js API routes           |
 | Interactive dashboard                       | ✅      | Real-time KPI + maps         |
@@ -74,52 +74,54 @@ No mock data. No manual interpretation. Just automated geospatial truth.
 │  INGESTION     │     CORE PROCESSING           │   PRESENTATION      │
 │  LAYER         │     ENGINE (Python)           │   LAYER (Next.js)   │
 ├────────────────┼──────────────────────────────┼─────────────────────┤
-│ Sentinel-1 SAR │ detection.py  → SAR analysis │ Dashboard + Maps    │
-│ Sentinel-2 MSI │ enrichment.py → Population   │ District registry   │
-│ Landsat 8 / 9  │ scoring.py    → Risk fusion  │ PDF reports         │
-│ CHIRPS Rain    │                              │ REST APIs           │
-│ WorldPop       │                              │ MongoDB Atlas       │
-│ Open-Meteo     │                              │                     │
+│ Sentinel-1 SAR │ detection.py  → SAR moisture │ Dashboard + Maps    │
+│ Sentinel-2 MSI │ enrichment.py → Yield base   │ District registry   │
+│ Landsat 8 / 9  │ scoring.py    → Deficit Loss │ PDF reports         │
+│ CHIRPS Rain    │ runner.py     → GEE Bridge   │ REST APIs           │
+│ Live Weather   │                              │ MongoDB Atlas       │
+│                │                              │                     │
 └────────────────┴──────────────────────────────┴─────────────────────┘
 ```
 
 ---
 
-# 🧠 Detection Algorithms
+# 🧠 Agronomy Algorithms
 
-## 1. SAR Flood Detection (Sentinel-1)
+## 1. SAR Soil Saturation (Sentinel-1)
 
-Water absorbs radar energy. When VV backscatter drops significantly between pre- and post-event scenes, new water is likely present.
+Water absorbs radar energy. When VV backscatter drops significantly between pre- and post-harvest scenes, extreme water pooling or soil saturation is present.
 
 ```
-Flood IF: pre_VV − post_VV > threshold
+Moisture Deficit IF: pre_VV − post_VV > threshold (-2.0 dB)
 ```
 
 Slope filtering removes mountainous shadow artifacts.
 
 ---
 
-## 2. Optical NDWI Detection (Sentinel-2)
+## 2. Optical NDVI Vitality Logging (Sentinel-2)
+
+Tracks nitrogen deficiencies, disease, or post-harvest biomass drops.
 
 ```
-NDWI = (Green − NIR) / (Green + NIR)
-Flood IF: NDWI > 0
+NDVI = (NIR − Red) / (NIR + Red)
+Nitrate Stress IF: NDVI Drop > threshold (-12%)
 ```
 
-Cloud masking applied before evaluation.
+Cloud masking applied automatically (configured to <25% coverage).
 
 ---
 
-## 3. Ensemble Risk Fusion
+## 3. Ensemble Yield Optimizer
 
 ```
 confidence =
     (SAR_confidence × 0.50) +
     (Optical_confidence × 0.30) +
-    (Rainfall_weight × 0.20)
+    (Weather_weight × 0.20)
 ```
 
-Radar has highest weight due to cloud independence during monsoon.
+Combines data to generate a centralized **Yield Depletion Index (0-100)** to trigger automated fertilizer advisories.
 
 ---
 
@@ -130,24 +132,17 @@ All endpoints prefixed with `/api`.
 ### Insights
 
 * `GET /api/insights/latest`
-* `GET /api/insights/summary`
-* `GET /api/insights/forecast`
+* `GET /api/seed` (Mock Data Seeder for 20 Farm Plots)
+* `POST /api/studio/run` (Triggers Python Intelligence Engine)
 
-### Districts
+### Farm Tracking
 
-* `GET /api/districts`
-* `GET /api/districts/[id]`
-
-### Pipeline
-
-* `POST /api/pipeline/trigger`
-* `POST /api/pipeline/ingest`
-* `GET /api/pipeline/logs`
+* `GET /api/farms`
+* `GET /api/farms/[id]`
 
 ### Real-Time Weather
 
-* `POST /api/realtime/ingest-weather`
-* `GET /api/realtime/weather`
+* `GET /api/weather` (Open-Meteo Integration)
 
 ---
 
@@ -155,15 +150,14 @@ All endpoints prefixed with `/api`.
 
 ```
 netra_ai/
-├── app/                      # Next.js App Router
-├── components/               # UI components
-├── lib/                      # MongoDB + utilities
-├── netra_ai/                 # Python processing engine
+├── app/                      # Next.js App Router (Dashboard UI)
+├── components/               # React Native UI components
+├── lib/                      # MongoDB models (FarmPlot, PlotHealthLog)
+├── cosmeon/                  # Python processing engine (GEE Bridge)
 │   ├── pipeline/
 │   ├── core/
-│   ├── pdf_gen.py
-│   └── config.py
-└── context/
+│   └── cli.py
+└── start_netra.sh            # One-click bootloader
 ```
 
 ---
@@ -176,29 +170,19 @@ netra_ai/
 * Python ≥ 3.10
 * MongoDB Atlas
 * Google Earth Engine project
-* NASA FIRMS API key
 
 ---
 
-## 1. Clone
-
-```bash
-git clone https://github.com/CyberJarvis/Refactor_PS06.git
-cd Refactor_PS06
-```
-
----
-
-## 2. Install Dependencies
+## 1. Install Dependencies
 
 ```bash
 npm install
-pip install -r netra_ai/requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
 
-## 3. Configure Environment
+## 2. Configure Environment
 
 ```bash
 cp .env.sample .env.local
@@ -210,22 +194,20 @@ Fill:
 MONGODB_URI=
 GEE_PROJECT_ID=
 PIPELINE_SECRET=
-NASA_FIRM_MAP_KEY=
-AOI_NAME=assam_india
-AOI_BBOX=[89.7,24.8,96.0,28.2]
 ```
 
 ---
 
-## 4. Seed District Data
+## 3. Seed Farm Data
 
+Populates the dashboard with 20 Pan-India precision farms out of the box.
 ```bash
-node geo_seeder.js
+curl http://localhost:3000/api/seed
 ```
 
 ---
 
-## 5. Run
+## 4. Run
 
 ```bash
 npm run dev
@@ -237,68 +219,20 @@ Visit `http://localhost:3000`
 
 ## 🔍 Core Data Model
 
-### FloodEvent
+### FarmPlot & PlotHealthLog
 
 ```typescript
 {
-  districtId: ObjectId,
-  riskLevel: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW",
-  riskScore: number,
-  floodAreaKm2: number,
-  affectedPopEst: number,
-  confidenceScore: number,
-  eventDate: Date
+  polygon: { type: "Polygon", coordinates: [...] },
+  cropType: "WHEAT" | "RICE" | "CORN",
+  metrics: {
+    ndvi: 0.85,          // Nitrogen health
+    ndmi: 0.40,          // Water tracking
+    nitrogenReq: 120.5,  // Fertilizer Required
+    waterDeficit: 10.2   // Irrigation Required
+  }
 }
 ```
-
----
-
-# 🌏 Stakeholder Value
-
-| Stakeholder    | Impact                        |
-| -------------- | ----------------------------- |
-| Governments    | Faster disaster routing       |
-| Insurers       | Satellite-backed verification |
-| Urban planners | Historical floodplain mapping |
-| Agriculture    | NDVI-based crop impact        |
-| Aid agencies   | Geo-targeted relief planning  |
-
----
-
-# 🗺️ Roadmap
-
-* [x] Flood detection pipeline
-* [x] District-level scoring
-* [x] Real-time weather integration
-* [x] REST API layer
-* [x] PDF report automation
-* [ ] ML-based predictive forecasting
-* [ ] Infrastructure damage mapping
-* [ ] Multi-country expansion
-* [ ] SMS alert system
-
----
-
-# 🔒 Environment Variables
-
-| Variable          | Required |
-| ----------------- | -------- |
-| MONGODB_URI       | ✅        |
-| NEXTAUTH_SECRET   | ✅        |
-| NEXTAUTH_URL      | ✅        |
-| GEE_PROJECT_ID    | ✅        |
-| PIPELINE_SECRET   | ✅        |
-| NASA_FIRM_MAP_KEY | Optional |
-
----
-
-# 🤝 Contributing
-
-1. Fork
-2. Create branch
-3. Commit
-4. Push
-5. Open PR
 
 ---
 
@@ -312,6 +246,6 @@ MIT License.
 
 ### **NETRA.AI**
 
-*Turning the planet’s largest data stream into actionable climate intelligence.*
+*Translating square-meter satellite telemetry into maximum agricultural yield.*
 
 </div>

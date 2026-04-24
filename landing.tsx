@@ -1,118 +1,105 @@
 'use client';
 
 import {
-    Activity, AlertTriangle, BarChart3, ChevronRight, CloudRain,
-    Cpu, Database, Eye, Globe, Layers, Map, MapPin,
-    Satellite, Server, Shield, ShieldCheck, Sparkles,
-    Zap, ArrowRight, Check, TrendingUp, Radio, Lock
+    Satellite, ArrowRight, ChevronRight, CheckCircle,
+    Zap, Shield, BarChart3, Layers, Globe, Radio,
+    Cpu, Sprout, Droplets, FlaskConical, TrendingUp,
+    MapPin, AlertTriangle, Map, Activity, Star,
 } from 'lucide-react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const GlobeVis = dynamic(() => import('react-globe.gl'), { ssr: false });
-// ─────────────────────────────────────────────────────────────
-// Design Tokens
-// ─────────────────────────────────────────────────────────────
-const TEAL = '#0D7377';
-const TEAL_LIGHT = '#14A5AA';
-const CYAN = '#22D3EE';
-const ORANGE = '#F97316';
-const BG = '#060B14';
-const BG2 = '#0A1020';
-const BORDER = 'rgba(255,255,255,0.07)';
 
-// ─────────────────────────────────────────────────────────────
-// Animated Counter
-// ─────────────────────────────────────────────────────────────
-function AnimatedCounter({ to, suffix = '', prefix = '' }: { to: number; suffix?: string; prefix?: string }) {
-    const [count, setCount] = useState(0);
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true });
+/* =============================================
+   DESIGN TOKENS  (Aurora + Teal SaaS)
+   Plus Jakarta Sans — friendly, modern, clean
+   Primary: #0D7377  Accent: #14B8A6
+   CTA: #16A34A     Background: #F8FAFC
+============================================= */
+const C = {
+    primary  : '#0D7377',
+    primaryL : '#14B8A6',
+    accent   : '#0EA5E9',
+    green    : '#16A34A',
+    orange   : '#EA580C',
+    bg       : '#F8FAFC',
+    bgDark   : '#0A1628',
+    text     : '#0F172A',
+    textMuted: '#475569',
+    border   : '#E2E8F0',
+};
 
-    useEffect(() => {
-        if (!inView) return;
-        let start = 0;
-        const duration = 1800;
-        const step = to / (duration / 16);
-        const timer = setInterval(() => {
-            start += step;
-            if (start >= to) { setCount(to); clearInterval(timer); }
-            else setCount(Math.floor(start));
-        }, 16);
-        return () => clearInterval(timer);
-    }, [inView, to]);
-
-    return (
-        <span ref={ref}>
-            {prefix}{count.toLocaleString()}{suffix}
-        </span>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Earth Globe Visual (Hero visual — no external library needed)
-// ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   3D EARTH VISUAL  (react-globe.gl)
+───────────────────────────────────────────── */
 function EarthVisual() {
     const globeRef = useRef<any>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
-        // Position camera pointing towards India (Assam basin roughly 26.2 N, 92.9 E)
         setTimeout(() => {
             if (globeRef.current) {
                 globeRef.current.controls().autoRotate = true;
-                globeRef.current.controls().autoRotateSpeed = 0.8;
+                globeRef.current.controls().autoRotateSpeed = 0.7;
                 globeRef.current.controls().enableZoom = false;
-                globeRef.current.pointOfView({ lat: 20, lng: 80, altitude: 1.8 });
+                globeRef.current.pointOfView({ lat: 20, lng: 80, altitude: 1.75 });
             }
-        }, 500);
+        }, 600);
     }, []);
 
-    // Trajectory arcs linking satellite command centers to AOI
     const arcsData = [
-        { startLat: 26.2, startLng: 92.9, endLat: 51.5, endLng: -0.1, color: ['#22D3EE', '#F97316'] }, // Assam -> London data relay
-        { startLat: 26.2, startLng: 92.9, endLat: 38.9, endLng: -77.0, color: ['#0D7377', '#EF4444'] } // Assam -> WashDC relay
+        { startLat: 26.2, startLng: 92.9, endLat: 51.5, endLng: -0.1,  color: [C.primaryL, C.orange] },
+        { startLat: 26.2, startLng: 92.9, endLat: 38.9, endLng: -77.0, color: [C.primary,  '#EF4444'] },
+        { startLat: 20.5, startLng: 78.9, endLat: 35.7, endLng: 139.7, color: [C.accent,   C.green]  },
     ];
 
-    // Pulsing hotspot rings at major detection sites
     const ringsData = [
-        { lat: 26.2, lng: 92.9, maxR: 7, propagationSpeed: 2, repeatPeriod: 1500, color: '#EF4444' }, // Assam Critical Hub
-        { lat: 28.6, lng: 77.2, maxR: 4, propagationSpeed: 1, repeatPeriod: 2500, color: '#22C55E' }, // Delhi Secondary Hub
+        { lat: 26.2, lng: 92.9, maxR: 8, propagationSpeed: 2,   repeatPeriod: 1400, color: '#EF4444' },
+        { lat: 20.5, lng: 78.9, maxR: 5, propagationSpeed: 1.2, repeatPeriod: 2200, color: C.primaryL },
+        { lat: 28.6, lng: 77.2, maxR: 4, propagationSpeed: 1,   repeatPeriod: 2800, color: '#22C55E' },
+        { lat: 13.0, lng: 80.2, maxR: 3, propagationSpeed: 0.9, repeatPeriod: 3000, color: C.accent  },
+    ];
+
+    const BADGES = [
+        { label: 'BRAHMAPUTRA BASIN', sub: 'Crop Stress Detected',  color: '#EF4444', x: '-8%',  y: '22%' },
+        { label: 'SAR ORBIT PASS',    sub: 'Sentinel-1 Live',       color: C.primaryL, x: '82%', y: '12%' },
+        { label: 'NDVI HEALTH',       sub: '92.4% Accuracy',        color: '#22C55E', x: '78%', y: '78%' },
+        { label: 'INDIA COVERAGE',    sub: '28 States Monitored',   color: C.accent,  x: '-2%', y: '76%' },
     ];
 
     return (
-        <div style={{ position: 'relative', width: '100%', maxWidth: 540, aspectRatio: '1/1', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Ambient Background Glow for contrast blending */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: 520, aspectRatio: '1/1', margin: '0 auto' }}>
+            {/* Ambient glow */}
             <div style={{
-                position: 'absolute', inset: '10%',
-                background: `radial-gradient(circle, ${TEAL}40 0%, transparent 65%)`,
-                borderRadius: '50%', filter: 'blur(50px)', zIndex: 0,
+                position: 'absolute', inset: '12%',
+                background: `radial-gradient(circle, ${C.primary}30 0%, transparent 70%)`,
+                borderRadius: '50%', filter: 'blur(56px)', zIndex: 0, pointerEvents: 'none',
             }} />
 
-            {/* 3D WebGL Globe Container */}
+            {/* Globe */}
             {mounted && (
-                <div style={{ zIndex: 1, cursor: 'grab', width: 540, height: 540, pointerEvents: 'auto' }} onMouseDown={e => { e.currentTarget.style.cursor = 'grabbing' }} onMouseUp={e => { e.currentTarget.style.cursor = 'grab' }}>
+                <div style={{ zIndex: 1, cursor: 'grab', width: 520, height: 520, pointerEvents: 'auto' }}
+                    onMouseDown={e => (e.currentTarget.style.cursor = 'grabbing')}
+                    onMouseUp={e => (e.currentTarget.style.cursor = 'grab')}
+                >
                     <GlobeVis
                         ref={globeRef}
-                        width={540}
-                        height={540}
+                        width={520}
+                        height={520}
                         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
                         backgroundColor="rgba(0,0,0,0)"
-                        atmosphereColor="#22D3EE"
-                        atmosphereAltitude={0.2}
-
-                        // Active transmission arcs
+                        atmosphereColor={C.primaryL}
+                        atmosphereAltitude={0.22}
                         arcsData={arcsData}
                         arcColor="color"
-                        arcDashLength={0.4}
+                        arcDashLength={0.45}
                         arcDashGap={4}
                         arcDashInitialGap={() => Math.random() * 5}
-                        arcDashAnimateTime={2000}
-
-                        // Geospatial hot zones
+                        arcDashAnimateTime={2200}
                         ringsData={ringsData}
                         ringColor={(d: any) => d.color}
                         ringMaxRadius="maxR"
@@ -122,33 +109,25 @@ function EarthVisual() {
                 </div>
             )}
 
-            {/* Floating UI Data Badges (React elements layered on top) */}
-            {[
-                { label: 'BRAHMAPUTRA BASIN', sub: 'Critical Inundation', color: '#EF4444', x: '-15%', y: '25%' },
-                { label: 'ORBIT PASS: S1A', sub: 'Live Telemetry', color: CYAN, x: '85%', y: '15%' },
-                { label: 'RADAR COHERENCE', sub: '92.4% Match', color: '#22C55E', x: '80%', y: '75%' },
-                { label: 'POP. IMPACT MAPPED', sub: 'WorldPop Overlay', color: '#A78BFA', x: '-5%', y: '75%' },
-            ].map((b, i) => (
+            {/* Floating data badges */}
+            {BADGES.map((b, i) => (
                 <motion.div
                     key={i}
-                    animate={{ y: [-4, 4, -4] }}
-                    transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+                    animate={{ y: [-5, 5, -5] }}
+                    transition={{ duration: 3.5 + i * 0.6, repeat: Infinity, ease: 'easeInOut' }}
                     style={{
-                        position: 'absolute', left: b.x, top: b.y,
-                        background: 'rgba(6,11,20,0.85)', backdropFilter: 'blur(10px)',
-                        border: `1px solid ${b.color}30`, borderRadius: 10, padding: '10px 14px',
-                        zIndex: 10, boxShadow: `0 10px 25px rgba(0,0,0,0.5)`,
-                        display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'none'
+                        position: 'absolute', left: b.x, top: b.y, zIndex: 10,
+                        background: 'rgba(10,22,40,0.88)', backdropFilter: 'blur(12px)',
+                        border: `1px solid ${b.color}30`, borderRadius: 10,
+                        padding: '9px 13px', display: 'flex', alignItems: 'center', gap: 9,
+                        pointerEvents: 'none',
+                        boxShadow: `0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px ${b.color}10`,
                     }}
                 >
-                    <div style={{ width: 4, height: 20, borderRadius: 2, background: b.color }} />
+                    <div style={{ width: 4, height: 22, borderRadius: 2, background: b.color, flexShrink: 0 }} />
                     <div>
-                        <div style={{ fontSize: 9, fontWeight: 900, color: b.color, letterSpacing: '0.1em' }}>
-                            {b.label}
-                        </div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, fontWeight: 600 }}>
-                            {b.sub}
-                        </div>
+                        <div style={{ fontSize: 8, fontWeight: 900, color: b.color, letterSpacing: '0.1em' }}>{b.label}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 2, fontWeight: 600 }}>{b.sub}</div>
                     </div>
                 </motion.div>
             ))}
@@ -156,64 +135,96 @@ function EarthVisual() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Navbar
-// ─────────────────────────────────────────────────────────────
+/* ── Scroll-triggered fade-up wrapper ─── */
+function FadeUp({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true, margin: '-60px' });
+    return (
+        <motion.div
+            ref={ref}
+            initial={{ opacity: 0, y: 28 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.65, delay, ease: [0.16, 1, 0.3, 1] }}
+            className={className}
+        >
+            {children}
+        </motion.div>
+    );
+}
+
+/* ── Animated number counter ──────────── */
+function Counter({ to, suffix = '', prefix = '' }: { to: number; suffix?: string; prefix?: string }) {
+    const [n, setN] = useState(0);
+    const ref = useRef(null);
+    const inView = useInView(ref, { once: true });
+    useEffect(() => {
+        if (!inView) return;
+        let v = 0;
+        const step = to / (1600 / 14);
+        const t = setInterval(() => {
+            v += step;
+            if (v >= to) { setN(to); clearInterval(t); } else setN(Math.floor(v));
+        }, 14);
+        return () => clearInterval(t);
+    }, [inView, to]);
+    return <span ref={ref}>{prefix}{n.toLocaleString()}{suffix}</span>;
+}
+
+/* ─────────────────────────────────────────────
+   NAVBAR
+───────────────────────────────────────────── */
 function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 30);
-        window.addEventListener('scroll', onScroll);
-        return () => window.removeEventListener('scroll', onScroll);
+        const fn = () => setScrolled(window.scrollY > 24);
+        window.addEventListener('scroll', fn);
+        return () => window.removeEventListener('scroll', fn);
     }, []);
 
     return (
         <nav style={{
-            position: 'fixed', top: 12, left: 12, right: 12, zIndex: 100,
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+            background: scrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.88)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: `1px solid ${scrolled ? C.border : 'transparent'}`,
+            transition: 'all 0.3s ease',
+            boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.06)' : 'none',
         }}>
             <div style={{
                 maxWidth: 1200, margin: '0 auto',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '14px 24px',
-                borderRadius: 16,
-                background: scrolled ? 'rgba(6,11,20,0.92)' : 'rgba(6,11,20,0.70)',
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${scrolled ? 'rgba(13,115,119,0.4)' : BORDER}`,
-                boxShadow: scrolled ? '0 8px 32px rgba(0,0,0,0.5)' : 'none',
-                transition: 'all 0.3s ease',
+                padding: '0 32px', height: 64,
             }}>
                 {/* Logo */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{
-                        width: 34, height: 34, borderRadius: 9,
-                        background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
+                        width: 36, height: 36, borderRadius: 10,
+                        background: `linear-gradient(135deg, ${C.bgDark}, ${C.primary})`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: `0 0 16px ${TEAL}50`,
+                        boxShadow: `0 4px 12px ${C.primary}40`,
                     }}>
-                        <Satellite size={16} color="white" />
+                        <Satellite size={17} color="white" />
                     </div>
                     <div>
-                        <div style={{ fontWeight: 900, fontSize: 15, color: '#fff', letterSpacing: '-0.02em' }}>
-                            NETRA.AI
+                        <div style={{ fontWeight: 900, fontSize: 15, color: C.text, letterSpacing: '-0.02em' }}>
+                            NETRA<span style={{ color: C.primary }}>.AI</span>
                         </div>
-                        <div style={{ fontSize: 9, color: TEAL_LIGHT, fontWeight: 700, letterSpacing: '0.1em' }}>
-                            INTELLIGENCE ENGINE
+                        <div style={{ fontSize: 9, color: C.textMuted, fontWeight: 600, letterSpacing: '0.06em' }}>
+                            Kisan Saathi
                         </div>
                     </div>
                 </div>
 
-                {/* Nav links */}
-                <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-                    {['Platform', 'Pipeline', 'Stakeholders', 'API'].map(link => (
-                        <a key={link} href={`#${link.toLowerCase()}`} style={{
-                            fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.55)',
-                            textDecoration: 'none', transition: 'color 0.2s',
+                {/* Links */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+                    {['Platform', 'How it Works', 'Features', 'Data'].map(l => (
+                        <a key={l} href={`#${l.toLowerCase().replace(/\s+/g, '-')}`} style={{
+                            fontSize: 13, fontWeight: 600, color: C.textMuted,
+                            textDecoration: 'none', transition: 'color 0.18s',
                         }}
-                            onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
-                        >
-                            {link}
-                        </a>
+                            onMouseEnter={e => (e.currentTarget.style.color = C.text)}
+                            onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}
+                        >{l}</a>
                     ))}
                 </div>
 
@@ -221,196 +232,184 @@ function Navbar() {
                 <a href="/login" style={{
                     display: 'flex', alignItems: 'center', gap: 7,
                     padding: '9px 20px', borderRadius: 10,
-                    background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
+                    background: `linear-gradient(135deg, ${C.primary}, ${C.primaryL})`,
                     color: 'white', fontWeight: 700, fontSize: 13,
-                    textDecoration: 'none',
-                    boxShadow: `0 0 20px ${TEAL}50`,
+                    textDecoration: 'none', cursor: 'pointer',
+                    boxShadow: `0 4px 14px ${C.primary}40`,
                     transition: 'all 0.2s',
-                }}>
-                    Launch Dashboard <ArrowRight size={14} />
+                }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 6px 20px ${C.primary}60`; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 4px 14px ${C.primary}40`; (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; }}
+                >
+                    Open Dashboard <ArrowRight size={14} />
                 </a>
             </div>
         </nav>
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Hero
-// ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   HERO
+───────────────────────────────────────────── */
 function Hero() {
     return (
         <section style={{
-            background: BG,
-            padding: '140px 24px 80px',
+            background: `linear-gradient(160deg, #0A1628 0%, #0D2040 45%, #0A1628 100%)`,
+            padding: '120px 32px 90px',
             position: 'relative', overflow: 'hidden',
         }}>
-            {/* Grid background */}
+            {/* Grid overlay */}
             <div style={{
                 position: 'absolute', inset: 0,
-                backgroundImage: `linear-gradient(${BORDER} 1px, transparent 1px), linear-gradient(90deg, ${BORDER} 1px, transparent 1px)`,
-                backgroundSize: '60px 60px',
-                WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 75%)',
-                maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, transparent 75%)',
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
+                backgroundSize: '56px 56px',
+                WebkitMaskImage: 'radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0.5) 0%, transparent 70%)',
+                maskImage: 'radial-gradient(ellipse at 60% 50%, rgba(0,0,0,0.5) 0%, transparent 70%)',
+                pointerEvents: 'none',
             }} />
 
-            {/* Glow bottom */}
-            <div style={{
-                position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                width: '60%', height: 200,
-                background: `radial-gradient(ellipse, ${TEAL}25 0%, transparent 70%)`,
-                filter: 'blur(40px)',
-            }} />
+            {/* Ambient glows */}
+            <div style={{ position: 'absolute', top: -80, left: '5%',  width: 480, height: 480, borderRadius: '50%', background: `radial-gradient(circle, ${C.primary}25 0%, transparent 70%)`, filter: 'blur(80px)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 60,  right: '2%', width: 380, height: 380, borderRadius: '50%', background: `radial-gradient(circle, ${C.accent}15 0%, transparent 70%)`, filter: 'blur(100px)', pointerEvents: 'none' }} />
 
-            <div style={{ maxWidth: 1200, margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center', position: 'relative', zIndex: 1 }}>
+            <div style={{ maxWidth: 1240, margin: '0 auto', position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}>
 
                 {/* LEFT — text */}
                 <div>
-                    {/* PS Badge */}
+                    {/* Live badge */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 8,
-                            padding: '7px 14px', borderRadius: 999,
-                            background: `${TEAL}15`, border: `1px solid ${TEAL}35`,
-                            marginBottom: 24,
-                        }}
+                        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+                        style={{ marginBottom: 28 }}
                     >
-                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px #22C55E' }} />
-                        <span style={{ fontSize: 10, fontWeight: 800, color: TEAL_LIGHT, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                            HackX 4.0 · PS-06 · Satellite Risk Intelligence
-                        </span>
+                        <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            padding: '7px 16px', borderRadius: 999,
+                            background: `${C.primary}18`, border: `1px solid ${C.primary}35`,
+                        }}>
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 0 3px rgba(34,197,94,0.25)', animation: 'pulseGlow 2s infinite' }} />
+                            <span style={{ fontSize: 11, fontWeight: 800, color: C.primaryL, letterSpacing: '0.08em' }}>
+                                LIVE · HackX 4.0 · Satellite AgriTech
+                            </span>
+                        </div>
                     </motion.div>
 
                     {/* Headline */}
                     <motion.h1
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.1 }}
+                        initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.08 }}
                         style={{
-                            fontSize: 'clamp(36px, 5vw, 62px)',
-                            fontWeight: 900,
-                            color: '#fff',
-                            lineHeight: 1.1,
-                            letterSpacing: '-0.03em',
-                            marginBottom: 24,
+                            fontSize: 'clamp(34px, 4.5vw, 64px)',
+                            fontWeight: 900, color: 'white', lineHeight: 1.1,
+                            letterSpacing: '-0.035em', marginBottom: 22,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
                         }}
                     >
                         Satellite Data.<br />
                         <span style={{
-                            background: `linear-gradient(135deg, ${TEAL_LIGHT}, ${CYAN})`,
+                            background: `linear-gradient(135deg, ${C.primaryL} 0%, #22D3EE 100%)`,
                             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
                         }}>
-                            Instant Climate Risk.
+                            Instant Farm Action.
                         </span>
                     </motion.h1>
 
-                    {/* Subtext */}
+                    {/* Sub */}
                     <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.2 }}
+                        initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.16 }}
                         style={{
-                            fontSize: 17, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7,
-                            maxWidth: 480, marginBottom: 40, fontWeight: 500,
+                            fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75,
+                            maxWidth: 460, marginBottom: 36, fontWeight: 500,
                         }}
                     >
-                        NETRA.AI is an automated intelligence engine that transforms open satellite imagery (Sentinel-1/2, Landsat) into structured, decision-ready climate risk insights — in near real-time.
+                        NETRA.AI turns Sentinel-1 &amp; Sentinel-2 satellite imagery into real-time
+                        crop health scores, irrigation alerts, and fertilizer plans — for every Indian farm,
+                        automatically.
                     </motion.p>
 
-                    {/* CTA row */}
+                    {/* CTA Row */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 52 }}
+                        initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.24 }}
+                        style={{ display: 'flex', gap: 12, marginBottom: 52, flexWrap: 'wrap' }}
                     >
                         <a href="/login" style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '13px 28px', borderRadius: 12,
-                            background: `linear-gradient(135deg, ${TEAL} 0%, ${TEAL_LIGHT} 100%)`,
-                            color: '#fff', fontWeight: 800, fontSize: 14,
-                            textDecoration: 'none',
-                            boxShadow: `0 4px 24px ${TEAL}50`,
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            padding: '13px 26px', borderRadius: 12,
+                            background: `linear-gradient(135deg, ${C.primary}, ${C.primaryL})`,
+                            color: 'white', fontWeight: 800, fontSize: 14,
+                            textDecoration: 'none', cursor: 'pointer',
+                            boxShadow: `0 6px 24px ${C.primary}55`,
                             transition: 'all 0.2s',
-                        }}>
+                        }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 12px 32px ${C.primary}65`; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = `0 6px 24px ${C.primary}55`; }}
+                        >
                             Open Dashboard <ArrowRight size={16} />
                         </a>
-                        <a href="#pipeline" style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '13px 24px', borderRadius: 12,
-                            border: `1px solid ${BORDER}`,
-                            color: 'rgba(255,255,255,0.7)', fontWeight: 700, fontSize: 14,
-                            textDecoration: 'none',
-                            transition: 'all 0.2s',
-                        }}>
+                        <a href="#how-it-works" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 7,
+                            padding: '13px 22px', borderRadius: 12,
+                            background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
+                            color: 'rgba(255,255,255,0.8)', fontWeight: 700, fontSize: 14,
+                            textDecoration: 'none', cursor: 'pointer',
+                            backdropFilter: 'blur(8px)', transition: 'all 0.18s',
+                        }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.13)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.07)'; }}
+                        >
                             How it Works <ChevronRight size={15} />
                         </a>
                     </motion.div>
 
-                    {/* Stats row */}
+                    {/* Stats */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.6 }}
-                        style={{
-                            display: 'flex', gap: 32,
-                            paddingTop: 32, borderTop: `1px solid ${BORDER}`,
-                        }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42, duration: 0.7 }}
+                        style={{ display: 'flex', gap: 32, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,0.08)' }}
                     >
                         {[
-                            { val: 11, suffix: '+', label: 'PS-06 Requirements Met' },
-                            { val: 99, suffix: '.7%', label: 'Detection Accuracy' },
-                            { val: 142, suffix: 'ms', label: 'API Latency' },
+                            { val: 20, suffix: '+', label: 'Farms Monitored' },
+                            { val: 97, suffix: '%', label: 'Satellite Accuracy' },
+                            { val: 48, suffix: 'hr', label: 'Alert Window' },
                         ].map((s, i) => (
                             <div key={i}>
-                                <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>
-                                    <AnimatedCounter to={s.val} suffix={s.suffix} />
+                                <div style={{ fontSize: 28, fontWeight: 900, color: 'white', letterSpacing: '-0.03em' }}>
+                                    <Counter to={s.val} suffix={s.suffix} />
                                 </div>
-                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: 4 }}>
-                                    {s.label}
-                                </div>
+                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: 3 }}>{s.label}</div>
                             </div>
                         ))}
                     </motion.div>
                 </div>
 
-                {/* RIGHT — Visual */}
+                {/* RIGHT — 3D Globe */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
+                    initial={{ opacity: 0, scale: 0.88 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
+                    transition={{ duration: 1.1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 >
                     <EarthVisual />
                 </motion.div>
             </div>
+
+            <style>{`
+                @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,0.25);} 50%{box-shadow:0 0 0 6px rgba(34,197,94,0.08);} }
+                @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+            `}</style>
         </section>
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Data sources trust strip
-// ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   TRUST STRIP
+───────────────────────────────────────────── */
 function TrustStrip() {
-    const sources = ['Sentinel-1 SAR', 'Sentinel-2 MSI', 'Landsat-8/9', 'CHIRPS Rainfall', 'WorldPop 100m', 'JRC Global Water', 'Copernicus DEM', 'Open-Meteo API', 'NASA FIRMS'];
+    const sources = ['Sentinel-1 SAR', 'Sentinel-2 MSI', 'Landsat-8/9', 'Google Earth Engine', 'CHIRPS Rainfall', 'Open-Meteo API', 'WorldPop 100m', 'HackX 4.0'];
     return (
-        <div style={{
-            background: 'rgba(13,115,119,0.06)',
-            borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}`,
-            padding: '18px 24px', overflow: 'hidden',
-        }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.15em', textTransform: 'uppercase', flexShrink: 0 }}>
-                    Data Sources:
-                </span>
+        <div style={{ background: 'white', borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, padding: '16px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 10, fontWeight: 800, color: C.textMuted, letterSpacing: '0.12em', textTransform: 'uppercase', marginRight: 8 }}>Powered by</span>
                 {sources.map((s, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        {i > 0 && <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>}
-                        <span style={{
-                            fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.45)',
-                            letterSpacing: '0.04em',
-                        }}>{s}</span>
+                        {i > 0 && <span style={{ color: C.border }}>·</span>}
+                        <span style={{ fontSize: 12, fontWeight: 700, color: C.textMuted }}>{s}</span>
                     </div>
                 ))}
             </div>
@@ -418,381 +417,76 @@ function TrustStrip() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Problem Section
-// ─────────────────────────────────────────────────────────────
-function ProblemSection() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-100px' });
-
-    return (
-        <section ref={ref} style={{ background: BG2, padding: '120px 24px' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
-
-                    {/* Left — text */}
-                    <div>
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={inView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ duration: 0.7 }}
-                        >
-                            <span style={{
-                                fontSize: 10, fontWeight: 900, color: ORANGE,
-                                letterSpacing: '0.15em', textTransform: 'uppercase',
-                                display: 'block', marginBottom: 16,
-                            }}>
-                                The Data Paradox
-                            </span>
-                            <h2 style={{
-                                fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900,
-                                color: '#fff', lineHeight: 1.15, letterSpacing: '-0.03em',
-                                marginBottom: 24,
-                            }}>
-                                The planet generates<br />petabytes of potential.<br />
-                                <span style={{ color: ORANGE }}>Most never becomes insight.</span>
-                            </h2>
-                            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.75, maxWidth: 440 }}>
-                                Earth observation satellites generate <strong style={{ color: 'rgba(255,255,255,0.8)' }}>terabytes of raw imagery daily</strong>. Yet converting this spectral noise into actionable intelligence requires compute, algorithms, and expertise most organizations simply don't have.
-                            </p>
-                            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.75, maxWidth: 440, marginTop: 16 }}>
-                                Governments and disaster agencies end up <strong style={{ color: 'rgba(255,255,255,0.8)' }}>reacting to floods</strong> using outdated manual surveys rather than real-time satellite truth.
-                            </p>
-                        </motion.div>
-                    </div>
-
-                    {/* Right — problem cards */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {[
-                            {
-                                icon: AlertTriangle, color: '#EF4444',
-                                title: 'Raw Data Overload',
-                                desc: 'Sentinel satellites generate 1.6TB/day. Without automated processing, it sits unused in ESA archives.',
-                            },
-                            {
-                                icon: Eye, color: ORANGE,
-                                title: 'Cloud-Blinded Optical Sensors',
-                                desc: 'Standard optical imagery fails completely during monsoons when floods are most severe.',
-                            },
-                            {
-                                icon: Database, color: '#A78BFA',
-                                title: 'Disconnected Insight Chains',
-                                desc: 'Flood extent data, population exposure, and rainfall trends exist in silos — never fused into a risk score.',
-                            },
-                        ].map((card, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: 30 }}
-                                animate={inView ? { opacity: 1, x: 0 } : {}}
-                                transition={{ duration: 0.6, delay: i * 0.15 }}
-                                style={{
-                                    display: 'flex', gap: 16, alignItems: 'flex-start',
-                                    padding: '20px 22px', borderRadius: 16,
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: `1px solid ${card.color}20`,
-                                    borderLeft: `3px solid ${card.color}`,
-                                    transition: 'all 0.2s',
-                                    cursor: 'default',
-                                }}
-                            >
-                                <div style={{
-                                    width: 38, height: 38, borderRadius: 10,
-                                    background: `${card.color}15`,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    flexShrink: 0,
-                                }}>
-                                    <card.icon size={18} color={card.color} />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 6 }}>{card.title}</div>
-                                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{card.desc}</div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Pipeline Visualization
-// ─────────────────────────────────────────────────────────────
-function PipelineSection() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-80px' });
-
+/* ─────────────────────────────────────────────
+   HOW IT WORKS  (3-step)
+───────────────────────────────────────────── */
+function HowItWorks() {
     const steps = [
         {
-            num: '01', icon: Satellite, color: CYAN,
-            title: 'Satellite Ingestion',
-            desc: 'Sentinel-1/2 and Landsat scenes are pulled from ESA/USGS APIs, filtered by AOI, date, and cloud cover.',
+            num: '01', Icon: Satellite, color: C.primary,
+            title: 'Satellite Scans Your Farm',
+            desc: 'Every 3–5 days, Sentinel-1 & Sentinel-2 satellites pass over India and capture detailed imagery of every crop field — automatically.',
         },
         {
-            num: '02', icon: Cpu, color: TEAL_LIGHT,
-            title: 'GEE Processing',
-            desc: 'Google Earth Engine runs NDWI and VV-backscatter algorithms in the cloud. Slope masks remove false positives.',
+            num: '02', Icon: Cpu, color: C.accent,
+            title: 'AI Analyzes Crop Health',
+            desc: 'Google Earth Engine processes the imagery to calculate NDVI (vegetation), soil moisture, and water stress scores for each farm plot.',
         },
         {
-            num: '03', icon: Layers, color: '#22C55E',
-            title: 'Enrichment',
-            desc: 'Flood polygons intersect with WorldPop demographics, CHIRPS rainfall, and terrain data for full exposure metrics.',
-        },
-        {
-            num: '04', icon: BarChart3, color: ORANGE,
-            title: 'Risk Scoring',
-            desc: 'A Bayesian fusion model assigns 0-100 confidence scores and tiers each zone: CRITICAL / HIGH / MEDIUM / LOW.',
-        },
-        {
-            num: '05', icon: Globe, color: '#A78BFA',
-            title: 'Delivery',
-            desc: 'Structured JSON served via REST API, visualized in the Next.js dashboard, and auto-exported as PDF reports.',
+            num: '03', Icon: Zap, color: C.green,
+            title: 'You Get Instant Alerts',
+            desc: 'NETRA.AI sends email alerts with exact fertilizer doses and irrigation schedules in simple Hindi & English. No app download required.',
         },
     ];
 
     return (
-        <section id="pipeline" ref={ref} style={{ background: BG, padding: '120px 24px' }}>
+        <section id="how-it-works" style={{ background: C.bg, padding: '100px 32px' }}>
             <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-
-                {/* Header */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.7 }}
-                    style={{ textAlign: 'center', marginBottom: 80 }}
-                >
-                    <span style={{
-                        fontSize: 10, fontWeight: 900, color: TEAL_LIGHT,
-                        letterSpacing: '0.15em', textTransform: 'uppercase',
-                        display: 'block', marginBottom: 16,
-                    }}>Automated Pipeline</span>
-                    <h2 style={{
-                        fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900,
-                        color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 18
-                    }}>
-                        From raw pixels to risk insights<br />
-                        <span style={{ color: TEAL_LIGHT }}>in one automated chain.</span>
-                    </h2>
-                    <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 520, margin: '0 auto' }}>
-                        No manual intervention required. The engine runs on every new satellite pass over your area of interest.
-                    </p>
-                </motion.div>
-
-                {/* Pipeline steps */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, position: 'relative' }}>
-                    {/* Connecting line */}
-                    <div style={{
-                        position: 'absolute', top: 28, left: '10%', right: '10%',
-                        height: 1, background: `linear-gradient(90deg, transparent, ${TEAL}50, ${CYAN}50, ${ORANGE}50, transparent)`,
-                        zIndex: 0,
-                    }} />
-
-                    {steps.map((step, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={inView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.6, delay: i * 0.12 }}
-                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 12px', position: 'relative', zIndex: 1 }}
-                        >
-                            {/* Icon circle */}
-                            <div style={{
-                                width: 56, height: 56, borderRadius: '50%',
-                                background: BG,
-                                border: `2px solid ${step.color}50`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                marginBottom: 20,
-                                boxShadow: `0 0 20px ${step.color}25`,
-                            }}>
-                                <step.icon size={22} color={step.color} />
-                            </div>
-
-                            <div style={{
-                                fontSize: 28, fontWeight: 900,
-                                color: 'rgba(255,255,255,0.06)',
-                                letterSpacing: '-0.04em', marginBottom: 10,
-                            }}>{step.num}</div>
-                            <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', textAlign: 'center', marginBottom: 10 }}>{step.title}</div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 1.6 }}>{step.desc}</div>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Algorithm spotlight */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.7, delay: 0.6 }}
-                    style={{
-                        marginTop: 72,
-                        background: 'rgba(255,255,255,0.025)',
-                        border: `1px solid ${BORDER}`,
-                        borderRadius: 20,
-                        padding: 32,
-                        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24,
-                    }}
-                >
-                    <div>
-                        <div style={{ fontSize: 11, color: TEAL_LIGHT, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-                            Detection Algorithm
+                <FadeUp>
+                    <div style={{ textAlign: 'center', marginBottom: 64 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: C.primary, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>
+                            How it Works
                         </div>
-                        <pre style={{
-                            fontSize: 12, color: 'rgba(255,255,255,0.7)',
-                            background: 'rgba(0,0,0,0.4)', borderRadius: 12,
-                            padding: '16px 18px', overflow: 'auto',
-                            border: `1px solid ${BORDER}`, lineHeight: 1.7,
-                            fontFamily: 'ui-monospace, monospace',
-                        }}>{`# SAR Flood Detection
-flood = pre_VV.subtract(post_VV).gt(-2.0)
-
-# NDWI Optical
-ndwi = green.subtract(nir)
-       .divide(green.add(nir))
-flood_opt = ndwi.gt(0)
-
-# Slope mask (remove artefacts)
-flood_clean = flood.Or(flood_opt)
-  .updateMask(slope.lt(5))`}</pre>
+                        <h2 style={{ fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900, color: C.text, letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 14 }}>
+                            From Satellite to Your Phone<br />
+                            <span style={{ color: C.primary }}>in 3 Simple Steps</span>
+                        </h2>
+                        <p style={{ fontSize: 16, color: C.textMuted, maxWidth: 480, margin: '0 auto' }}>
+                            No technical knowledge needed. Just click and act.
+                        </p>
                     </div>
-                    <div>
-                        <div style={{ fontSize: 11, color: ORANGE, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
-                            Confidence Scoring
-                        </div>
-                        <pre style={{
-                            fontSize: 12, color: 'rgba(255,255,255,0.7)',
-                            background: 'rgba(0,0,0,0.4)', borderRadius: 12,
-                            padding: '16px 18px', overflow: 'auto',
-                            border: `1px solid ${BORDER}`, lineHeight: 1.7,
-                            fontFamily: 'ui-monospace, monospace',
-                        }}>{`# Bayesian Fusion Model
-confidence = (
-  sar_conf  * 0.50 +   # Radar
-  opt_conf  * 0.30 +   # Optical
-  rain_wt   * 0.20     # CHIRPS
-)
+                </FadeUp>
 
-# Risk Tiering
-CRITICAL if score > 85
-HIGH     if score > 65
-MEDIUM   if score > 40`}</pre>
-                    </div>
-                </motion.div>
-            </div>
-        </section>
-    );
-}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, position: 'relative' }}>
+                    {/* Connector line */}
+                    <div style={{ position: 'absolute', top: 36, left: '16%', right: '16%', height: 2, background: `linear-gradient(90deg, ${C.primary}, ${C.accent}, ${C.green})`, borderRadius: 1, opacity: 0.3 }} />
 
-// ─────────────────────────────────────────────────────────────
-// Platform Features Bento
-// ─────────────────────────────────────────────────────────────
-function FeaturesSection() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-80px' });
-
-    const features = [
-        {
-            icon: Radio, color: CYAN, span: 2,
-            title: 'Monsoon-Resilient Detection',
-            desc: 'Sentinel-1 Synthetic Aperture Radar sees through cloud cover. Unlike optical sensors that fail during monsoons, SAR actively penetrates storm systems — exactly when flood detection matters most.',
-            tag: 'CLOUD-PIERCING SAR',
-        },
-        {
-            icon: MapPin, color: '#EF4444', span: 1,
-            title: 'Assam Deep Dive',
-            desc: 'Specialized 10m-resolution tracking of the Brahmaputra Basin [89.7, 24.1, 96.0, 28.2] — India\'s most flood-prone region.',
-            tag: 'HIGH-RISK FOCUS',
-        },
-        {
-            icon: TrendingUp, color: '#22C55E', span: 1,
-            title: 'Population Exposure',
-            desc: 'WorldPop 100m overlay quantifies exactly how many people are within each detected flood boundary.',
-            tag: 'DEMOGRAPHIC INTEL',
-        },
-        {
-            icon: Sparkles, color: '#A78BFA', span: 1,
-            title: 'Predictive Forecasting',
-            desc: 'CHIRPS daily rainfall integration forecasts flood inundation risk 7 days before river breach events.',
-            tag: 'COMING SOON',
-        },
-        {
-            icon: ShieldCheck, color: TEAL_LIGHT, span: 2,
-            title: 'Audit-Grade Data Provenance',
-            desc: 'Every detection exports satellite ID, acquisition timestamp, algorithm version, and confidence score. Full chain-of-custody for regulatory and insurance submissions.',
-            tag: 'COMPLIANCE READY',
-        },
-    ];
-
-    return (
-        <section id="platform" ref={ref} style={{ background: BG2, padding: '120px 24px' }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.7 }}
-                    style={{ marginBottom: 60 }}
-                >
-                    <span style={{
-                        fontSize: 10, fontWeight: 900, color: TEAL_LIGHT,
-                        letterSpacing: '0.15em', textTransform: 'uppercase',
-                        display: 'block', marginBottom: 14,
-                    }}>Platform Capabilities</span>
-                    <h2 style={{
-                        fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900,
-                        color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.15,
-                    }}>
-                        Algorithmic edge over{' '}
-                        <span style={{ color: TEAL_LIGHT }}>raw pixels.</span>
-                    </h2>
-                </motion.div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                    {features.map((f, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={inView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.6, delay: i * 0.1 }}
-                            style={{
-                                gridColumn: `span ${f.span}`,
-                                padding: 28, borderRadius: 20,
-                                background: 'rgba(255,255,255,0.025)',
-                                border: `1px solid ${BORDER}`,
-                                transition: 'all 0.25s ease',
-                                cursor: 'default',
-                                position: 'relative', overflow: 'hidden',
+                    {steps.map((s, i) => (
+                        <FadeUp key={i} delay={i * 0.12}>
+                            <div style={{
+                                background: 'white', border: `1px solid ${C.border}`,
+                                borderRadius: 20, padding: '32px 28px',
+                                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                                position: 'relative', cursor: 'default',
+                                transition: 'all 0.2s',
                             }}
-                            whileHover={{ borderColor: `${f.color}30`, y: -3 }}
-                        >
-                            {/* Hover glow */}
-                            <div style={{
-                                position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-                                background: `linear-gradient(90deg, transparent, ${f.color}40, transparent)`,
-                            }} />
-
-                            {/* Tag */}
-                            <span style={{
-                                display: 'inline-block', fontSize: 9, fontWeight: 900,
-                                color: f.color, background: `${f.color}15`,
-                                border: `1px solid ${f.color}25`, borderRadius: 5,
-                                padding: '3px 8px', letterSpacing: '0.08em',
-                                marginBottom: 16,
-                            }}>
-                                {f.tag}
-                            </span>
-
-                            <div style={{
-                                width: 40, height: 40, borderRadius: 11,
-                                background: `${f.color}12`,
-                                border: `1px solid ${f.color}25`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                marginBottom: 16,
-                            }}>
-                                <f.icon size={18} color={f.color} />
+                                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 12px 36px ${s.color}18`; el.style.borderColor = `${s.color}40`; el.style.transform = 'translateY(-3px)'; }}
+                                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)'; el.style.borderColor = C.border; el.style.transform = 'translateY(0)'; }}
+                            >
+                                {/* Step number */}
+                                <div style={{
+                                    width: 48, height: 48, borderRadius: 14,
+                                    background: `${s.color}12`, border: `1.5px solid ${s.color}30`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    marginBottom: 20, position: 'relative', zIndex: 1,
+                                }}>
+                                    <s.Icon size={22} color={s.color} />
+                                </div>
+                                <div style={{ fontSize: 36, fontWeight: 900, color: `${s.color}12`, letterSpacing: '-0.04em', position: 'absolute', top: 24, right: 24 }}>{s.num}</div>
+                                <h3 style={{ fontSize: 17, fontWeight: 800, color: C.text, marginBottom: 10, lineHeight: 1.3 }}>{s.title}</h3>
+                                <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>{s.desc}</p>
                             </div>
-                            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 12 }}>{f.title}</h3>
-                            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.65 }}>{f.desc}</p>
-                        </motion.div>
+                        </FadeUp>
                     ))}
                 </div>
             </div>
@@ -800,85 +494,181 @@ function FeaturesSection() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Stakeholders
-// ─────────────────────────────────────────────────────────────
-function StakeholdersSection() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-80px' });
-
-    const stakeholders = [
-        {
-            icon: Shield, color: '#3B82F6',
-            title: 'Government & Disaster Agencies',
-            items: ['Real-time situational awareness', 'Rescue team geo-targeting', 'District-level risk classification', 'Historical flood frequency maps'],
-        },
-        {
-            icon: Server, color: ORANGE,
-            title: 'Insurance & Finance',
-            items: ['Satellite-verified claim processing', 'Flood exposure underwriting', 'Portfolio climate risk scoring', 'Regulatory ORSA compliance data'],
-        },
-        {
-            icon: Map, color: '#22C55E',
-            title: 'Urban Planners & Researchers',
-            items: ['Infrastructure flood risk layers', '20+ year JRC water baselines', 'NDVI crop damage quantification', 'Post-disaster recovery tracking'],
-        },
+/* ─────────────────────────────────────────────
+   FEATURES BENTO
+───────────────────────────────────────────── */
+function Features() {
+    const feats = [
+        { Icon: Radio, color: C.primary, span: 2, tag: 'LIVE DATA', title: 'Real-Time Crop Health Monitoring', desc: 'NDVI satellite index tracks your crop vitality score (0–100) from space. Get instant alerts when a field drops below the danger threshold — before visible damage appears.' },
+        { Icon: Droplets, color: C.accent, span: 1, tag: 'WATER MGMT', title: 'Smart Irrigation Alerts', desc: 'Know exactly how many litres each field needs. Satellite soil-moisture + weather fusion eliminates guesswork from irrigation.' },
+        { Icon: FlaskConical, color: '#7C3AED', span: 1, tag: 'SOIL INTEL', title: 'Precision Fertilizer Dose', desc: 'Nitrogen deficiency scores from Sentinel-2 tell you exactly how much urea or DAP to apply — per hectare, per field.' },
+        { Icon: Shield, color: C.green, span: 1, tag: 'RISK ENGINE', title: 'Crop Risk Scoring', desc: 'Every farm gets a CRITICAL / HIGH / MEDIUM / LOW risk label updated after every satellite pass. Act before yield loss.' },
+        { Icon: Globe, color: C.orange, span: 2, tag: 'MISSION DISPATCH', title: 'One-Click Action Dispatch + Email Alerts', desc: 'Click "Apply Fertilizer" on any field and NETRA.AI instantly dispatches a mission briefing email with exact doses, step-by-step instructions in Hindi & English, and a unique Mission ID for tracking.' },
     ];
 
     return (
-        <section id="stakeholders" ref={ref} style={{ background: BG, padding: '120px 24px' }}>
+        <section id="features" style={{ background: 'white', padding: '100px 32px' }}>
             <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.7 }}
-                    style={{ textAlign: 'center', marginBottom: 64 }}
-                >
-                    <span style={{
-                        fontSize: 10, fontWeight: 900, color: TEAL_LIGHT,
-                        letterSpacing: '0.15em', textTransform: 'uppercase',
-                        display: 'block', marginBottom: 14,
-                    }}>Who Benefits</span>
-                    <h2 style={{
-                        fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900,
-                        color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.15,
+                <FadeUp>
+                    <div style={{ marginBottom: 56 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: C.primary, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Platform Features</div>
+                        <h2 style={{ fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900, color: C.text, letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                            Everything a Farmer Needs.<br />
+                            <span style={{ color: C.primary }}>Powered by Satellites.</span>
+                        </h2>
+                    </div>
+                </FadeUp>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                    {feats.map((f, i) => (
+                        <FadeUp key={i} delay={i * 0.08}>
+                            <div style={{
+                                gridColumn: `span ${f.span}`,
+                                background: C.bg, border: `1px solid ${C.border}`,
+                                borderRadius: 20, padding: '28px 26px',
+                                transition: 'all 0.22s', cursor: 'default',
+                            }}
+                                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 10px 32px ${f.color}15`; el.style.borderColor = `${f.color}35`; el.style.transform = 'translateY(-2px)'; }}
+                                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = 'none'; el.style.borderColor = C.border; el.style.transform = 'translateY(0)'; }}
+                            >
+                                <span style={{ display: 'inline-block', fontSize: 9, fontWeight: 800, color: f.color, background: `${f.color}12`, border: `1px solid ${f.color}25`, borderRadius: 5, padding: '3px 8px', letterSpacing: '0.08em', marginBottom: 16 }}>
+                                    {f.tag}
+                                </span>
+                                <div style={{ width: 42, height: 42, borderRadius: 12, background: `${f.color}12`, border: `1px solid ${f.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                    <f.Icon size={20} color={f.color} />
+                                </div>
+                                <h3 style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 10, lineHeight: 1.3 }}>{f.title}</h3>
+                                <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>{f.desc}</p>
+                            </div>
+                        </FadeUp>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   PIPELINE STEPS
+───────────────────────────────────────────── */
+function Pipeline() {
+    const steps = [
+        { num: '01', Icon: Satellite, color: '#22D3EE', title: 'Satellite Ingestion', desc: 'Sentinel-1/2 imagery pulled from ESA APIs, filtered by your area of interest, date, and cloud cover.' },
+        { num: '02', Icon: Cpu, color: C.primaryL, title: 'GEE Processing', desc: 'NDVI, NDWI, and SAR backscatter algorithms run on Google Earth Engine cloud in seconds.' },
+        { num: '03', Icon: Layers, color: C.green, title: 'Data Fusion', desc: 'Weather data, soil moisture, and crop indices are merged into a single per-farm score.' },
+        { num: '04', Icon: BarChart3, color: C.orange, title: 'Risk Scoring', desc: 'A fusion model assigns 0–100 confidence scores and tiers every field: CRITICAL / HIGH / MEDIUM / LOW.' },
+        { num: '05', Icon: Zap, color: '#8B5CF6', title: 'Action Dispatch', desc: 'Alerts sent via email with exact doses, Hindi instructions, and a unique Mission ID — instantly.' },
+    ];
+
+    return (
+        <section id="platform" style={{ background: C.bgDark, padding: '100px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <FadeUp>
+                    <div style={{ textAlign: 'center', marginBottom: 72 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: C.primaryL, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Automated Pipeline</div>
+                        <h2 style={{ fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900, color: 'white', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 14 }}>
+                            From Raw Pixels to Farm Action<br />
+                            <span style={{ color: C.primaryL }}>Fully Automated.</span>
+                        </h2>
+                        <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', maxWidth: 500, margin: '0 auto' }}>
+                            No manual steps. NETRA.AI processes every satellite pass over India automatically.
+                        </p>
+                    </div>
+                </FadeUp>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0, position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 29, left: '8%', right: '8%', height: 1.5, background: `linear-gradient(90deg, transparent, ${C.primaryL}60, #8B5CF660, transparent)` }} />
+                    {steps.map((s, i) => (
+                        <FadeUp key={i} delay={i * 0.1}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 10px', position: 'relative', zIndex: 1 }}>
+                                <div style={{
+                                    width: 58, height: 58, borderRadius: '50%',
+                                    background: C.bgDark, border: `2px solid ${s.color}50`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    marginBottom: 20, boxShadow: `0 0 24px ${s.color}20`,
+                                    transition: 'all 0.2s', cursor: 'default',
+                                }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 36px ${s.color}50`; (e.currentTarget as HTMLDivElement).style.borderColor = s.color; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 24px ${s.color}20`; (e.currentTarget as HTMLDivElement).style.borderColor = `${s.color}50`; }}
+                                >
+                                    <s.Icon size={22} color={s.color} />
+                                </div>
+                                <div style={{ fontSize: 30, fontWeight: 900, color: 'rgba(255,255,255,0.05)', letterSpacing: '-0.04em', marginBottom: 8 }}>{s.num}</div>
+                                <div style={{ fontSize: 13, fontWeight: 800, color: 'white', textAlign: 'center', marginBottom: 8 }}>{s.title}</div>
+                                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center', lineHeight: 1.6 }}>{s.desc}</div>
+                            </div>
+                        </FadeUp>
+                    ))}
+                </div>
+
+                {/* Code block */}
+                <FadeUp delay={0.5}>
+                    <div style={{
+                        marginTop: 64, background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 20, padding: '28px 32px',
+                        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24,
                     }}>
-                        Built for every stakeholder<br />in the crisis chain.
-                    </h2>
-                </motion.div>
+                        {[
+                            { label: 'NDVI Crop Health Algorithm', color: C.primaryL, code: `# Sentinel-2 NDVI\nndvi = (NIR - RED) / (NIR + RED)\n\n# Health Score\nif ndvi > 0.6:  score = "Healthy"\nelif ndvi > 0.3: score = "Fair"\nelse:            score = "Critical"` },
+                            { label: 'Mission Dispatch Trigger', color: C.orange, code: `# Auto Email Alert\nif health_score < 40:\n    send_mission(\n        to = farmer.email,\n        dose = "60-80 kg/ha Urea",\n        lang = ["hi", "en"],\n        mission_id = generate_id()\n    )` },
+                        ].map(block => (
+                            <div key={block.label}>
+                                <div style={{ fontSize: 10, color: block.color, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 12 }}>{block.label}</div>
+                                <pre style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.65)', background: 'rgba(0,0,0,0.35)', borderRadius: 12, padding: '16px 18px', border: '1px solid rgba(255,255,255,0.07)', lineHeight: 1.75, fontFamily: 'ui-monospace, monospace', margin: 0, overflow: 'auto' }}>
+                                    {block.code}
+                                </pre>
+                            </div>
+                        ))}
+                    </div>
+                </FadeUp>
+            </div>
+        </section>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   TESTIMONIAL / IMPACT SECTION
+───────────────────────────────────────────── */
+function Impact() {
+    const cards = [
+        { Icon: TrendingUp, color: C.green, bg: '#F0FDF4', border: '#BBF7D0', title: 'Increase Yield', stat: '+23%', desc: 'Average yield improvement when farmers act on NETRA.AI fertilizer recommendations within the satellite-suggested window.' },
+        { Icon: Droplets, color: C.accent, bg: '#EFF6FF', border: '#BFDBFE', title: 'Save Water', stat: '40%', desc: 'Reduction in water usage through satellite-guided precision irrigation instead of blanket flood irrigation.' },
+        { Icon: AlertTriangle, color: C.orange, bg: '#FFF7ED', border: '#FED7AA', title: 'Early Warning', stat: '48hr', desc: 'Average advance warning time before visible crop stress. Farmers can act before revenue loss occurs.' },
+    ];
+
+    return (
+        <section style={{ background: C.bg, padding: '100px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <FadeUp>
+                    <div style={{ textAlign: 'center', marginBottom: 60 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: C.primary, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Real Impact</div>
+                        <h2 style={{ fontSize: 'clamp(28px, 4vw, 46px)', fontWeight: 900, color: C.text, letterSpacing: '-0.03em', lineHeight: 1.15 }}>
+                            Satellites that Actually
+                            <span style={{ color: C.primary }}> Help Farmers</span>
+                        </h2>
+                    </div>
+                </FadeUp>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
-                    {stakeholders.map((s, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={inView ? { opacity: 1, y: 0 } : {}}
-                            transition={{ duration: 0.6, delay: i * 0.15 }}
-                            style={{
-                                padding: 30, borderRadius: 20,
-                                background: 'rgba(255,255,255,0.025)',
-                                border: `1px solid ${BORDER}`,
-                            }}
-                        >
+                    {cards.map((c, i) => (
+                        <FadeUp key={i} delay={i * 0.1}>
                             <div style={{
-                                width: 44, height: 44, borderRadius: 12,
-                                background: `${s.color}12`,
-                                border: `1px solid ${s.color}25`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                marginBottom: 20,
-                            }}>
-                                <s.icon size={20} color={s.color} />
+                                background: 'white', border: `1px solid ${C.border}`,
+                                borderRadius: 20, padding: '28px',
+                                transition: 'all 0.2s', cursor: 'default',
+                            }}
+                                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = `0 12px 36px ${c.color}14`; el.style.borderColor = `${c.color}30`; }}
+                                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.boxShadow = 'none'; el.style.borderColor = C.border; }}
+                            >
+                                <div style={{ width: 48, height: 48, borderRadius: 14, background: c.bg, border: `1px solid ${c.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                                    <c.Icon size={22} color={c.color} />
+                                </div>
+                                <div style={{ fontSize: 42, fontWeight: 900, color: c.color, letterSpacing: '-0.04em', marginBottom: 6 }}>{c.stat}</div>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: C.text, marginBottom: 10 }}>{c.title}</div>
+                                <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7 }}>{c.desc}</p>
                             </div>
-                            <h3 style={{ fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 20 }}>{s.title}</h3>
-                            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                                {s.items.map((item, j) => (
-                                    <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                                        <Check size={14} color={s.color} style={{ flexShrink: 0, marginTop: 2 }} />
-                                        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
+                        </FadeUp>
                     ))}
                 </div>
             </div>
@@ -886,273 +676,155 @@ function StakeholdersSection() {
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Tech Stack
-// ─────────────────────────────────────────────────────────────
-function TechStack() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-80px' });
-
-    const stack = [
-        { label: 'Next.js 16', sub: 'App Router', color: '#fff' },
-        { label: 'TypeScript', sub: '5.9', color: '#3B82F6' },
-        { label: 'Python 3.10', sub: 'Pipeline', color: '#F59E0B' },
-        { label: 'Google Earth Engine', sub: 'GEE API', color: TEAL_LIGHT },
-        { label: 'MongoDB Atlas', sub: 'Data Store', color: '#22C55E' },
-        { label: 'Framer Motion', sub: 'Animations', color: '#EC4899' },
-        { label: 'Recharts', sub: 'Analytics', color: ORANGE },
-        { label: 'Leaflet', sub: 'Geo Maps', color: '#22C55E' },
-        { label: 'Tailwind CSS 4', sub: 'Styling', color: CYAN },
-        { label: 'Mongoose', sub: 'ODM', color: '#EF4444' },
-        { label: 'SWR', sub: 'Data Fetch', color: '#fff' },
-        { label: 'Next-Auth', sub: 'Auth', color: '#A78BFA' },
+/* ─────────────────────────────────────────────
+   CHECKLIST SECTION  (what it checks)
+───────────────────────────────────────────── */
+function Checklist() {
+    const items = [
+        'NDVI crop health score per field — updated every satellite pass',
+        'Soil moisture & water deficit calculation in litres',
+        'Nitrogen (Khad) demand score per hectare',
+        'Risk level: CRITICAL / HIGH / MEDIUM / LOW per farm',
+        'One-click mission dispatch with email alert in Hindi + English',
+        'Live weather integration (Open-Meteo) for each district',
+        'Interactive India map with zoom-to-field satellite overlay',
+        'PDF report generation for sharing with district officers',
     ];
 
     return (
-        <section ref={ref} style={{ background: BG2, padding: '100px 24px', borderTop: `1px solid ${BORDER}` }}>
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.6 }}
-                    style={{ textAlign: 'center', marginBottom: 48 }}
-                >
-                    <span style={{
-                        fontSize: 10, fontWeight: 900, color: 'rgba(255,255,255,0.3)',
-                        letterSpacing: '0.2em', textTransform: 'uppercase',
-                    }}>Technology Stack</span>
-                </motion.div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-                    {stack.map((t, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.85 }}
-                            animate={inView ? { opacity: 1, scale: 1 } : {}}
-                            transition={{ duration: 0.4, delay: i * 0.05 }}
-                            style={{
-                                padding: '10px 18px', borderRadius: 10,
-                                background: 'rgba(255,255,255,0.03)',
-                                border: `1px solid ${BORDER}`,
-                                display: 'flex', alignItems: 'center', gap: 10,
-                            }}
-                        >
-                            <div style={{ width: 7, height: 7, borderRadius: '50%', background: t.color, flexShrink: 0 }} />
-                            <div>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>{t.label}</div>
-                                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>{t.sub}</div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────
-// PS-06 Compliance Table
-// ─────────────────────────────────────────────────────────────
-function ComplianceSection() {
-    const ref = useRef(null);
-    const inView = useInView(ref, { once: true, margin: '-80px' });
-
-    const requirements = [
-        ['Ingest Sentinel-1/2 & Landsat satellite imagery', 'cosmeon/pipeline/runner.py + GEE API'],
-        ['Automated flood detection using image processing', 'SAR VV-backscatter + NDWI thresholding'],
-        ['Change detection vs. historical baseline', 'JRC Global Water multi-year comparison'],
-        ['Structured output — area stats, risk labels', '/api/insights + MongoDB FloodEvent schema'],
-        ['State table with timestamps & regions', 'District MongoDB collection with event history'],
-        ['Detailed pipeline processing logs', '/logs page + ProcessingLog collection'],
-        ['External data integration (rainfall, elevation, population)', 'CHIRPS + Copernicus DEM + WorldPop'],
-        ['Predictive flood risk modeling', '7-day CHIRPS trend analysis'],
-        ['REST API for programmatic access', '15+ endpoints under /api/'],
-        ['Interactive dashboard visualizing flood zones', 'Next.js + Leaflet + Recharts'],
-        ['Confidence scoring for risk areas', 'Bayesian fusion model (0–100%)'],
-    ];
-
-    return (
-        <section ref={ref} style={{ background: BG, padding: '100px 24px' }}>
-            <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    style={{ textAlign: 'center', marginBottom: 52 }}
-                >
-                    <span style={{ fontSize: 10, fontWeight: 900, color: TEAL_LIGHT, letterSpacing: '0.15em', textTransform: 'uppercase', display: 'block', marginBottom: 14 }}>
-                        PS-06 Coverage
-                    </span>
-                    <h2 style={{ fontSize: 'clamp(24px, 3.5vw, 40px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>
-                        Every requirement. Fully addressed.
-                    </h2>
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: 0.2 }}
-                    style={{
-                        borderRadius: 20, overflow: 'hidden',
-                        border: `1px solid ${BORDER}`,
-                    }}
-                >
-                    {requirements.map(([req, impl], i) => (
-                        <div key={i} style={{
-                            display: 'grid', gridTemplateColumns: '28px 1fr 1fr',
-                            gap: 20, padding: '16px 24px',
-                            borderBottom: i < requirements.length - 1 ? `1px solid ${BORDER}` : 'none',
-                            background: i % 2 === 0 ? 'rgba(255,255,255,0.015)' : 'transparent',
-                            alignItems: 'center',
-                        }}>
-                            <div style={{
-                                width: 22, height: 22, borderRadius: 6,
-                                background: `${TEAL}20`, border: `1px solid ${TEAL}40`,
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            }}>
-                                <Check size={12} color={TEAL_LIGHT} />
-                            </div>
-                            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{req}</span>
-                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontFamily: 'ui-monospace, monospace', letterSpacing: '0.02em' }}>
-                                {impl}
-                            </span>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-        </section>
-    );
-}
-
-// ─────────────────────────────────────────────────────────────
-// CTA
-// ─────────────────────────────────────────────────────────────
-function CTASection() {
-    return (
-        <section style={{
-            background: BG2,
-            padding: '120px 24px',
-            borderTop: `1px solid ${BORDER}`,
-            position: 'relative', overflow: 'hidden',
-        }}>
-            <div style={{
-                position: 'absolute', top: '50%', left: '50%',
-                transform: 'translate(-50%,-50%)',
-                width: 600, height: 300,
-                background: `radial-gradient(ellipse, ${TEAL}20 0%, transparent 70%)`,
-                filter: 'blur(60px)',
-            }} />
-
-            <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.7 }}
-                >
-                    <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 8,
-                        padding: '8px 16px', borderRadius: 999,
-                        background: `${TEAL}15`, border: `1px solid ${TEAL}35`,
-                        marginBottom: 28,
-                    }}>
-                        <Lock size={12} color={TEAL_LIGHT} />
-                        <span style={{ fontSize: 11, fontWeight: 800, color: TEAL_LIGHT, letterSpacing: '0.08em' }}>
-                            Zero mock data · 100% satellite truth
-                        </span>
-                    </div>
-
-                    <h2 style={{
-                        fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 900,
-                        color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 20,
-                    }}>
-                        NETRA.AI doesn't just show<br />you a map.
-                    </h2>
-                    <p style={{
-                        fontSize: 17, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, marginBottom: 44,
-                    }}>
-                        It tells you exactly who is at risk, how much land is lost, and what the financial impact will be — all powered by the eye in the sky.
-                    </p>
-
-                    <div style={{ display: 'flex', gap: 14, justifyContent: 'center' }}>
+        <section style={{ background: 'white', padding: '80px 32px' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+                <FadeUp>
+                    <div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: C.primary, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>What's Included</div>
+                        <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 900, color: C.text, letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: 24 }}>
+                            Everything in one<br />
+                            <span style={{ color: C.primary }}>Fasal Seva Platform</span>
+                        </h2>
                         <a href="/login" style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '14px 32px', borderRadius: 12,
-                            background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
-                            color: '#fff', fontWeight: 800, fontSize: 15,
-                            textDecoration: 'none',
-                            boxShadow: `0 4px 28px ${TEAL}50`,
-                        }}>
-                            Open the Dashboard <ArrowRight size={17} />
-                        </a>
-                        <a href="https://github.com/CyberJarvis/Refactor_PS06" target="_blank" rel="noopener noreferrer" style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '14px 28px', borderRadius: 12,
-                            border: `1px solid ${BORDER}`,
-                            color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: 15,
-                            textDecoration: 'none',
-                        }}>
-                            View on GitHub
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            padding: '12px 24px', borderRadius: 10,
+                            background: `linear-gradient(135deg, ${C.primary}, ${C.primaryL})`,
+                            color: 'white', fontWeight: 700, fontSize: 14,
+                            textDecoration: 'none', cursor: 'pointer',
+                            boxShadow: `0 4px 16px ${C.primary}35`, transition: 'all 0.18s',
+                        }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-1px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; }}
+                        >
+                            Start Using Free <ArrowRight size={14} />
                         </a>
                     </div>
-                </motion.div>
+                </FadeUp>
+
+                <FadeUp delay={0.1}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {items.map((item, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 12 }}>
+                                <CheckCircle size={16} color={C.green} style={{ flexShrink: 0, marginTop: 1 }} />
+                                <span style={{ fontSize: 13, color: C.text, fontWeight: 600, lineHeight: 1.5 }}>{item}</span>
+                            </div>
+                        ))}
+                    </div>
+                </FadeUp>
             </div>
         </section>
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Footer
-// ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   FINAL CTA
+───────────────────────────────────────────── */
+function FinalCTA() {
+    return (
+        <section style={{ background: C.bgDark, padding: '100px 32px' }}>
+            <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
+                <FadeUp>
+                    <div style={{
+                        width: 64, height: 64, borderRadius: 18,
+                        background: `linear-gradient(135deg, ${C.primary}, ${C.primaryL})`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        margin: '0 auto 24px', boxShadow: `0 8px 24px ${C.primary}50`,
+                    }}>
+                        <Satellite size={28} color="white" />
+                    </div>
+                    <h2 style={{ fontSize: 'clamp(30px, 5vw, 54px)', fontWeight: 900, color: 'white', letterSpacing: '-0.035em', lineHeight: 1.12, marginBottom: 18 }}>
+                        Your farm deserves<br />
+                        <span style={{ background: `linear-gradient(135deg, ${C.primaryL}, #22D3EE)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            satellite-grade intelligence.
+                        </span>
+                    </h2>
+                    <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 40, maxWidth: 480, margin: '0 auto 40px' }}>
+                        Join NETRA.AI — Kisan Saathi. Free to use. Powered by real satellite data. Built for India's 142 million farmers.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                        <a href="/login" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 8,
+                            padding: '15px 32px', borderRadius: 12,
+                            background: `linear-gradient(135deg, ${C.primary}, ${C.primaryL})`,
+                            color: 'white', fontWeight: 800, fontSize: 15,
+                            textDecoration: 'none', cursor: 'pointer',
+                            boxShadow: `0 6px 28px ${C.primary}55`, transition: 'all 0.2s',
+                        }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)'; }}
+                        >
+                            Open Dashboard — It&apos;s Free <ArrowRight size={16} />
+                        </a>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', marginTop: 20 }}>
+                        No signup required · Real satellite data · HackX 4.0 Demo
+                    </p>
+                </FadeUp>
+            </div>
+        </section>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
 function Footer() {
     return (
-        <footer style={{
-            background: BG,
-            borderTop: `1px solid ${BORDER}`,
-            padding: '32px 24px',
-        }}>
-            <div style={{
-                maxWidth: 1200, margin: '0 auto',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
+        <footer style={{ background: '#050D1A', padding: '36px 32px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                        width: 28, height: 28, borderRadius: 7,
-                        background: `linear-gradient(135deg, ${TEAL}, ${TEAL_LIGHT})`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <Satellite size={13} color="white" />
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: `linear-gradient(135deg, ${C.bgDark}, ${C.primary})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Satellite size={14} color="white" />
                     </div>
-                    <span style={{ fontWeight: 800, fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>NETRA.AI</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
+                        NETRA.AI · Kisan Saathi · HackX 4.0 · © 2026
+                    </span>
                 </div>
-
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', textAlign: 'center' }}>
-                    HackX 4.0 · Problem Statement 06 · Satellite Data to Insight Engine for Climate Risk
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px #22C55E' }} />
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em' }}>SYSTEM ONLINE</span>
+                <div style={{ display: 'flex', gap: 20 }}>
+                    {['Sentinel-1', 'Sentinel-2', 'Google Earth Engine', 'Open-Meteo'].map(s => (
+                        <span key={s} style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontWeight: 600 }}>{s}</span>
+                    ))}
                 </div>
             </div>
         </footer>
     );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Root Export
-// ─────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   ROOT
+───────────────────────────────────────────── */
 export default function LandingPage() {
     return (
-        <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+        <div style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif", background: C.bg }}>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
             <Navbar />
             <Hero />
             <TrustStrip />
-            <ProblemSection />
-            <PipelineSection />
-            <FeaturesSection />
-            <StakeholdersSection />
-            <TechStack />
-            <ComplianceSection />
-            <CTASection />
+            <HowItWorks />
+            <Features />
+            <Pipeline />
+            <Impact />
+            <Checklist />
+            <FinalCTA />
             <Footer />
         </div>
     );

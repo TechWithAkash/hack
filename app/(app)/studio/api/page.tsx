@@ -27,7 +27,7 @@ export default function RESTApiEndpointPage() {
                         <Cpu size={24} className="text-teal-600" /> Pipeline API Interface
                     </h2>
                     <p style={{ fontSize: 13, color: '#64748B', marginTop: 4, fontWeight: 500 }}>
-                        Programmatic access to the distributed GEE Climate Intelligence Engine
+                        Programmatic access to the distributed GEE Precision Agronomy Engine
                     </p>
                 </div>
                 <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', color: '#0369A1', padding: '10px 20px', borderRadius: 12, fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 10 }}>

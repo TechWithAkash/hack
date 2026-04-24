@@ -85,12 +85,9 @@ const PULSE_STYLES = `
     .pulse-marker.selected::after { width: 50%; height: 50%; }
 `;
 
-function isSatellite(event: any): boolean {
-    return event.detectionMethod === 'ENSEMBLE' || event.detectionMethod === 'SAR' || event.detectionMethod === 'UNET';
-}
 
 function getEventCenter(e: any): [number, number] | null {
-    const geo = e.floodGeometry || e.districtId?.geometry;
+    const geo = e.farmId?.geometry;
     if (!geo || !geo.coordinates) return null;
 
     try {
@@ -100,10 +97,8 @@ function getEventCenter(e: any): [number, number] | null {
         if (type === 'Point') {
             coords = geo.coordinates;
         } else if (type === 'Polygon') {
-            // Find a point inside the first ring (usually the centroid or just the first point)
             coords = geo.coordinates[0][0];
         } else if (type === 'MultiPolygon') {
-            // Drill down into the first polygon, first ring, first coordinate
             const poly = geo.coordinates[0];
             if (poly && poly[0] && poly[0][0]) {
                 coords = poly[0][0];
@@ -111,7 +106,6 @@ function getEventCenter(e: any): [number, number] | null {
         }
 
         if (coords && coords.length >= 2) {
-            // Map uses [lat, lng], GeoJSON uses [lng, lat]
             if (coords[1] !== 0 && coords[0] !== 0) {
                 return [coords[1], coords[0]];
             }
@@ -129,7 +123,7 @@ function MapUpdater({ events }: { events: any[] }) {
             const group = new L.FeatureGroup(events.map(e => {
                 const center = getEventCenter(e);
                 if (center) return L.marker(center);
-                if (e.floodGeometry) return L.geoJSON(e.floodGeometry);
+                if (e.farmId?.geometry) return L.geoJSON(e.farmId.geometry);
                 return L.marker([20, 78]); // Fallback center
             }));
             const bounds = group.getBounds();
@@ -137,7 +131,7 @@ function MapUpdater({ events }: { events: any[] }) {
                 map.fitBounds(bounds, { padding: [100, 100], maxZoom: 10 });
             }
         }
-    }, [events.length, map]); // Only fit on initial load/filter change
+    }, [events.length, map]); 
     return null;
 }
 
@@ -154,7 +148,6 @@ function SelectionManager({ events, selectedId }: { events: any[], selectedId: s
 
         const center = getEventCenter(event);
         if (center) {
-            // Cinematic sweeping flight animation when a side panel item is clicked
             map.flyTo(center, 13, { 
                 duration: 2.5, 
                 easeLinearity: 0.15 
@@ -199,53 +192,65 @@ function InjectStyles() {
 }
 
 if (typeof window !== 'undefined' && !(window as any).dispatchMapAlert) {
-    (window as any).dispatchMapAlert = async (id: string, name: string, level: string, pop: number, lat: number, lng: number, btn: HTMLButtonElement) => {
+    // area and healthScore added as extra params (positions 7+)
+    (window as any).dispatchMapAlert = async (
+        id: string, name: string, level: string, score: number,
+        lat: number, lng: number, btn: HTMLButtonElement,
+        area?: string, healthScore?: number
+    ) => {
         if (!btn || btn.disabled) return;
-        
-        const originalText = btn.innerText;
-        const originalBg = btn.style.background;
-        
+        const orig = btn.innerText;
+        const origBg = btn.style.background;
         btn.disabled = true;
-        btn.innerText = "Sending...";
-        btn.style.background = "#94A3B8";
-        btn.style.cursor = "wait";
-
+        btn.innerText = '⏳ Dispatching…';
+        btn.style.background = '#6366F1';
+        btn.style.cursor = 'wait';
         try {
-            const res = await fetch('/api/alerts/send', {
+            const res = await fetch('/api/dispatch/mission', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, name, level, pop, lat, lng })
+                body: JSON.stringify({
+                    farmId: id,
+                    farmName: name,
+                    actionType: 'fertilizer',
+                    riskLevel: level,
+                    quantity: '60–80 kg/ha Urea',
+                    area: area || '—',
+                    healthScore: healthScore ?? score,
+                    lat, lng,
+                }),
             });
-            
-            if (!res.ok) throw new Error('API Error');
-            
-            btn.innerText = "Sent!";
-            btn.style.background = "#10B981";
+            const data = await res.json();
+            if (data.success) {
+                btn.innerText = `✓ ${data.missionId}`;
+                btn.style.background = '#10B981';
+                btn.animate([{ transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 280, fill: 'forwards' });
+            } else {
+                btn.innerText = 'Error — retry';
+                btn.style.background = '#EF4444';
+            }
         } catch (err) {
-            console.error(err);
-            btn.innerText = "Error";
-            btn.style.background = "#EF4444";
+            btn.innerText = 'Network Error';
+            btn.style.background = '#EF4444';
         } finally {
             setTimeout(() => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                    btn.style.background = originalBg;
-                    btn.style.cursor = "pointer";
-                }
-            }, 3000);
+                if (btn) { btn.disabled = false; btn.innerText = orig; btn.style.background = origBg; btn.style.cursor = 'pointer'; }
+            }, 5000);
         }
     };
 }
 
 function FloodPopupContent({ properties: p }: { properties: any }) {
-    const rc = RISK[p.riskLevel] ?? RISK.UNKNOWN;
-    const dn = p.districtName ?? p.districtId?.districtName ?? 'Field Observation';
-    const score = typeof p.riskScore === 'number' ? p.riskScore.toFixed(0) : '0';
+    let level = 'LOW';
+    if(p.healthScore < 50) level = 'MEDIUM';
+    if(p.healthScore < 25) level = 'CRITICAL';
+    const rc = RISK[level] ?? RISK.UNKNOWN;
+    
+    const dn = p.farmId?.farmName ?? 'Field Observation';
+    const score = typeof p.healthScore === 'number' ? p.healthScore.toFixed(0) : '0';
     const numScore = Number(score);
-    const area = typeof p.floodAreaKm2 === 'number' ? `${p.floodAreaKm2.toFixed(1)} km²` : '—';
-    const popRaw = typeof p.affectedPopEst === 'number' ? p.affectedPopEst : 0;
-    const pop = popRaw > 0 ? (popRaw / 1000).toFixed(1) + 'k' : '—';
+    const area = typeof p.farmId?.areaSqm === 'number' ? `${(p.farmId?.areaSqm / 10000).toFixed(2)} Ha` : '—';
+    const ndvi = p.avgNDVI ? p.avgNDVI.toFixed(2) : '—';
     const center = getEventCenter(p);
     const lat = center ? center[0] : 20.59;
     const lng = center ? center[1] : 78.96;
@@ -259,14 +264,14 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
                     <div style={{ fontWeight: 800, fontSize: '13px', letterSpacing: '0.05em', color: '#E2E8F0', textTransform: 'uppercase' }}>{dn}</div>
                 </div>
                 <div style={{ fontSize: '10px', background: `${rc.fill}20`, color: rc.fill, padding: '2px 6px', borderRadius: '4px', fontWeight: 800, border: `1px solid ${rc.fill}40` }}>
-                    {p.riskLevel}
+                    {level} HEALTH
                 </div>
             </div>
 
             {/* Confidence Bar */}
             <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#94A3B8', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    <span>Threat Confidence</span>
+                    <span>Crop Vitality Score</span>
                     <span style={{ color: numScore > 70 ? rc.fill : '#94A3B8' }}>{score}%</span>
                 </div>
                 <div style={{ height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -277,12 +282,12 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
             {/* Metrics Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Affected Area</div>
+                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Farm Area</div>
                     <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{area}</div>
                 </div>
                 <div style={{ background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Est. Personnel</div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{pop}</div>
+                    <div style={{ fontSize: '9px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Avg NDVI</div>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#F8FAFC' }}>{ndvi}</div>
                 </div>
             </div>
 
@@ -290,16 +295,16 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ fontSize: '10px', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0D7377', animation: 'pulse 2s infinite' }}/>
-                    {p.detectionMethod || 'ENSEMBLE'}
+                    {p.farmId?.cropType || 'Crop'}
                 </div>
                 <div 
                     dangerouslySetInnerHTML={{ __html: `
                         <button 
                             class="alert-btn"
-                            onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${p.riskLevel}', ${popRaw}, ${lat}, ${lng}, event.currentTarget)"
-                            style="background: #EF4444; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);"
+                            onclick="window.dispatchMapAlert('${p._id}', '${dn.replace(/'/g, "\\'")}', '${level}', ${numScore}, ${lat}, ${lng}, event.currentTarget, '${area}', ${numScore})"
+                            style="background: #10B981; color: white; border: none; border-radius: 4px; padding: 6px 14px; font-size: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; transition: 0.2s; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);"
                         >
-                            Send Alert
+                            Apply Fertilizer
                         </button>
                     ` }}
                 />
@@ -351,19 +356,25 @@ export default function FloodMap({ events, tileMode, geeTiles, onSelect, selecte
                 key={`sat-${events.length}-${selectedId}`}
                 data={{
                     type: 'FeatureCollection',
-                    features: events.filter(isSatellite).map(e => ({
+                    features: events.map(e => ({
                         type: 'Feature',
-                        geometry: e.floodGeometry,
+                        geometry: e.farmId?.geometry,
                         properties: e
-                    }))
+                    })).filter(f => !!f.geometry)
                 } as any}
-                style={(f: any) => ({
-                    fillColor: RISK[f.properties.riskLevel]?.fill || '#94A3B8',
-                    fillOpacity: f.properties._id === selectedId ? 0.7 : 0.4,
-                    color: RISK[f.properties.riskLevel]?.border || '#334155',
-                    weight: f.properties._id === selectedId ? 5 : 2,
-                    className: 'cosmeon-flood-polygon'
-                })}
+                style={(f: any) => {
+                    let level = 'LOW';
+                    if(f.properties.healthScore < 50) level = 'MEDIUM';
+                    if(f.properties.healthScore < 25) level = 'CRITICAL';
+                    
+                    return {
+                        fillColor: RISK[level]?.fill || '#94A3B8',
+                        fillOpacity: f.properties._id === selectedId ? 0.7 : 0.4,
+                        color: RISK[level]?.border || '#334155',
+                        weight: f.properties._id === selectedId ? 5 : 2,
+                        className: 'cosmeon-flood-polygon'
+                    };
+                }}
                 onEachFeature={(f, l) => {
                     const html = renderToStaticMarkup(<FloodPopupContent properties={f.properties} />);
                     l.bindPopup(html, { maxWidth: 300 });
@@ -376,9 +387,13 @@ export default function FloodMap({ events, tileMode, geeTiles, onSelect, selecte
                 const center = getEventCenter(e);
                 if (!center) return null;
 
+                let level = 'LOW';
+                if(e.healthScore < 50) level = 'MEDIUM';
+                if(e.healthScore < 25) level = 'CRITICAL';
+
                 const isSelected = selectedId === e._id;
                 const icon = L.divIcon({
-                    className: `pulse-marker pulse-${(e.riskLevel || 'LOW').toLowerCase()} ${isSelected ? 'selected' : ''}`,
+                    className: `pulse-marker pulse-${(level).toLowerCase()} ${isSelected ? 'selected' : ''}`,
                     iconSize: [isSelected ? 36 : 24, isSelected ? 36 : 24],
                     iconAnchor: [isSelected ? 18 : 12, isSelected ? 18 : 12]
                 });

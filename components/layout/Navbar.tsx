@@ -98,7 +98,7 @@ export default function Navbar() {
             {/* Left */}
             <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#0A1628', letterSpacing: '-0.01em' }}>
-                    Climate Risk Dashboard
+                    Precision Agriculture Dashboard
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
                     <span style={{ fontSize: 11, color: '#94A3B8' }}>

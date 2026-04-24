@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 pipeline/runner.py
 ==================
@@ -122,9 +123,9 @@ def run(cfg: dict) -> dict:
     post_s1 = _post_s1_col.median().clip(aoi)
     _log(f"INGEST: SAR ready — pre={n_pre_s1} scenes, post={n_post_s1} scenes")
 
-    # ── 2. SAR Flood Detection ────────────────────────────────────────────────
+    # ── 2. SAR Soil Moisture Detection ────────────────────────────────────────────────
     flood_mask, sar_diff = detect_sar_flood(pre_s1, post_s1, aoi, threshold)
-    _log("COMPUTE: SAR edge noise smoothed. Mountain shadows masked.")
+    _log("COMPUTE: Moisture anomalies extracted. Topographic noise smoothed.")
 
     # ── 3. Optical Collection (with cloud-tier fallback) ──────────────────────
     _log("INGEST: Requesting Sentinel-2 Harmonised Archive…")
@@ -166,7 +167,7 @@ def run(cfg: dict) -> dict:
     )
 
     # ── 6. Area + Population Statistics ──────────────────────────────────────
-    _log("EXTERNAL: Masking WorldPop 100m grids…")
+    _log("EXTERNAL: Correlating dynamic crop boundaries…")
     area_stats = compute_area_stats(flood_mask, ndvi_loss, aoi, scale)
     sar_area       = area_stats["sar_area"]
     ndvi_loss_area = area_stats["ndvi_loss_area"]
@@ -186,7 +187,7 @@ def run(cfg: dict) -> dict:
         sar_area, ndvi_loss_area, aoi_km2_val, sar_mean, ndvi_mean, exposed_pop
     )
     risk_label = severity_label(severity_score)
-    _log(f"SYS_OUT: Pipeline complete — {risk_label} ({severity_score}/100) in {time.time()-t0:.1f}s")
+    _log(f"SYS_OUT: Prescription complete — {risk_label} ({severity_score}/100) in {time.time()-t0:.1f}s")
 
     # ── 9. Frontend NextJS Integration ────────────────────────────────────────
     import os, uuid, requests

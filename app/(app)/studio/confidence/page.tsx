@@ -19,9 +19,9 @@ export default function ConfidenceEnginePage() {
     ];
 
     const techniqueItems = [
-        { title: 'Morphological Smoothing', icon: Database,   color: '#0EA5E9', desc: 'Applied 30m focal filter for contiguous damage zones.' },
-        { title: 'Consensus Masking',        icon: ShieldCheck, color: '#8B5CF6', desc: 'Cross-satellite binary consensus on orbital noise.' },
-        { title: 'Temporal Filter',          icon: Activity,    color: '#10B981', desc: 'Baselines from 5-year historical GSW datasets.' },
+        { title: 'Morphological Smoothing', icon: Database,   color: '#0EA5E9', desc: 'Applied 10m focal filter for contiguous nutrient deficit zones.' },
+        { title: 'Consensus Calibration',        icon: ShieldCheck, color: '#8B5CF6', desc: 'Cross-satellite multi-spectral consensus on structural crop health.' },
+        { title: 'Temporal Filter',          icon: Activity,    color: '#10B981', desc: 'Baselines normalized from historical seasonal harvest telemetry.' },
     ];
 
     return (
