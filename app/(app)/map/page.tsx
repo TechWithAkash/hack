@@ -445,8 +445,8 @@ export default function GeospatialMapPage() {
                             { emoji: '🔴', label: `${counts.CRITICAL} Khet`, sub: 'Abhi karo!' },
                             { emoji: '🟡', label: `${counts.MEDIUM} Khet`,   sub: 'Dhyan do' },
                             { emoji: '🟢', label: `${counts.LOW} Khet`,      sub: 'Theek hai' },
-                        ].map(({ emoji, label, sub }) => (
-                            <div key={label} style={{ textAlign: 'center' }}>
+                        ].map(({ emoji, label, sub }, i) => (
+                            <div key={`khet-${i}`} style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: 16 }}>{emoji}</div>
                                 <div style={{ fontSize: 11, fontWeight: 800, color: '#0F172A' }}>{label}</div>
                                 <div style={{ fontSize: 9, color: '#64748B' }}>{sub}</div>

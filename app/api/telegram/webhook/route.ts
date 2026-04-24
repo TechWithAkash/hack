@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb';
+import { connectDB } from '@/lib/mongodb';
 import { PlotHealthLog } from '@/lib/models/PlotHealthLog';
 import { FarmPlot } from '@/lib/models/FarmPlot';
 
@@ -57,12 +57,91 @@ export async function POST(req: NextRequest) {
                             '',
                             '✅ Aap "Mark Fertilized" button tap karke map update kar sakte ho — Red se Green ho jaayega!',
                             '',
+                            '📍 *NEW:* Aap apna live location (Drop Pin) yahan bhej sakte hain aur website map directly apke location pe aa jayega!',
+                            '',
                             '🛰 NETRA.AI · HackX 4.0 · Kisan Saathi',
                         ].join('\n'),
                     }),
                 });
             }
             return NextResponse.json({ ok: true });
+        }
+
+        // ── Handle incoming Location or Text (Mode 3 Sync) ───────────────────
+        if (msg) {
+            let lat: number | null = null;
+            let lng: number | null = null;
+            let locationSource = 'unknown';
+
+            if (msg.location) {
+                lat = msg.location.latitude;
+                lng = msg.location.longitude;
+                locationSource = 'GPS Pin';
+            } else if (msg.text && !msg.text.startsWith('/')) {
+                // Try geocoding the text
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(msg.text)}`,
+                        {
+                            headers: {
+                                'User-Agent': 'NETRA_AI_Hackathon_Bot/1.0 (contact@netra.ai)'
+                            }
+                        }
+                    );
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            lat = parseFloat(data[0].lat);
+                            lng = parseFloat(data[0].lon);
+                            locationSource = `Search: ${msg.text}`;
+                        }
+                    } else {
+                        console.error(`Nominatim API returned ${res.status}: ${res.statusText}`);
+                    }
+                } catch (e) {
+                    console.error("Telegram geocoding failed", e);
+                }
+            }
+
+            if (lat !== null && lng !== null) {
+                const fromName = msg.from?.first_name || 'Farmer';
+                
+                // Save to global memory (works great for hackathon local dev)
+                const globalAny = global as any;
+                globalAny.latestTelegramLocation = {
+                    lat, lng,
+                    timestamp: Date.now(),
+                    user: fromName
+                };
+
+                // Reply to acknowledge receipt
+                if (BOT_TOKEN) {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: msg.chat.id,
+                            text: `✅ Location acquired via ${locationSource}, ${fromName}!\n\nLatitude: ${lat.toFixed(4)}\nLongitude: ${lng.toFixed(4)}\n\n_Map on dashboard is updating..._`,
+                            parse_mode: 'Markdown'
+                        }),
+                    });
+                }
+                return NextResponse.json({ ok: true });
+            } else if (msg.text && !msg.text.startsWith('/')) {
+                // We tried to parse it but couldn't find a location
+                if (BOT_TOKEN) {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: msg.chat.id,
+                            text: `❌ Could not find a location for "${msg.text}".\nPlease send a GPS Pin or try another village name.`,
+                        }),
+                    });
+                }
+                return NextResponse.json({ ok: true });
+            }
         }
 
         // ── Handle inline button callback ────────────────────────────────────
@@ -96,7 +175,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (action === 'mark_done') {
-            await dbConnect();
+            await connectDB();
 
             // Update FarmPlot to GOOD if we have a real farmId
             if (farmId && farmId !== 'na') {

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Satellite, Eye, EyeOff, ArrowRight, Shield, Lock, Sparkles, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const DEMO_EMAIL = 'admin@netra.ai';
+const DEMO_EXPERT = 'expert@netra.ai';
+const DEMO_FARMER = 'farmer@netra.ai';
 const DEMO_PASS = 'netra2026';
 
 export default function LoginPage() {
@@ -16,8 +17,8 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const fillDemo = () => {
-        setEmail(DEMO_EMAIL);
+    const fillDemo = (type: 'expert' | 'farmer') => {
+        setEmail(type === 'expert' ? DEMO_EXPERT : DEMO_FARMER);
         setPassword(DEMO_PASS);
         setError('');
     };
@@ -28,10 +29,12 @@ export default function LoginPage() {
         setError('');
 
         setTimeout(() => {
-            if (email === DEMO_EMAIL && password === DEMO_PASS) {
+            if ((email === DEMO_EXPERT || email === DEMO_FARMER) && password === DEMO_PASS) {
+                // Set RBAC Session State
+                sessionStorage.setItem('netra_role', email === DEMO_FARMER ? 'FARMER' : 'EXPERT');
                 router.push('/dashboard');
             } else {
-                setError('Invalid credentials. Use the demo account below.');
+                setError('Invalid credentials. Use the demo accounts below.');
                 setLoading(false);
             }
         }, 1200);
@@ -343,34 +346,38 @@ export default function LoginPage() {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
                             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>ID:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_EMAIL}</strong>
+                                <span>Expert:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_EXPERT}</strong>
                             </div>
                             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>KY:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_PASS}</strong>
+                                <span>Farmer:</span> <strong style={{ color: 'rgba(255,255,255,0.9)', fontFamily: 'monospace' }}>{DEMO_FARMER}</strong>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={fillDemo}
-                            style={{
-                                width: '100%', padding: '10px 0',
-                                background: 'rgba(20,165,170,0.1)',
-                                border: '1px solid rgba(20,165,170,0.2)',
-                                borderRadius: 10, color: '#14A5AA',
-                                fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                                transition: 'all 0.2s',
-                            }}
-                            onMouseEnter={e => { 
-                                e.currentTarget.style.background = 'rgba(20,165,170,0.2)'; 
-                                e.currentTarget.style.color = '#fff';
-                            }}
-                            onMouseLeave={e => { 
-                                e.currentTarget.style.background = 'rgba(20,165,170,0.1)'; 
-                                e.currentTarget.style.color = '#14A5AA';
-                            }}
-                        >
-                            Auto-Fill Credentials
-                        </button>
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button
+                                type="button"
+                                onClick={() => fillDemo('expert')}
+                                style={{
+                                    flex: 1, padding: '10px 0',
+                                    background: 'rgba(20,165,170,0.1)', border: '1px solid rgba(20,165,170,0.2)',
+                                    borderRadius: 10, color: '#14A5AA', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Expert Role
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => fillDemo('farmer')}
+                                style={{
+                                    flex: 1, padding: '10px 0',
+                                    background: 'rgba(22,163,74,0.1)', border: '1px solid rgba(22,163,74,0.2)',
+                                    borderRadius: 10, color: '#16A34A', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                Farmer Role
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
             </div>

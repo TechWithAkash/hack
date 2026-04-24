@@ -62,6 +62,12 @@ export function StudioProvider({ children }: { children: ReactNode }) {
     const [baseLayer, setBaseLayer] = useState<'light' | 'dark' | 'satellite' | 'terrain'>('satellite');
     const [aoiMode, setAoiMode] = useState<'draw' | 'manual'>('draw');
 
+    // ── RBAC Session Init ──
+    React.useEffect(() => {
+        const role = sessionStorage.getItem('netra_role');
+        if (role === 'FARMER') setFarmerMode(true);
+    }, []);
+
     const handleRun = async (overrideCfg?: any) => {
         const currentCfg = overrideCfg || cfg;
 

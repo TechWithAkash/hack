@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import useSWR from 'swr';
 import StatsGrid from '@/components/dashboard/StatsGrid';
 import WeatherPanel from '@/components/dashboard/WeatherPanel';
 import { RefreshCw, Satellite, Zap, FileText, ArrowRight, Droplets, FlaskConical, AlertTriangle, CheckCircle, Clock, Map } from 'lucide-react';
 import Link from 'next/link';
+import FarmerDashboard from '@/components/dashboard/FarmerDashboard';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -156,9 +157,9 @@ function AlertBanner({ events }: { events: any[] }) {
 }
 
 /* ════════════════════════════════════════
-   MAIN DASHBOARD PAGE
+   EXPERT DASHBOARD PAGE
 ════════════════════════════════════════ */
-export default function Dashboard() {
+export function ExpertDashboard() {
     const { data: summaryData, mutate, isLoading: sumLoading } = useSWR('/api/insights/summary', fetcher, { refreshInterval: 60000 });
     const { data: latestData } = useSWR('/api/insights/latest?limit=20', fetcher, { refreshInterval: 60000 });
 
@@ -390,4 +391,15 @@ export default function Dashboard() {
             `}</style>
         </div>
     );
+}
+
+export default function Dashboard() {
+    const [role, setRole] = useState<'EXPERT' | 'FARMER' | null>(null);
+    
+    useEffect(() => {
+        setRole(sessionStorage.getItem('netra_role') as any || 'EXPERT');
+    }, []);
+
+    if (role === null) return <div style={{ padding: 40, textAlign: 'center', opacity: 0.5 }}>Authenticating Role...</div>;
+    return role === 'FARMER' ? <FarmerDashboard /> : <ExpertDashboard />;
 }

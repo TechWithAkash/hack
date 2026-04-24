@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { StudioProvider, useStudio } from '@/components/studio/StudioContext';
-import { Satellite as SatelliteIcon, Sprout, Cpu, BarChart2, Leaf, MessageSquare, FileText } from 'lucide-react';
+import { Satellite as SatelliteIcon, Sprout, Cpu, BarChart2, Leaf, MessageSquare, FileText, Plane } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════
    FARMER SIDEBAR — Simple 3-step flow
@@ -315,9 +315,17 @@ function EngineerSidebar() {
                     cursor: loading ? 'not-allowed' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s',
                 }}>
-                    {loading
-                        ? <><div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', animation: 'spin 0.8s linear infinite' }} />Processing…</>
-                        : <><Cpu size={13} />Run Pipeline</>}
+                    {loading ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', animation: 'spin 0.8s linear infinite' }} />
+                            <span>Processing…</span>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Cpu size={13} />
+                            <span>Run Pipeline</span>
+                        </div>
+                    )}
                 </button>
             </div>
         </div>
@@ -408,6 +416,8 @@ const TABS_FARMER = [
 
 const TABS_ENGINEER = [
     { path: '/studio/spatial',    icon: SatelliteIcon, label: 'Map View'        },
+    { path: '/studio/uav',        icon: Cpu,           label: 'LIVE UAV Feed'   },
+    { path: '/studio/simulator',  icon: Plane,         label: 'PELICAN 3D Simulation' },
     { path: '/studio/core',       icon: Cpu,           label: 'Soil Moisture'   },
     { path: '/studio/veg',        icon: Leaf,          label: 'Crop Health'     },
     { path: '/studio/risk',       icon: BarChart2,     label: 'Risk'            },

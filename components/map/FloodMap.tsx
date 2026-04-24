@@ -313,15 +313,18 @@ function FloodPopupContent({ properties: p }: { properties: any }) {
     );
 }
 
+import LocationOnboardingPanel from './LocationOnboardingPanel';
+
 interface FloodMapProps {
     events: any[];
     tileMode: string;
     geeTiles?: Record<string, string>;
     onSelect?: (id: string) => void;
     selectedId?: string | null;
+    onPolygonChange?: (geoJson: any) => void; // Allow parent to catch the onboarding polygon
 }
 
-export default function FloodMap({ events, tileMode, geeTiles, onSelect, selectedId }: FloodMapProps) {
+export default function FloodMap({ events, tileMode, geeTiles, onSelect, selectedId, onPolygonChange }: FloodMapProps) {
     return (
         <MapContainer
             center={[20.59, 78.96]}
@@ -333,6 +336,30 @@ export default function FloodMap({ events, tileMode, geeTiles, onSelect, selecte
             <MapUpdater events={events} />
             <SelectionManager events={events} selectedId={selectedId} />
             <ZoomControl position="bottomright" />
+
+            {/* NEW: Multi-mode Location Onboarding Panel */}
+            <LocationOnboardingPanel 
+                onComplete={async (geoJson: any) => {
+                    console.log("[Map] New location onboarded:", geoJson);
+                    try {
+                        const res = await fetch('/api/farm', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ geoJson, name: 'Farmer Onboarded Plot', cropType: 'Wheat' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert("✅ Farm boundary successfully saved to Database!");
+                            window.location.reload(); // Refresh to pull DB update
+                        } else {
+                            alert("Failed to save: " + data.error);
+                        }
+                    } catch (err) {
+                        alert("Network error while saving.");
+                    }
+                    if (onPolygonChange) onPolygonChange(geoJson);
+                }} 
+            />
 
             <TileLayer
                 key={tileMode}
